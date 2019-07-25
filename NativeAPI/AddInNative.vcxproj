@@ -217,7 +217,6 @@
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="CAddInNative.cpp" />
-    <ClCompile Include="FieldValidators.cpp" />
     <ClCompile Include="RabbitMQClient.cpp" />
     <ClCompile Include="SimplePocoHandler.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -228,7 +227,6 @@
   <ItemGroup>
     <ClInclude Include="addin\stdafx.h" />
     <ClInclude Include="CAddInNative.h" />
-    <ClInclude Include="FieldValidators.h" />
     <ClInclude Include="RabbitMQClient.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SimplePocoHandler.h" />

@@ -51,9 +51,6 @@
     <ClCompile Include="CAddInNative.cpp">
       <Filter>Source Files\native</Filter>
     </ClCompile>
-    <ClCompile Include="FieldValidators.cpp">
-      <Filter>Source Files\rmq</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addin\stdafx.h">
@@ -73,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="CAddInNative.h">
       <Filter>Header Files\native</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldValidators.h">
-      <Filter>Header Files\rmq</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
