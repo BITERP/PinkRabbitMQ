@@ -1,4 +1,4 @@
-# Native Rabbit MQ library
+# Pink Rabbit MQ library
 [![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](http://ci.bit-erp.ru/view/DevOpsServices/job/ci/job/buildCProject/job/steps/job/buildCProject/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
