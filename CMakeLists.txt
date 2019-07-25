@@ -1,5 +1,5 @@
-# Cmake script for project AddInNative
-# autor: 1C
+# Cmake script for background building 64 bit release project library PinkRabbitMQ
+
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
 
