@@ -6,7 +6,6 @@
 [![Sonar bugs](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=bugs)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar code smells](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=code_smells)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar dublications](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar dublications](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar lines of code](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=ncloc)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar technical debt](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=sqale_index)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar vulnerables](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=vulnerabilities)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
