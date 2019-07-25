@@ -244,7 +244,7 @@ cmake --build . --config Release
 
 ## Лицензия
 
-Лицензировано на условиях Apache License 2.0. Смотрите файл [LICENSE](LICENSE)
+Лицензировано на условиях MIT. Смотрите файл [LICENSE](LICENSE)
 
 ## Используемые сторонние продукты
 
