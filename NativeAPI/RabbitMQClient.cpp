@@ -85,6 +85,8 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 	}
 	else {
 		updateLastError("Exchange type not supported!");
+		channel->close();
+		delete channel;
 		return false;
 	}
 
@@ -138,9 +140,8 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
 	return result;
 }
 
-std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool exclusive, bool autodelete) {
+std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete) {
 
-	exclusive = false;
 	updateLastError("");
 
 	AMQP::Channel* channel = openChannel();

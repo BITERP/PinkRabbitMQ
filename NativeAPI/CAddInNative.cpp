@@ -514,7 +514,6 @@ bool CAddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 		Utils::wsToString(paParams[0].pwstrVal),
 		paParams[1].bVal,
 		paParams[2].bVal,
-		paParams[3].bVal,
 		paParams[4].bVal
 	);
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(queueName).c_str());

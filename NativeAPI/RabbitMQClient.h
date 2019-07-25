@@ -23,7 +23,7 @@ public:
 	bool basicReject();
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
 	bool deleteExchange(const std::string& name, bool ifunused);
-	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool exclusive, bool autodelete);
+	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete);
 	bool deleteQueue(const std::string& name, bool onlyIfIdle, bool onlyIfEmpty);
 	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);

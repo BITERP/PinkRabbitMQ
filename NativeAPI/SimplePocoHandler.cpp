@@ -13,7 +13,7 @@ namespace
 	class Buffer
 	{
 	public:
-		Buffer(size_t size) :
+		explicit Buffer(size_t size) :
 			m_data(size, 0),
 			m_use(0)
 		{
