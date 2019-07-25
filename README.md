@@ -1,8 +1,7 @@
 # Native Rabbit MQ library
 [![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](http://ci.bit-erp.ru/view/DevOpsServices/job/ci/job/buildCProject/job/steps/job/buildCProject/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ripreal/nativerabbitmq/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/ripreal/nativerabbitmq.svg)](https://github.com/ripreal/nativerabbitmq/releases)
-[![BCH compliance](https://bettercodehub.com/edge/badge/ripreal/nativerabbitmq?branch=master)](https://bettercodehub.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
 
 [![Sonar bugs](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=bugs)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
 [![Sonar code smells](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=code_smells)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
