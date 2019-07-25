@@ -1,0 +1,141 @@
+import "oaidl.idl";
+import "ocidl.idl";
+	
+	[
+		object,
+		uuid(AB634001-F13D-11d0-A459-004095E1DAEA),
+		helpstring("IInitDone Interface"),
+		pointer_default(unique)
+	]
+	interface IInitDone : IUnknown
+	{
+		[helpstring("method Init")] HRESULT Init([in] IDispatch *pConnection);
+		[helpstring("method Done")] HRESULT Done();
+		[helpstring("method GetInfo")] HRESULT GetInfo([in,out] SAFEARRAY (VARIANT) *pInfo);
+	};
+
+	[
+		object,
+		uuid(AB634002-F13D-11d0-A459-004095E1DAEA),
+		helpstring("IPropertyProfile Interface"),
+		pointer_default(unique)
+	]
+	interface IPropertyProfile : IPropertyBag
+	{
+        [helpstring("method RegisterProfileAs")] HRESULT RegisterProfileAs(BSTR bstrProfileName);
+	};
+
+	[
+		object,
+		uuid(ab634004-f13d-11d0-a459-004095e1daea),
+		helpstring("IAsyncEvent Interface"),
+		pointer_default(unique)
+	]
+	interface IAsyncEvent : IUnknown
+	{
+		[helpstring("method SetEventBufferDepth")] HRESULT SetEventBufferDepth(long lDepth);
+		[helpstring("method GetEventBufferDepth")] HRESULT GetEventBufferDepth(long *plDepth);
+		[helpstring("method ExternalEvent")] HRESULT ExternalEvent(BSTR bstrSource, BSTR bstrMessage, BSTR bstrData);
+		[helpstring("method CleanBuffer")] HRESULT CleanBuffer();
+	};
+	[
+		object,
+		uuid(E88A191E-8F52-4261-9FAE-FF7AA84F5D7E),
+		helpstring("ILocale Interface"),
+		pointer_default(unique)
+	]
+	interface ILocale : IUnknown
+	{
+		[helpstring("method SetLocale")] HRESULT SetLocale(BSTR bstrLocale);
+		
+	};
+	[
+		object,
+		uuid(AB634003-F13D-11d0-A459-004095E1DAEA),
+		helpstring("ILanguageExtender Interface"),
+		pointer_default(unique)
+	]
+	interface ILanguageExtender : IUnknown
+	{
+		[helpstring("method RegisterExtensionAs")] HRESULT RegisterExtensionAs([in,out]BSTR *bstrExtensionName);
+		[helpstring("method GetNProps")] HRESULT GetNProps([in,out]long *plProps);
+		[helpstring("method FindProp")] HRESULT FindProp([in]BSTR bstrPropName,[in,out]long *plPropNum);
+		[helpstring("method GetPropName")] HRESULT GetPropName([in]long lPropNum,[in]long lPropAlias,[in,out]BSTR *pbstrPropName);
+		[helpstring("method GetPropVal")] HRESULT GetPropVal([in]long lPropNum,[in,out]VARIANT *pvarPropVal);
+		[helpstring("method SetPropVal")] HRESULT SetPropVal([in]long lPropNum,[in]VARIANT *varPropVal);
+		[helpstring("method IsPropReadable")] HRESULT IsPropReadable([in]long lPropNum,[in,out]BOOL *pboolPropRead);
+		[helpstring("method IsPropWritable")] HRESULT IsPropWritable([in]long lPropNum,[in,out]BOOL *pboolPropWrite);
+
+		[helpstring("method GetNMethods")] HRESULT GetNMethods([in,out]long *plMethods);
+		[helpstring("method FindMethod")] HRESULT FindMethod(BSTR bstrMethodName,[in,out]long *plMethodNum);
+		[helpstring("method GetMethodName")] HRESULT GetMethodName([in]long lMethodNum,[in]long lMethodAlias,[in,out]BSTR *pbstrMethodName);
+		[helpstring("method GetNParams")] HRESULT GetNParams([in]long lMethodNum,[in,out]long *plParams);
+		[helpstring("method GetParamDefValue")] HRESULT GetParamDefValue([in]long lMethodNum,[in]long lParamNum,[in,out]VARIANT *pvarParamDefValue);
+		[helpstring("method HasRetVal")] HRESULT HasRetVal([in]long lMethodNum,[in,out]BOOL *pboolRetValue);
+		[helpstring("method CallAsProc")] HRESULT CallAsProc([in]long lMethodNum,[in,out] SAFEARRAY (VARIANT) *paParams);
+		[helpstring("method CallAsFunc")] HRESULT CallAsFunc([in]long lMethodNum,[in,out] VARIANT *pvarRetValue,[in,out] SAFEARRAY (VARIANT) *paParams);
+	};
+
+	[
+		object,
+		uuid(ab634005-f13d-11d0-a459-004095e1daea),
+		helpstring("IStatusLine Interface"),
+		pointer_default(unique)
+	]
+	interface IStatusLine : IUnknown
+	{
+		[helpstring("method SetStatusLine")] HRESULT SetStatusLine(BSTR bstrStatusLine);
+		[helpstring("method ResetStatusLine")] HRESULT ResetStatusLine();
+	};
+
+	[
+		object,
+		uuid(efe19ea0-09e4-11d2-a601-008048da00de),
+		helpstring("IExtWndsSupport Interface"),
+		pointer_default(unique)
+	]
+	interface IExtWndsSupport : IUnknown
+	{
+		[helpstring("method GetAppMainFrame")] HRESULT GetAppMainFrame([in,out]HWND *hwnd);
+		[helpstring("method GetAppMDIFrame")] HRESULT GetAppMDIFrame([in,out]HWND *hwnd);
+		[helpstring("method CreateAddInWindow")] HRESULT CreateAddInWindow([in]BSTR bstrProgID, [in]BSTR bstrWindowName, [in]long dwStyles, [in]long dwExStyles, [in]RECT *rctl, [in]long Flags, [in,out]HWND *pHwnd, [in,out]IDispatch **pDisp);
+	};
+
+	[
+        object,
+        uuid(3C2136B5-B35A-4FAC-9AC3-F77F361E9467),
+        helpstring("IMsgBox Interface"),
+        pointer_default(unique)
+    ]
+    interface IMsgBox : IUnknown
+    {
+        [helpstring("method Confirm")] HRESULT Confirm([in]BSTR queryText, [out,retval]VARIANT *retVal);
+        [helpstring("method Alert")] HRESULT Alert([in] BSTR text);
+        
+    };
+    typedef [v1_enum] enum _AppType {
+        eAppUnknown = -1,
+        eAppThinClient = 0,
+        eAppThickClient,
+        eAppWebClient,
+        eAppServer,
+        eAppExtConn,
+        eAppMobileClient,
+        eAppMobileServer,
+    } AppType;
+    typedef struct _AppInfo {
+        BSTR AppVersion;
+        BSTR UserAgentInformation;
+        const AppType  Application;
+    } AppInfo;
+	[
+		object,
+		uuid(AAABE126-2230-4a7d-9DDA-8987FD2A62BA),
+		helpstring("IPlatformInfo Interface"),
+		pointer_default(unique)
+	]
+	interface IPlatformInfo : IUnknown
+	{
+		[helpstring("method GetPlatformInfo")] HRESULT GetPlatformInfo([out]AppInfo** info);
+		
+	};

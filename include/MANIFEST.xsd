@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://v8.1c.ru/8.2/addin/bundle" targetNamespace="http://v8.1c.ru/8.2/addin/bundle" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:complexType name="Bundle">
+        <xs:annotation>
+            <xs:documentation>Bundle description<xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="component" type="Component" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Name component<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="Component">
+        <xs:attribute name="os" type="OSType" use="required">
+            <xs:annotation>
+                <xs:documentation>Platform type<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="path" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>File name<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="type" type="ComponentType" use="required">
+            <xs:annotation>
+                <xs:documentation>Component type<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="object" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>Object name<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="arch" type="ArchType" use="required">
+            <xs:annotation>
+                <xs:documentation>Architecture<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="client" type="ClientType" >
+            <xs:annotation>
+                <xs:documentation>Client type<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="clientVersion" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>Client version<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="buildType" type="buildTypeEnum" >
+            <xs:annotation>
+                <xs:documentation>Build type<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeType" type="codeTypeEnum" >
+            <xs:annotation>
+                <xs:documentation>Code type<xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:simpleType name="OSType">
+        <xs:enumeration value="Windows"/>
+        <xs:enumeration value="Linux"/>
+        <xs:enumeration value="MacOS"/>
+        <xs:enumeration value="iOS"/>
+        <xs:enumeration value="Android"/>
+        <xs:enumeration value="WindowsRuntimePhone"/>
+        <xs:enumeration value="WindowsRuntime"/>
+    </xs:simpleType>
+    <xs:simpleType name="ComponentType">
+        <xs:enumeration value="native"/>
+        <xs:enumeration value="com"/>
+        <xs:enumeration value="plugin"/>
+    </xs:simpleType>
+    <xs:simpleType name="ArchType">
+        <xs:enumeration value="i386"/>
+        <xs:enumeration value="x86_64"/>
+        <xs:enumeration value="ARM"/>
+        <xs:enumeration value="Universal"/>
+    </xs:simpleType>
+    <xs:simpleType name="ClientType">
+        <xs:enumeration value="1C:Enterprise"/>
+        <xs:enumeration value="Firefox"/>
+        <xs:enumeration value="MSIE"/>
+        <xs:enumeration value="Safari"/>
+        <xs:enumeration value="Chrome"/>
+    </xs:simpleType>
+    <xs:simpleType name="buildTypeEnum">
+        <xs:enumeration value="developer"/>
+        <xs:enumeration value="release"/>
+    </xs:simpleType>
+    <xs:simpleType name="codeTypeEnum">
+        <xs:enumeration value="c++"/>
+        <xs:enumeration value="java"/>
+    </xs:simpleType>
+</xs:schema>
