@@ -460,7 +460,7 @@ bool RabbitMQClient::basicCancel() {
 	return true;
 }
 
-WCHAR_T* RabbitMQClient::getLastError()
+WCHAR_T* RabbitMQClient::getLastError() noexcept
 {
 	return LAST_ERROR;
 }
