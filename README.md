@@ -3,12 +3,12 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
 
-[![Sonar bugs](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=bugs)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar code smells](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=code_smells)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar dublications](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar lines of code](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=ncloc)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar technical debt](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=sqale_index)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
-[![Sonar vulnerables](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=nativerabbitmq&metric=vulnerabilities)](https://code.bit-erp.ru/sonardev/dashboard?id=nativerabbitmq)
+[![Sonar bugs](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=bugs)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
+[![Sonar code smells](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=code_smells)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
+[![Sonar dublications](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
+[![Sonar lines of code](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=ncloc)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
+[![Sonar technical debt](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=sqale_index)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
+[![Sonar vulnerables](https://code.bit-erp.ru/sonardev/api/project_badges/measure?project=PinkRabbitMQ&metric=vulnerabilities)](https://code.bit-erp.ru/sonardev/dashboard?id=PinkRabbitMQ)
 
 # Введение
 Внешняя Native API компонента для 1C 8.3, которая реализует методы для работы с сервером Rabbit MQ через TCP IP протокол. Компонента поддерживается командой разработки [БИТ.Адаптер](https://bit-erp.ru/adapter) и используется в БИТ.Адаптере. Ид компоненты - PinkRabbitMQ. Компонента поставляется для 32 и 64 битной платформы 1С.
