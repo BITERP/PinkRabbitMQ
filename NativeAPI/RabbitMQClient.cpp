@@ -15,7 +15,6 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 		connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
 
 		AMQP::Channel testChannel(connection);
-
 		testChannel.onReady([&connected, this]()
 		{
 			connected = true;
