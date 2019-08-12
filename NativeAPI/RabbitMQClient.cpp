@@ -62,11 +62,6 @@ AMQP::Channel* RabbitMQClient::openChannel() {
 
 bool RabbitMQClient::declareExchange(const std::string& name, const std::string& type, bool onlyCheckIfExists, bool durable, bool autodelete) {
 
-	if (onlyCheckIfExists) {
-		updateLastError("Checking if the exchange exist not supported!");
-		return false;
-	}
-
 	AMQP::Channel* channel = openChannel();
 	if (channel == nullptr) {
 		return false;
@@ -91,7 +86,7 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 
 	bool result = true;
 
-	channel->declareExchange(name, topic, (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
+	channel->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
 		.onSuccess([this]()
 	{
 		handler->quit();
