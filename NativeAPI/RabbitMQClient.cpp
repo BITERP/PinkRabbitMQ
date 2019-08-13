@@ -261,28 +261,22 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
 	updateLastError("");
 	bool result = true;
-	AMQP::Channel publChannel(connection);
 
-	publChannel.onReady([&message, &exchange, &publChannel, &routingKey, this]()
-	{
-		AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
-		envelope.setCorrelationID(msgProps[CORRELATION_ID]);
-		envelope.setMessageID(msgProps[MESSAGE_ID]);
-		envelope.setTypeName(msgProps[TYPE_NAME]);
+	AMQP::Channel* channel = openChannel();
+	if (channel == nullptr) {
+		return false;
+	}
 
-		publChannel.publish(exchange, routingKey, envelope);
-		handler->quit();
-	});
+	AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
+	envelope.setCorrelationID(msgProps[CORRELATION_ID]);
+	envelope.setMessageID(msgProps[MESSAGE_ID]);
+	envelope.setTypeName(msgProps[TYPE_NAME]);
 
-	publChannel.onError([&result, this](const char* messageErr)
-	{
-		updateLastError(messageErr);
-		handler->quit();
-		result = false;
-	});
+	channel->publish(exchange, routingKey, envelope);
 
-	handler->loop();
-	publChannel.close();
+	channel->close();
+	delete channel;
+
 	return result;
 }
 
