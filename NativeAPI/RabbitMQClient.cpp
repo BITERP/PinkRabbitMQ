@@ -269,6 +269,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		envelope.setCorrelationID(msgProps[CORRELATION_ID]);
 		envelope.setMessageID(msgProps[MESSAGE_ID]);
 		envelope.setTypeName(msgProps[TYPE_NAME]);
+		envelope.setAppID(msgProps[APP_ID]);
 
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
@@ -337,6 +338,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 			msgProps[CORRELATION_ID] = message.correlationID();
 			msgProps[TYPE_NAME] = message.typeName();
 			msgProps[MESSAGE_ID] = message.messageID();
+			msgProps[APP_ID] = message.appID();
 
 			hasMessage = true;
 			messageTag = deliveryTag;
@@ -364,6 +366,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 			msgProps[CORRELATION_ID] = message.correlationID();
 			msgProps[TYPE_NAME] = message.typeName();
 			msgProps[MESSAGE_ID] = message.messageID();
+			msgProps[APP_ID] = message.appID();
 
 			hasMessage = true;
 			messageTag = deliveryTag;

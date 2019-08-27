@@ -37,6 +37,7 @@ private:
 	const int CORRELATION_ID = 1;
 	const int TYPE_NAME = 2;
 	const int MESSAGE_ID = 3;
+	const int APP_ID = 4;
 	SimplePocoHandler* handler;
 	AMQP::Connection* connection;
 	AMQP::Channel* consChannel;

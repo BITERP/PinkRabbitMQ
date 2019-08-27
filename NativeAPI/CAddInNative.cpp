@@ -53,7 +53,8 @@ static const wchar_t *g_PropNamesRu[] = {
 	L"Version",
 	L"CorrelationId",
 	L"Type",
-	L"MessageId"
+	L"MessageId",
+	L"AppId",
 };
 static const wchar_t *g_MethodNamesRu[] = {
 	L"GetLastError",
@@ -231,6 +232,7 @@ bool CAddInNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal)
 	case ePropCorrelationId: 
 	case ePropType:
 	case ePropMessageId:
+	case ePropMessageApp:
 		prop = client->getMsgProp(lPropNum);
 		setWStringToTVariant(pvarPropVal, Utils::stringToWs(prop).c_str());
 		break;
@@ -248,6 +250,7 @@ bool CAddInNative::SetPropVal(const long lPropNum, tVariant *varPropVal)
 	case ePropCorrelationId:
 	case ePropType:
 	case ePropMessageId:
+	case ePropMessageApp:
 		if (TV_VT(varPropVal) != VTYPE_PWSTR)
 			return false;
 		client->setMsgProp(lPropNum, Utils::wsToString(TV_WSTR(varPropVal)));

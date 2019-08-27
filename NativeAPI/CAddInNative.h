@@ -20,7 +20,8 @@ public:
 		ePropCorrelationId = 1,
 		ePropType = 2,
 		ePropMessageId = 3,
-        ePropLast = 4      // Always last
+		ePropMessageApp = 4,
+        ePropLast = 5      // Always last
     };
 
     enum Methods
@@ -99,7 +100,7 @@ private:
     IAddInDefBase      *m_iConnect;
     IMemoryManager     *m_iMemory;
 
-	const wchar_t*      m_version = L"1.2";
+	const wchar_t*      m_version = L"1.3";
 };
 
 class WcharWrapper
