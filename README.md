@@ -1,5 +1,5 @@
 # PinkRabbitMQ library
-[![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](https://share.bit-erp.ru:4343)
+<!---[![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](https://share.bit-erp.ru:4343)-- FOR BETER TIMES...-->
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
 
