@@ -20,8 +20,14 @@ public:
 		ePropCorrelationId = 1,
 		ePropType = 2,
 		ePropMessageId = 3,
-		ePropMessageApp = 4,
-        ePropLast = 5      // Always last
+		ePropAppId = 4,
+		ePropContentEncoding = 5,
+		ePropContentType = 6,
+		ePropUserId = 7,
+		ePropClusterId = 8,
+		ePropExpiration = 9,
+		ePropReplyTo = 10,
+        ePropLast = 11      // Always last
     };
 
     enum Methods

@@ -34,10 +34,18 @@ public:
 private:
 	AMQP::Channel* openChannel();
 	wchar_t* LAST_ERROR = L"";
+	// Transiting properties
 	const int CORRELATION_ID = 1;
 	const int TYPE_NAME = 2;
 	const int MESSAGE_ID = 3;
 	const int APP_ID = 4;
+	const int CONTENT_ENCODING = 5;
+	const int CONTENT_TYPE = 6;
+	const int USER_ID = 7;
+	const int CLUSTER_ID = 8;
+	const int EXPIRATION = 9;
+	const int REPLY_TO = 10;
+	//
 	SimplePocoHandler* handler;
 	AMQP::Connection* connection;
 	AMQP::Channel* consChannel;

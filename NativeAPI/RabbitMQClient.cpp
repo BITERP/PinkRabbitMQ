@@ -270,6 +270,12 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		envelope.setMessageID(msgProps[MESSAGE_ID]);
 		envelope.setTypeName(msgProps[TYPE_NAME]);
 		envelope.setAppID(msgProps[APP_ID]);
+		envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
+		envelope.setContentType(msgProps[CONTENT_TYPE]);
+		envelope.setUserID(msgProps[USER_ID]);
+		envelope.setClusterID(msgProps[CLUSTER_ID]);
+		envelope.setExpiration(msgProps[EXPIRATION]);
+		envelope.setReplyTo(msgProps[REPLY_TO]);
 
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
@@ -329,21 +335,30 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 
 	consChannel->setQos(1, true);
 
+	AMQP::MessageCallback messageCallback = [&outdata, &hasMessage, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
+	{
+		outdata = std::string(message.body(), message.body() + message.bodySize());
+		msgProps[CORRELATION_ID] = message.correlationID();
+		msgProps[TYPE_NAME] = message.typeName();
+		msgProps[MESSAGE_ID] = message.messageID();
+		msgProps[APP_ID] = message.appID();
+		msgProps[CONTENT_ENCODING] = message.contentEncoding();
+		msgProps[CONTENT_TYPE] = message.contentType();
+		msgProps[USER_ID] = message.userID();
+		msgProps[CLUSTER_ID] = message.clusterID();
+		msgProps[EXPIRATION] = message.expiration();
+		msgProps[REPLY_TO] = message.replyTo();
+
+		hasMessage = true;
+		messageTag = deliveryTag;
+		handler->quit();
+	};
+
 	if (timeout < 3000) 
 	{
 		// Admit that only single message may arrive for 3 seconds
-		consChannel->get(consQueue).onMessage([&outdata, &hasMessage, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
-		{
-			outdata = std::string(message.body(), message.body() + message.bodySize());
-			msgProps[CORRELATION_ID] = message.correlationID();
-			msgProps[TYPE_NAME] = message.typeName();
-			msgProps[MESSAGE_ID] = message.messageID();
-			msgProps[APP_ID] = message.appID();
-
-			hasMessage = true;
-			messageTag = deliveryTag;
-			handler->quit();
-		})
+		consChannel->get(consQueue)
+			.onMessage(messageCallback)
 			.onEmpty([&hasMessage, this]()
 		{
 			hasMessage = false;
@@ -360,18 +375,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 	else
 	{
 		consChannel->consume(consQueue)
-			.onMessage([&outdata, &hasMessage, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
-		{
-			outdata = std::string(message.body(), message.body() + message.bodySize());
-			msgProps[CORRELATION_ID] = message.correlationID();
-			msgProps[TYPE_NAME] = message.typeName();
-			msgProps[MESSAGE_ID] = message.messageID();
-			msgProps[APP_ID] = message.appID();
-
-			hasMessage = true;
-			messageTag = deliveryTag;
-			handler->quit();
-		})
+			.onMessage(messageCallback)
 			.onError([this](const char* message)
 		{
 			updateLastError(message);

@@ -1,5 +1,5 @@
 # PinkRabbitMQ library
-<!---[![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](https://share.bit-erp.ru:4343)-- FOR BETER TIMES...-->
+[![Build Status](http://ci.bit-erp.ru/buildStatus/icon?job=ci/buildCProject/steps/buildCProject)](https://share.bit-erp.ru:4343)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
 
@@ -27,6 +27,12 @@
 * messageId - строка, чтение и запись
 * Type - строка, чтение и запись
 * AppId - строка, чтение и запись
+* ContentEncoding - строка, чтение и запись
+* ContentType - строка, чтение и запись
+* UserId - строка, чтение и запись. В данное свойство разрешается передавать только логин пользователя, использованный для установки соединения
+* ClusterId - строка, чтение и запись
+* Expiration - число строкой, чтение и запись. Передача строки, отличной от числовой, приведет к вызову исключения.
+* ReplyTo - строка, чтение и запись
 
 Эти свойства передаются в качестве метаданных вместе с сообщением в RabbitMQ. Их можно прочитать также на стороне получателя - они реинициализируется в момент вызова basicConsumeMessage().
 
