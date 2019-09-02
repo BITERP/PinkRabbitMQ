@@ -106,7 +106,7 @@ private:
     IAddInDefBase      *m_iConnect;
     IMemoryManager     *m_iMemory;
 
-	const wchar_t*      m_version = L"1.3";
+	const wchar_t*      m_version = L"1.4";
 };
 
 class WcharWrapper
