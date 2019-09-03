@@ -266,16 +266,16 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 	publChannel.onReady([&message, &exchange, &publChannel, &routingKey, this]()
 	{
 		AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
-		envelope.setCorrelationID(msgProps[CORRELATION_ID]);
-		envelope.setMessageID(msgProps[MESSAGE_ID]);
-		envelope.setTypeName(msgProps[TYPE_NAME]);
-		envelope.setAppID(msgProps[APP_ID]);
-		envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
-		envelope.setContentType(msgProps[CONTENT_TYPE]);
-		envelope.setUserID(msgProps[USER_ID]);
-		envelope.setClusterID(msgProps[CLUSTER_ID]);
-		envelope.setExpiration(msgProps[EXPIRATION]);
-		envelope.setReplyTo(msgProps[REPLY_TO]);
+		if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
+		if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
+		if (!msgProps[TYPE_NAME].empty()) envelope.setTypeName(msgProps[TYPE_NAME]);
+		if (!msgProps[APP_ID].empty()) envelope.setAppID(msgProps[APP_ID]);
+		if (!msgProps[CONTENT_ENCODING].empty()) envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
+		if (!msgProps[CONTENT_TYPE].empty()) envelope.setContentType(msgProps[CONTENT_TYPE]);
+		if (!msgProps[USER_ID].empty()) envelope.setUserID(msgProps[USER_ID]);
+		if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
+		if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
+		if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
 
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
