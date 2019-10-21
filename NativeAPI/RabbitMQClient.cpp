@@ -5,6 +5,7 @@
 #include <Poco/Exception.h>
 #include <Poco/Net/NetException.h>
 
+
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
 	updateLastError("");
@@ -14,20 +15,9 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 		handler = new SimplePocoHandler(host, port);
 		connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
 
-		AMQP::Channel testChannel(connection);
-		testChannel.onReady([&connected, this]()
-		{
-			connected = true;
-			handler->quit();
-		});
-
-		testChannel.onError([this](const char* message)
-		{
-			updateLastError(message);
-			handler->quit();
-		});
-		handler->loop();
-		testChannel.close();
+		channel = new AMQP::Channel(connection);
+		
+		connected = true;
 	}
 	catch (const Poco::TimeoutException& ex)
 	{
@@ -45,25 +35,25 @@ AMQP::Channel* RabbitMQClient::openChannel() {
 		updateLastError("Connection is not established! Use the method Connect() first");
 		return nullptr;
 	}
-	AMQP::Channel* channel = new AMQP::Channel (connection);
-	channel->onReady([this]()
+	AMQP::Channel* channelLoc = new AMQP::Channel (connection);
+	channelLoc->onReady([this]()
 	{
 		handler->quit();
 	});
 
-	channel->onError([this](const char* message)
+	channelLoc->onError([this](const char* message)
 	{
 		updateLastError(message);
 		handler->quit();
 	});
 	handler->loop();
-	return channel;
+	return channelLoc;
 }
 
 bool RabbitMQClient::declareExchange(const std::string& name, const std::string& type, bool onlyCheckIfExists, bool durable, bool autodelete) {
 
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return false;
 	}
 
@@ -79,14 +69,14 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 	}
 	else {
 		updateLastError("Exchange type not supported!");
-		channel->close();
-		delete channel;
+		channelLoc->close();
+		delete channelLoc;
 		return false;
 	}
 
 	bool result = true;
 
-	channel->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
+	channelLoc->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -99,8 +89,8 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return result;
 }
@@ -110,12 +100,12 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
 	updateLastError("");
 	bool result = true;
 	
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return false;
 	}
 
-	channel->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
+	channelLoc->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -128,8 +118,8 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return result;
 }
@@ -138,12 +128,12 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
 
 	updateLastError("");
 
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return "";
 	}
 
-	channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
+	channelLoc->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -156,8 +146,8 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return name;
 }
@@ -166,12 +156,12 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
 
 	updateLastError("");
 	bool result = true;
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return false;
 	}
 
-	channel->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
+	channelLoc->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -184,8 +174,8 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return result;
 }
@@ -195,12 +185,12 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
 	updateLastError("");
 	bool result = true;
 
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return false;
 	}
 
-	channel->bindQueue(exchange, queue, routingKey)
+	channelLoc->bindQueue(exchange, queue, routingKey)
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -213,8 +203,8 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return result;
 }
@@ -224,12 +214,12 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
 	updateLastError("");
 	bool result = true;
 
-	AMQP::Channel* channel = openChannel();
-	if (channel == nullptr) {
+	AMQP::Channel* channelLoc = openChannel();
+	if (channelLoc == nullptr) {
 		return false;
 	}
 
-	channel->unbindQueue(exchange, queue, routingKey)
+	channelLoc->unbindQueue(exchange, queue, routingKey)
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -242,8 +232,8 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
 	});
 
 	handler->loop();
-	channel->close();
-	delete channel;
+	channelLoc->close();
+	delete channelLoc;
 
 	return result;
 }
@@ -293,96 +283,100 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 	return result;
 }
 
-std::string RabbitMQClient::basicConsume(const std::string& queue) {
+std::string RabbitMQClient::basicConsume(const std::string& queue, const int _selectSize) {
 
 	if (connection == nullptr || !connection->usable()) {
 		updateLastError("Connection is not ready. Use connect() method to initialize new connection.");
 		return "";
 	}
 
+	channel->setQos(100, false);
+
+	channel->onReady([this]()
+	{
+		handler->quit();
+	});
+	handler->loop();
 	updateLastError("");
 
 	consQueue = queue;
-	consChannel = new AMQP::Channel(connection);
-	if (consChannel == nullptr) {
-		return false;
-	}
-	consChannel->onReady([this]()
-	{
-		handler->quit();
-	});
 
-	consChannel->onError([this](const char* message)
-	{
-		updateLastError(message);
-		handler->quit();
-	});
-
-	handler->loop();
 	return "";
 }
 
 bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout) {
 
-	if (consChannel == nullptr || !consChannel->usable()) {
+	if (channel == nullptr || !channel->usable()) {
 		updateLastError("Channel with this id not found or has been closed or is not usable!");
 		return false;
 	}
 
 	updateLastError("");
 
-	bool hasMessage = false;
+	if (readQueue.size() > 0) {
+		MessageObject* read = readQueue.front();
+		readQueue.pop();
+		outdata = read->body;
+		msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
+		msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
+		msgProps[MESSAGE_ID] = read->msgProps[MESSAGE_ID];
+		msgProps[APP_ID] = read->msgProps[APP_ID];
+		msgProps[CONTENT_ENCODING] = read->msgProps[CONTENT_ENCODING];
+		msgProps[CONTENT_TYPE] = read->msgProps[CONTENT_TYPE];
+		msgProps[USER_ID] = read->msgProps[USER_ID];
+		msgProps[CLUSTER_ID] = read->msgProps[CLUSTER_ID];
+		msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
+		msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
 
-	consChannel->setQos(1, true);
-
-	AMQP::MessageCallback messageCallback = [&outdata, &hasMessage, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
-	{
-		outdata = std::string(message.body(), message.body() + message.bodySize());
-		msgProps[CORRELATION_ID] = message.correlationID();
-		msgProps[TYPE_NAME] = message.typeName();
-		msgProps[MESSAGE_ID] = message.messageID();
-		msgProps[APP_ID] = message.appID();
-		msgProps[CONTENT_ENCODING] = message.contentEncoding();
-		msgProps[CONTENT_TYPE] = message.contentType();
-		msgProps[USER_ID] = message.userID();
-		msgProps[CLUSTER_ID] = message.clusterID();
-		msgProps[EXPIRATION] = message.expiration();
-		msgProps[REPLY_TO] = message.replyTo();
-
-		hasMessage = true;
-		messageTag = deliveryTag;
-		handler->quit();
+		confirmQueue.push(read);
+		return true;
 	};
 
-	if (timeout < 3000) 
-	{
-		// Admit that only single message may arrive for 3 seconds
-		consChannel->get(consQueue)
-			.onMessage(messageCallback)
-			.onEmpty([&hasMessage, this]()
-		{
-			hasMessage = false;
-			handler->quit();
-		})
-			.onError([this](const char* message)
-		{
-			updateLastError(message);
-			handler->quit();
-		});
 
-		handler->loop();
-	}
-	else
-	{
-		consChannel->consume(consQueue)
-			.onMessage(messageCallback)
-			.onError([this](const char* message)
-		{
-			updateLastError(message);
-			handler->quit();
-		});
+	bool hasMessage = false;
 
-		handler->loop(timeout);
+	channel->setQos(100, false);
+	AMQP::MessageCallback messageCallback = [&timeout , &hasMessage, &outdata, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
+	{
+		MessageObject* msgOb = new MessageObject();
+		
+		msgOb->body = std::string(message.body(), message.body() + message.bodySize());
+		msgOb->msgProps[CORRELATION_ID] = message.correlationID();
+		msgOb->msgProps[TYPE_NAME] = message.typeName();
+		msgOb->msgProps[MESSAGE_ID] = message.messageID();
+		msgOb->msgProps[APP_ID] = message.appID();
+		msgOb->msgProps[CONTENT_ENCODING] = message.contentEncoding();
+		msgOb->msgProps[CONTENT_TYPE] = message.contentType();
+		msgOb->msgProps[USER_ID] = message.userID();
+		msgOb->msgProps[CLUSTER_ID] = message.clusterID();
+		msgOb->msgProps[EXPIRATION] = message.expiration();
+		msgOb->msgProps[REPLY_TO] = message.replyTo();
+		msgOb->messageTag = deliveryTag;
+		
+		readQueue.push(msgOb);
+
+		handler->quitRead();
+
+		hasMessage = true;
+	};
+
+	channel->consume(consQueue)
+		.onMessage(messageCallback)
+			
+		.onError([this](const char* message)
+	{
+		updateLastError(message);
+		handler->quitRead();
+	});
+
+	handler->loop(timeout);
+
+	if (hasMessage) {
+		MessageObject* read = readQueue.front();
+		readQueue.pop();
+		outdata = read->body;
+		msgProps = read->msgProps;
+		confirmQueue.push(read);
 	}
 
 	return hasMessage;
@@ -390,31 +384,28 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 
 bool RabbitMQClient::basicAck() {
 
-	if (consChannel == nullptr || !consChannel->usable()) {
+	if (channel == nullptr || !channel->usable()) {
 		updateLastError("Channel not found or not usable!");
 		return false;
 	}
 
-	if (messageTag == 0) {
-		updateLastError("There is not message in queue to confirm!");
+	if (confirmQueue.size() == 0) {
+		updateLastError("There is no message in queue to confirm!");
 		return false;
 	}
 
 	updateLastError("");
-	bool result = true;
+	bool result = false;
 
-	consChannel->onReady([this]() {
-		consChannel->ack(messageTag);
+	channel->onReady([this, &result]() {
+		MessageObject* read = confirmQueue.front();
+		confirmQueue.pop();
+		channel->ack(read->messageTag);
+		read->body;
+		delete read;
 		handler->quit();
+		result = true;
 	});
-
-	consChannel->onError([&result, this](const char* message)
-	{
-		updateLastError(message);
-		handler->quit();
-		result = false;
-	});
-
 	handler->loop();
 
 	return result;
@@ -422,49 +413,44 @@ bool RabbitMQClient::basicAck() {
 
 bool RabbitMQClient::basicReject() {
 
-	if (consChannel == nullptr || !consChannel->usable()) {
+	if (channel == nullptr || !channel->usable()) {
 		updateLastError("Channel not found or not usable!");
 		return false;
 	}
 
-	if (messageTag == 0) {
+	if (confirmQueue.size() == 0) {
 		updateLastError("There is no message in queue to reject!");
 		return false;
 	}
 
 	updateLastError("");
-	bool result = true;
+	bool result = false;
 
-	consChannel->onReady([this]() {
-		consChannel->reject(messageTag);
+	channel->onReady([this, &result]() {
+		MessageObject* read = confirmQueue.front();
+		confirmQueue.pop();
+		channel->reject(read->messageTag);
+		delete read;
 		handler->quit();
+		result = true;
 	});
-
-	consChannel->onError([&result, this](const char* message)
-	{
-		updateLastError(message);
-		handler->quit();
-		result = false;
-	});
-
 	handler->loop();
 
 	return result;
 }
 
 bool RabbitMQClient::basicCancel() {
-	if (consChannel == nullptr) {
+	if (channel == nullptr) {
 		updateLastError("Channel not found");
 		return false;
 	}
-	delete consChannel;
 	return true;
 }
 
-WCHAR_T* RabbitMQClient::getLastError() noexcept
-{
+WCHAR_T* RabbitMQClient::getLastError() noexcept {
 	return LAST_ERROR;
 }
+
 
 void RabbitMQClient::updateLastError(const char* text) {
 	LAST_ERROR = new wchar_t[strlen(text) + 1];

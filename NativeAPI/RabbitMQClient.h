@@ -3,6 +3,10 @@
 #include <types.h>
 #include <iostream>
 #include <map>
+#include "MessageObject.cpp"
+#include <vector>
+#include <queue> 
+
 class SimplePocoHandler;
 namespace AMQP { class Connection; class Channel; }
 
@@ -27,12 +31,13 @@ public:
 	bool deleteQueue(const std::string& name, bool onlyIfIdle, bool onlyIfEmpty);
 	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
-	std::string basicConsume(const std::string& queue);
+	std::string basicConsume(const std::string& queue, int selectSize);
 	bool basicConsumeMessage(std::string& outdata, uint16_t timeout);
 	bool basicCancel();
 	void updateLastError(const char* text);
 private:
 	AMQP::Channel* openChannel();
+	void reset();
 	wchar_t* LAST_ERROR = L"";
 	// Transiting properties
 	const int CORRELATION_ID = 1;
@@ -45,13 +50,19 @@ private:
 	const int CLUSTER_ID = 8;
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
+	int selectSize = 1;
+	int messageIn = -1;
+	int messageOut = -1;
+	int messageConfirmed = -1;
+
 	//
 	SimplePocoHandler* handler;
 	AMQP::Connection* connection;
-	AMQP::Channel* consChannel;
+	AMQP::Channel* channel;
 
+
+	std::queue<MessageObject*> readQueue;
+	std::queue<MessageObject*> confirmQueue;
 	std::string consQueue;
-	uint64_t messageTag;
-
 	std::map<int, std::string> msgProps;
 };

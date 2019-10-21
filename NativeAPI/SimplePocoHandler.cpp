@@ -70,6 +70,7 @@ struct SimplePocoHandlerImpl
 		connected(false),
 		connection(nullptr),
 		quit(false),
+		quitRead(false),
 		inputBuffer(SimplePocoHandler::BUFFER_SIZE),
 		outBuffer(SimplePocoHandler::BUFFER_SIZE),
 		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE)
@@ -80,6 +81,7 @@ struct SimplePocoHandlerImpl
 	bool connected;
 	AMQP::Connection* connection;
 	bool quit;
+	bool quitRead;
 	Buffer inputBuffer;
 	Buffer outBuffer;
 	std::vector<char> tmpBuff;
@@ -105,7 +107,7 @@ void SimplePocoHandler::loop(uint16_t timeout)
 	// 
 	try
 	{
-		while (!m_impl->quit && (end - std::chrono::system_clock::now()).count() > 0)
+		while (!m_impl->quitRead && (end - std::chrono::system_clock::now()).count() > 0)
 		{
 			loopIteration();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -121,7 +123,7 @@ void SimplePocoHandler::loop(uint16_t timeout)
 	{
 		std::cerr << "Poco exception " << exc.displayText();
 	}
-	m_impl->quit = false; // reset channel for repeatable using
+	m_impl->quitRead = false; // reset channel for repeatable using
 }
 
 void SimplePocoHandler::loop()
@@ -186,6 +188,11 @@ void SimplePocoHandler::loopIteration() {
 void SimplePocoHandler::quit()
 {
 	m_impl->quit = true;
+}
+
+void SimplePocoHandler::quitRead()
+{
+	m_impl->quitRead = true;
 }
 
 void SimplePocoHandler::SimplePocoHandler::close()

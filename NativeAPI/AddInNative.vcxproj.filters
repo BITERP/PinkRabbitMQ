@@ -51,6 +51,9 @@
     <ClCompile Include="CAddInNative.cpp">
       <Filter>Source Files\native</Filter>
     </ClCompile>
+    <ClCompile Include="MessageObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addin\stdafx.h">

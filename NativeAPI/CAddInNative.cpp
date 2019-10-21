@@ -525,7 +525,8 @@ bool CAddInNative::getLastError(tVariant* pvarRetValue) {
 
 bool CAddInNative::basicConsume(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string channelId = client->basicConsume(
-		Utils::wsToString(paParams[0].pwstrVal)
+		Utils::wsToString(paParams[0].pwstrVal),
+		paParams[4].intVal
 	);
 
 	if (wcslen(client->getLastError()) != 0) {

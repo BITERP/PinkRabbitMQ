@@ -16,6 +16,7 @@ public:
     virtual ~SimplePocoHandler();
 
     void loop();
+	void quitRead();
 	void loop(uint16_t timeout);
     void quit();
 
