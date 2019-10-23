@@ -27,8 +27,7 @@ namespace
 			}
 
 			const size_t length = (size + m_use);
-			size_t write =
-				length < m_data.size() ? size : m_data.size() - m_use;
+			size_t write = length < m_data.size() ? size : m_data.size() - m_use;
 			memcpy(m_data.data() + m_use, data, write);
 			m_use += write;
 			return write;
@@ -91,12 +90,19 @@ SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port) :
 {
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket.connect(address);
+	m_impl->socket.setBlocking(false);
+	m_impl->socket.setSendBufferSize(TEMP_BUFFER_SIZE);
+	m_impl->socket.setReceiveBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket.setKeepAlive(true);
 }
 
 SimplePocoHandler::~SimplePocoHandler()
 {
 	close();
+}
+
+void SimplePocoHandler::loopThread(SimplePocoHandler* clazz, uint16_t timeout) {
+	clazz->loop(timeout);
 }
 
 void SimplePocoHandler::loop(uint16_t timeout)

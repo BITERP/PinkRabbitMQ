@@ -4,7 +4,7 @@
 #include "Utils.h"
 #include <Poco/Exception.h>
 #include <Poco/Net/NetException.h>
-
+#include <thread>
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
@@ -291,8 +291,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	}
 
 	selectSize = _selectSize;
-	hasNextPortion = true;
-	channel->setQos(_selectSize, true);
+	channel->setQos(100, true);
 	channel->onReady([this]()
 	{
 		handler->quit();
@@ -300,46 +299,15 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	handler->loop();
 	updateLastError("");
 
+	
 	consQueue = queue;
-
-	return "";
-}
-
-bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout) {
-
-	if (channel == nullptr || !channel->usable()) {
-		updateLastError("Channel with this id not found or has been closed or is not usable!");
-		return false;
-	}
-
-	updateLastError("");
-
-	if (readQueue->size() > 0) {
-		MessageObject* read = readQueue->front();
-		readQueue->pop();
-		outdata = read->body;
-		msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
-		msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
-		msgProps[MESSAGE_ID] = read->msgProps[MESSAGE_ID];
-		msgProps[APP_ID] = read->msgProps[APP_ID];
-		msgProps[CONTENT_ENCODING] = read->msgProps[CONTENT_ENCODING];
-		msgProps[CONTENT_TYPE] = read->msgProps[CONTENT_TYPE];
-		msgProps[USER_ID] = read->msgProps[USER_ID];
-		msgProps[CLUSTER_ID] = read->msgProps[CLUSTER_ID];
-		msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
-		msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
-
-		confirmQueue->push(read);
-		return !confirmQueue->empty();
-	};
-
-	if (!hasNextPortion)
-		return false;
-
-	AMQP::MessageCallback messageCallback = [&timeout, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
+	uint16_t timeout = 60000000;
+	channel->setQos(100, true);
+	channel->consume(consQueue)
+		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
 		MessageObject* msgOb = new MessageObject();
-		
+
 		msgOb->body = std::string(message.body(), message.body() + message.bodySize());
 		msgOb->msgProps[CORRELATION_ID] = message.correlationID();
 		msgOb->msgProps[TYPE_NAME] = message.typeName();
@@ -352,39 +320,49 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 		msgOb->msgProps[EXPIRATION] = message.expiration();
 		msgOb->msgProps[REPLY_TO] = message.replyTo();
 		msgOb->messageTag = deliveryTag;
-		
+
 		readQueue->push(msgOb);
-
-		if (readQueue->size() >= selectSize) {
-			handler->quitRead();
-			hasNextPortion = true;
-		}
-		else {
-			hasNextPortion = false;
-		}
-	};
-
-	channel->consume(consQueue)
-		.onMessage(messageCallback)
+	})
 		.onError([this](const char* message)
 	{
 		updateLastError(message);
-		handler->quitRead();
 	});
 
-	handler->loop(timeout);
+	for (int i = 0; i < 1; i++) {
+		threadPool.push(new std::thread(SimplePocoHandler::loopThread, handler, timeout));
+	}
+	return "";
+}
 
-	bool hasVal = !readQueue->empty();
-	if (readQueue->size() > 0) {
-		MessageObject* read = readQueue->front();
-		readQueue->pop();
-		outdata = read->body;
-		msgProps = read->msgProps;
-		confirmQueue->push(read);
 
+bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout) {
+
+	updateLastError("");
+
+	std::chrono::milliseconds timeoutSec{ timeout };
+	auto end = std::chrono::system_clock::now() + timeoutSec;
+	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
+		if (!readQueue->empty()) {
+			MessageObject* read = readQueue->front();
+			readQueue->pop();
+			outdata = read->body;
+			msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
+			msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
+			msgProps[MESSAGE_ID] = read->msgProps[MESSAGE_ID];
+			msgProps[APP_ID] = read->msgProps[APP_ID];
+			msgProps[CONTENT_ENCODING] = read->msgProps[CONTENT_ENCODING];
+			msgProps[CONTENT_TYPE] = read->msgProps[CONTENT_TYPE];
+			msgProps[USER_ID] = read->msgProps[USER_ID];
+			msgProps[CLUSTER_ID] = read->msgProps[CLUSTER_ID];
+			msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
+			msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
+
+			confirmQueue->push(read);
+			return true;
+		}
 	}
 
-	return hasVal;
+	return false;
 }
 
 bool RabbitMQClient::basicAck() {
@@ -445,9 +423,13 @@ bool RabbitMQClient::basicReject() {
 }
 
 bool RabbitMQClient::basicCancel() {
-	if (channel == nullptr) {
-		updateLastError("Channel not found");
-		return false;
+	
+	handler->quitRead();
+
+	for (int i = 0; i < threadPool.size(); i++) {
+		std::thread* curr = threadPool.front();
+		curr->join();
+		threadPool.pop();
 	}
 	return true;
 }

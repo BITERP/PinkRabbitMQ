@@ -6,6 +6,7 @@
 #include "MessageObject.cpp"
 #include <vector>
 #include <queue> 
+#include <thread>
 
 class SimplePocoHandler;
 namespace AMQP { class Connection; class Channel; }
@@ -33,6 +34,7 @@ public:
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	std::string basicConsume(const std::string& queue, int selectSize);
 	bool basicConsumeMessage(std::string& outdata, uint16_t timeout);
+	void basicConsumeMessageThread(uint16_t timeout);
 	bool basicCancel();
 	void updateLastError(const char* text);
 private:
@@ -50,14 +52,13 @@ private:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 	int selectSize = 1;
-	bool hasNextPortion;
 
 	//
 	SimplePocoHandler* handler;
 	AMQP::Connection* connection;
 	AMQP::Channel* channel;
 
-
+	std::queue<std::thread*> threadPool;
 	std::queue<MessageObject*>* readQueue = new std::queue<MessageObject*>();
 	std::queue<MessageObject*>* confirmQueue = new std::queue<MessageObject*>();
 	std::string consQueue;
