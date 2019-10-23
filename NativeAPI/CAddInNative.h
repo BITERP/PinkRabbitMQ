@@ -46,7 +46,8 @@ public:
 		eMethDeclareExchange = 11,
 		eMethDeleteExchange = 12,
 		eMethUnbindQueue = 13,
-        eMethLast = 14      // Always last
+		eMethTest = 14,
+        eMethLast = 15      // Always last
     };
 
     CAddInNative(void);
@@ -80,6 +81,7 @@ public:
     // LocaleBase
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
 	void CAddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source);
+	void CAddInNative::setStringToTVariant(tVariant* dest, std::string source);
     
 private:
 
@@ -92,6 +94,7 @@ private:
 	bool getLastError(tVariant* pvarRetValue);
 	bool basicConsume(tVariant* pvarRetValue, tVariant* paParams);
 	bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
+	bool testMy(tVariant* pvarRetValue, tVariant* paParams);
 	bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
 	bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
 	bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);

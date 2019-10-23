@@ -290,8 +290,9 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		return "";
 	}
 
-	channel->setQos(100, false);
-
+	selectSize = _selectSize;
+	hasNextPortion = true;
+	channel->setQos(_selectSize, true);
 	channel->onReady([this]()
 	{
 		handler->quit();
@@ -313,9 +314,9 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 
 	updateLastError("");
 
-	if (readQueue.size() > 0) {
-		MessageObject* read = readQueue.front();
-		readQueue.pop();
+	if (readQueue->size() > 0) {
+		MessageObject* read = readQueue->front();
+		readQueue->pop();
 		outdata = read->body;
 		msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
 		msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
@@ -328,15 +329,14 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 		msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
 		msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
 
-		confirmQueue.push(read);
-		return true;
+		confirmQueue->push(read);
+		return !confirmQueue->empty();
 	};
 
+	if (!hasNextPortion)
+		return false;
 
-	bool hasMessage = false;
-
-	channel->setQos(100, false);
-	AMQP::MessageCallback messageCallback = [&timeout , &hasMessage, &outdata, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
+	AMQP::MessageCallback messageCallback = [&timeout, this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
 		MessageObject* msgOb = new MessageObject();
 		
@@ -353,16 +353,19 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 		msgOb->msgProps[REPLY_TO] = message.replyTo();
 		msgOb->messageTag = deliveryTag;
 		
-		readQueue.push(msgOb);
+		readQueue->push(msgOb);
 
-		handler->quitRead();
-
-		hasMessage = true;
+		if (readQueue->size() >= selectSize) {
+			handler->quitRead();
+			hasNextPortion = true;
+		}
+		else {
+			hasNextPortion = false;
+		}
 	};
 
 	channel->consume(consQueue)
 		.onMessage(messageCallback)
-			
 		.onError([this](const char* message)
 	{
 		updateLastError(message);
@@ -371,15 +374,17 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 
 	handler->loop(timeout);
 
-	if (hasMessage) {
-		MessageObject* read = readQueue.front();
-		readQueue.pop();
+	bool hasVal = !readQueue->empty();
+	if (readQueue->size() > 0) {
+		MessageObject* read = readQueue->front();
+		readQueue->pop();
 		outdata = read->body;
 		msgProps = read->msgProps;
-		confirmQueue.push(read);
+		confirmQueue->push(read);
+
 	}
 
-	return hasMessage;
+	return hasVal;
 }
 
 bool RabbitMQClient::basicAck() {
@@ -389,7 +394,7 @@ bool RabbitMQClient::basicAck() {
 		return false;
 	}
 
-	if (confirmQueue.size() == 0) {
+	if (confirmQueue->size() == 0) {
 		updateLastError("There is no message in queue to confirm!");
 		return false;
 	}
@@ -398,8 +403,8 @@ bool RabbitMQClient::basicAck() {
 	bool result = false;
 
 	channel->onReady([this, &result]() {
-		MessageObject* read = confirmQueue.front();
-		confirmQueue.pop();
+		MessageObject* read = confirmQueue->front();
+		confirmQueue->pop();
 		channel->ack(read->messageTag);
 		read->body;
 		delete read;
@@ -418,7 +423,7 @@ bool RabbitMQClient::basicReject() {
 		return false;
 	}
 
-	if (confirmQueue.size() == 0) {
+	if (confirmQueue->size() == 0) {
 		updateLastError("There is no message in queue to reject!");
 		return false;
 	}
@@ -427,8 +432,8 @@ bool RabbitMQClient::basicReject() {
 	bool result = false;
 
 	channel->onReady([this, &result]() {
-		MessageObject* read = confirmQueue.front();
-		confirmQueue.pop();
+		MessageObject* read = confirmQueue->front();
+		confirmQueue->pop();
 		channel->reject(read->messageTag);
 		delete read;
 		handler->quit();
@@ -458,6 +463,9 @@ void RabbitMQClient::updateLastError(const char* text) {
 }
 
 RabbitMQClient::~RabbitMQClient() {
+	delete readQueue;
+	delete confirmQueue;
+
 	if (connection != nullptr) {
 		delete connection;
 	}

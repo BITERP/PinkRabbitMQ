@@ -37,7 +37,6 @@ public:
 	void updateLastError(const char* text);
 private:
 	AMQP::Channel* openChannel();
-	void reset();
 	wchar_t* LAST_ERROR = L"";
 	// Transiting properties
 	const int CORRELATION_ID = 1;
@@ -51,9 +50,7 @@ private:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 	int selectSize = 1;
-	int messageIn = -1;
-	int messageOut = -1;
-	int messageConfirmed = -1;
+	bool hasNextPortion;
 
 	//
 	SimplePocoHandler* handler;
@@ -61,8 +58,8 @@ private:
 	AMQP::Channel* channel;
 
 
-	std::queue<MessageObject*> readQueue;
-	std::queue<MessageObject*> confirmQueue;
+	std::queue<MessageObject*>* readQueue = new std::queue<MessageObject*>();
+	std::queue<MessageObject*>* confirmQueue = new std::queue<MessageObject*>();
 	std::string consQueue;
 	std::map<int, std::string> msgProps;
 };

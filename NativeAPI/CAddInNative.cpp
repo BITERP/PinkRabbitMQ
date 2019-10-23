@@ -21,6 +21,7 @@
 #include <string>
 #include "RabbitMQClient.h"
 #include "Utils.h"
+#include <codecvt>
 
 constexpr size_t TIME_LEN = 65;
 
@@ -54,6 +55,7 @@ static const wchar_t *g_MethodNames[] = {
 	L"DeclareExchange",
 	L"DeleteExchange",
 	L"UnbindQueue",
+	L"Test",
 };
 
 static const wchar_t *g_PropNamesRu[] = {
@@ -84,6 +86,7 @@ static const wchar_t *g_MethodNamesRu[] = {
 	L"DeclareExchange",
 	L"DeleteExchange",
 	L"UnbindQueue",
+	L"Test",
 };
 
 static const wchar_t g_kClassNames[] = L"CAddInNative";
@@ -389,6 +392,8 @@ long CAddInNative::GetNParams(const long lMethodNum)
 		return 2;
 	case eMethUnbindQueue:
 		return 3;
+	case eMethTest:
+		return 1;
     default:
         return 0;
     }
@@ -423,6 +428,7 @@ bool CAddInNative::HasRetVal(const long lMethodNum)
 	case eMethBasicConsume:
 	case eMethBasicConsumeMessage:
 	case eMethDeclareQueue:
+	case eMethTest:
 		return true;
     default:
         return false;
@@ -511,6 +517,8 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 		return basicConsumeMessage(pvarRetValue, paParams);
 	case eMethDeclareQueue:
 		return declareQueue(pvarRetValue, paParams);
+	case eMethTest:
+		return testMy(pvarRetValue, paParams);
 	default:
 		return false;
     }
@@ -553,6 +561,16 @@ bool CAddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 	}
 	return true;
 }
+bool CAddInNative::testMy(tVariant* pvarRetValue, tVariant* paParams) {
+
+	std::string outdata = "Добро пожаловать";
+
+	setStringToTVariant(&paParams[0], outdata);
+	setStringToTVariant(pvarRetValue, outdata);
+
+	return true;
+}
+
 
 bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string outdata;
@@ -565,13 +583,13 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 		return false;
 	}
 
-	setWStringToTVariant(&paParams[1], Utils::stringToWs(outdata).c_str());
-	TV_VT(&paParams[1]) = VTYPE_PWSTR;
-
+	setStringToTVariant(&paParams[1], outdata);
+	outdata = "";
 	TV_VT(pvarRetValue) = VTYPE_BOOL;
 	TV_BOOL(pvarRetValue) = hasMessage;
 	return true;
 }
+
 
 bool CAddInNative::validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
 
@@ -817,6 +835,15 @@ void CAddInNative::SetLocale(const WCHAR_T* loc)
     //also we establish locale
     //setlocale(LC_ALL, char_locale);
 #endif
+}
+
+void CAddInNative::setStringToTVariant(tVariant* dest, std::string source) {
+	size_t len = source.length();
+	TV_VT(dest) = VTYPE_PSTR;
+	if (m_iMemory->AllocMemory((void**)& dest->pstrVal, len))
+		memcpy((void*)dest->pstrVal, (void*)source.c_str(), len);
+
+	dest->strLen = len;
 }
 
 void CAddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
