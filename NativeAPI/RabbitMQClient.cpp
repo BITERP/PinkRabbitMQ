@@ -291,7 +291,6 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	}
 
 	selectSize = _selectSize;
-	channel->setQos(100, true);
 	channel->onReady([this]()
 	{
 		handler->quit();
@@ -302,7 +301,6 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	
 	consQueue = queue;
 	uint16_t timeout = 60000000;
-	channel->setQos(100, true);
 	channel->consume(consQueue)
 		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{

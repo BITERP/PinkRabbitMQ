@@ -11,7 +11,7 @@ class SimplePocoHandler: public AMQP::ConnectionHandler
 public:
 
     static constexpr size_t BUFFER_SIZE = 80 * 1024 * 1024; //8Mb
-    static constexpr size_t TEMP_BUFFER_SIZE = 80 * 1024 * 1024; //1Mb
+    static constexpr size_t TEMP_BUFFER_SIZE = 10 * 1024 * 1024; //1Mb
 
     SimplePocoHandler(const std::string& host, uint16_t port);
     virtual ~SimplePocoHandler();
