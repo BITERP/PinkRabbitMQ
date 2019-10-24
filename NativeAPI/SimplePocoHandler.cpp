@@ -102,6 +102,7 @@ SimplePocoHandler::~SimplePocoHandler()
 }
 
 void SimplePocoHandler::loopThread(SimplePocoHandler* clazz, uint16_t timeout) {
+	clazz->resetQuitRead();
 	clazz->loop(timeout);
 }
 
@@ -118,18 +119,11 @@ void SimplePocoHandler::loop(uint16_t timeout)
 			loopIteration();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-
-		if (m_impl->quit && m_impl->outBuffer.available())
-		{
-			sendDataFromBuffer();
-		}
-
 	}
 	catch (const Poco::Exception& exc)
 	{
 		std::cerr << "Poco exception " << exc.displayText();
 	}
-	m_impl->quitRead = false; // reset channel for repeatable using
 }
 
 void SimplePocoHandler::loop()
@@ -199,6 +193,11 @@ void SimplePocoHandler::quit()
 void SimplePocoHandler::quitRead()
 {
 	m_impl->quitRead = true;
+}
+
+void SimplePocoHandler::resetQuitRead()
+{
+	m_impl->quitRead = false;
 }
 
 void SimplePocoHandler::SimplePocoHandler::close()
