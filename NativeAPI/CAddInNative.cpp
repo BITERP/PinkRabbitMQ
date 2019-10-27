@@ -91,6 +91,7 @@ static const wchar_t *g_MethodNamesRu[] = {
 
 static const wchar_t g_kClassNames[] = L"CAddInNative";
 static IAddInDefBase *pAsyncEvent = NULL;
+static void *consumedMessage = NULL;
 
 uint32_t convToShortWchar(WCHAR_T** Dest, const wchar_t* Source, uint32_t len = 0);
 uint32_t convFromShortWchar(wchar_t** Dest, const WCHAR_T* Source, uint32_t len = 0);
@@ -461,7 +462,10 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 	case eMethBasicCancel:
 		return client->basicCancel();
 	case eMethBasicAck:
-		return client->basicAck();
+	{
+		auto res = client->basicAck();
+		return res;
+	}
 	case eMethBasicReject:
 		return client->basicReject();
 	case eMethDeleteQueue:
@@ -583,8 +587,16 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 		return false;
 	}
 
-	setStringToTVariant(&paParams[1], outdata);
-	outdata = "";
+	if (hasMessage)
+	{
+		setWStringToTVariant(&paParams[1], Utils::stringToWs(outdata).c_str());
+	
+		/*if (consumedMessage)
+			m_iMemory->FreeMemory(&consumedMessage);
+		consumedMessage = paParams[1].pwstrVal;*/
+	}
+	TV_VT(&paParams[1]) = VTYPE_PWSTR;
+
 	TV_VT(pvarRetValue) = VTYPE_BOOL;
 	TV_BOOL(pvarRetValue) = hasMessage;
 	return true;

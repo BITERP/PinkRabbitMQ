@@ -305,8 +305,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
 		MessageObject* msgOb = new MessageObject();
-
-		msgOb->body = std::string(message.body(), message.body() + message.bodySize());
+		msgOb->body.assign(message.body(), message.bodySize());
 		msgOb->msgProps[CORRELATION_ID] = message.correlationID();
 		msgOb->msgProps[TYPE_NAME] = message.typeName();
 		msgOb->msgProps[MESSAGE_ID] = message.messageID();
@@ -382,7 +381,6 @@ bool RabbitMQClient::basicAck() {
 		MessageObject* read = confirmQueue->front();
 		confirmQueue->pop();
 		channel->ack(read->messageTag);
-		read->body;
 		delete read;
 		handler->quit();
 		result = true;
@@ -443,6 +441,8 @@ void RabbitMQClient::updateLastError(const char* text) {
 }
 
 RabbitMQClient::~RabbitMQClient() {
+	assert(readQueue->empty());
+	assert(confirmQueue->empty());
 	delete readQueue;
 	delete confirmQueue;
 
