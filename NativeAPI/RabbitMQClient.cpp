@@ -134,7 +134,7 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
 	return result;
 }
 
-std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete) {
+std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority) {
 
 	updateLastError("");
 
@@ -143,7 +143,12 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
 		return "";
 	}
 
-	channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
+	AMQP::Table args = AMQP::Table();
+	if (maxPriority != 0) {
+		args.set("x-max-priority", maxPriority);
+	}
+
+	channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
 		.onSuccess([this]()
 	{
 		handler->quit();
@@ -276,6 +281,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
 		if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
 		if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
+		if (priority != 0) envelope.setPriority(priority);
 
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
@@ -348,6 +354,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 		msgProps[CLUSTER_ID] = message.clusterID();
 		msgProps[EXPIRATION] = message.expiration();
 		msgProps[REPLY_TO] = message.replyTo();
+		priority = message.priority();
 
 		hasMessage = true;
 		messageTag = deliveryTag;
@@ -459,6 +466,15 @@ bool RabbitMQClient::basicCancel() {
 	}
 	delete consChannel;
 	return true;
+}
+
+bool RabbitMQClient::setPriority(int _priority) {
+	priority = _priority;
+	return true;
+}
+
+int RabbitMQClient::getPriority() {
+	return priority;
 }
 
 WCHAR_T* RabbitMQClient::getLastError() noexcept
