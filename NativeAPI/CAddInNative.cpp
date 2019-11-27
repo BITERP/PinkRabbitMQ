@@ -55,7 +55,8 @@ static const wchar_t *g_MethodNames[] = {
 	L"DeclareExchange",
 	L"DeleteExchange",
 	L"UnbindQueue",
-	L"Test",
+	L"SetPriority",
+	L"GetPriority",
 };
 
 static const wchar_t *g_PropNamesRu[] = {
@@ -86,7 +87,8 @@ static const wchar_t *g_MethodNamesRu[] = {
 	L"DeclareExchange",
 	L"DeleteExchange",
 	L"UnbindQueue",
-	L"Test",
+	L"SetPriority",
+	L"GetPriority",
 };
 
 static const wchar_t g_kClassNames[] = L"CAddInNative";
@@ -370,7 +372,7 @@ long CAddInNative::GetNParams(const long lMethodNum)
 	case eMethConnect:
 		return 6;
 	case eMethDeclareQueue:
-		return 5;
+		return 6;
 	case eMethBasicPublish:
 		return 5;
 	case eMethBasicConsume:
@@ -393,7 +395,7 @@ long CAddInNative::GetNParams(const long lMethodNum)
 		return 2;
 	case eMethUnbindQueue:
 		return 3;
-	case eMethTest:
+	case eMethSetPriority:
 		return 1;
     default:
         return 0;
@@ -408,6 +410,13 @@ bool CAddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
 	switch (lMethodNum)
 	{
 	case eMethConnect:
+		if (lParamNum == 5) {
+			TV_VT(pvarParamDefValue) = VTYPE_I4;
+			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		return false;
+	case eMethDeclareQueue:
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_I4;
 			TV_I4(pvarParamDefValue) = 0;
@@ -429,7 +438,7 @@ bool CAddInNative::HasRetVal(const long lMethodNum)
 	case eMethBasicConsume:
 	case eMethBasicConsumeMessage:
 	case eMethDeclareQueue:
-	case eMethTest:
+	case eMethGetPriority:
 		return true;
     default:
         return false;
@@ -499,6 +508,8 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 			Utils::wsToString(paParams[0].pwstrVal),
 			paParams[1].bVal
 		);
+	case eMethSetPriority:
+		return client->setPriority(paParams[0].intVal);
     default:
         return false;
     }
@@ -521,8 +532,8 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 		return basicConsumeMessage(pvarRetValue, paParams);
 	case eMethDeclareQueue:
 		return declareQueue(pvarRetValue, paParams);
-	case eMethTest:
-		return testMy(pvarRetValue, paParams);
+	case eMethGetPriority:
+		return getPriority(pvarRetValue, paParams);
 	default:
 		return false;
     }
@@ -555,7 +566,8 @@ bool CAddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 		Utils::wsToString(paParams[0].pwstrVal),
 		paParams[1].bVal,
 		paParams[2].bVal,
-		paParams[4].bVal
+		paParams[4].bVal,
+		paParams[5].ushortVal
 	);
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(queueName).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
@@ -565,16 +577,6 @@ bool CAddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 	}
 	return true;
 }
-bool CAddInNative::testMy(tVariant* pvarRetValue, tVariant* paParams) {
-
-	std::string outdata = "Добро пожаловать";
-
-	setStringToTVariant(&paParams[0], outdata);
-	setStringToTVariant(pvarRetValue, outdata);
-
-	return true;
-}
-
 
 bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string outdata;
@@ -602,6 +604,12 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 	return true;
 }
 
+bool CAddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
+	int priority = client->getPriority();
+	TV_VT(pvarRetValue) = VTYPE_I4;
+	TV_I4(pvarRetValue) = priority;
+	return true;
+}
 
 bool CAddInNative::validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
 
@@ -685,6 +693,9 @@ bool CAddInNative::validateDeclDelQueue(tVariant* paParams, long const lMethodNu
 		if (i == 0)
 		{
 			typeCheck = VTYPE_PWSTR;
+		} else if(i == 5)
+		{
+			typeCheck = VTYPE_I4;
 		}
 		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
 		{

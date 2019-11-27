@@ -28,7 +28,7 @@ public:
 	bool basicReject();
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
 	bool deleteExchange(const std::string& name, bool ifunused);
-	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete);
+	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete, uint16_t maxPriority);
 	bool deleteQueue(const std::string& name, bool onlyIfIdle, bool onlyIfEmpty);
 	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
@@ -36,6 +36,8 @@ public:
 	bool basicConsumeMessage(std::string& outdata, uint16_t timeout);
 	void basicConsumeMessageThread(uint16_t timeout);
 	bool basicCancel();
+	bool setPriority(int _priority);
+	int getPriority();
 	void updateLastError(const char* text);
 private:
 	AMQP::Channel* openChannel();
@@ -52,7 +54,7 @@ private:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 	int selectSize = 1;
-
+	int priority = 0;
 	//
 	SimplePocoHandler* handler;
 	AMQP::Connection* connection;

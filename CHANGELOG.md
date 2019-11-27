@@ -1,4 +1,7 @@
+# Новое в версии 1.5
 
+* Добавлены методы SetPriority и GetPriority
+* Добавлен параметр priority в метод DeclareQueue
 
 # Новое в версии 1.4
 
