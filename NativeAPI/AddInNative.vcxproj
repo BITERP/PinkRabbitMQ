@@ -218,7 +218,6 @@
     </ClCompile>
     <ClCompile Include="CAddInNative.cpp" />
     <ClCompile Include="RabbitMQClient.cpp" />
-    <ClCompile Include="ThreadSafeQueue.cpp" />
     <ClCompile Include="SimplePocoHandler.cpp" />
     <ClCompile Include="MessageObject.cpp" />
     <ClCompile Include="Utils.cpp" />
