@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue> 
 #include <thread>
+#include "ThreadSafeQueue.cpp"
 
 class SimplePocoHandler;
 namespace AMQP { class Connection; class Channel; }

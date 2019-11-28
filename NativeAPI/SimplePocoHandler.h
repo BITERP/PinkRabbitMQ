@@ -10,8 +10,8 @@ class SimplePocoHandler: public AMQP::ConnectionHandler
 {
 public:
 
-    static constexpr size_t BUFFER_SIZE = 8 * 1024 * 1024; //8Mb
-    static constexpr size_t TEMP_BUFFER_SIZE = 1 * 1024 * 1024; //1Mb
+    static constexpr size_t BUFFER_SIZE = 80 * 1024 * 1024; //8Mb
+    static constexpr size_t TEMP_BUFFER_SIZE = 10 * 1024 * 1024; //1Mb
 
     SimplePocoHandler(const std::string& host, uint16_t port);
     virtual ~SimplePocoHandler();
@@ -20,7 +20,7 @@ public:
 	void quitRead();
 	void resetQuitRead();
 	void loop(uint16_t timeout);
-	static void loopThread(SimplePocoHandler* clazz, uint16_t timeout);
+	static void loopThread(SimplePocoHandler* clazz);
     void quit();
 
     bool connected() const;
