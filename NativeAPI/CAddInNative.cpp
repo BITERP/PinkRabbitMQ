@@ -592,10 +592,6 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 	if (hasMessage)
 	{
 		setWStringToTVariant(&paParams[1], Utils::stringToWs(outdata).c_str());
-	
-		/*if (consumedMessage)
-			m_iMemory->FreeMemory(&consumedMessage);
-		consumedMessage = paParams[1].pwstrVal;*/
 	}
 	TV_VT(&paParams[1]) = VTYPE_PWSTR;
 

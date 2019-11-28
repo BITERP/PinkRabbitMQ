@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue> 
 #include <thread>
+#include "ThreadSafeQueue.cpp"
 
 class SimplePocoHandler;
 namespace AMQP { class Connection; class Channel; }
@@ -61,8 +62,8 @@ private:
 	AMQP::Channel* channel;
 
 	std::queue<std::thread*> threadPool;
-	std::queue<MessageObject*>* readQueue = new std::queue<MessageObject*>();
-	std::queue<MessageObject*>* confirmQueue = new std::queue<MessageObject*>();
+	std::queue<MessageObject>* readQueue = new std::queue<MessageObject>();
+	ThreadSafeQueue<MessageObject>* confirmQueue = new ThreadSafeQueue<MessageObject>(1);
 	std::string consQueue;
 	std::map<int, std::string> msgProps;
 };
