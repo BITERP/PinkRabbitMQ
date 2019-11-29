@@ -5,6 +5,7 @@
 #include <Poco/Exception.h>
 #include <Poco/Net/NetException.h>
 #include <thread>
+#include "ThreadLooper.cpp"
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
@@ -21,11 +22,11 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 		connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
 		
 		channel = new AMQP::Channel(connection);
-		channel->onReady([this]()
-		{
-			handler->quit();
-		});
-		handler->loop();
+//		channel->onReady([this]()
+//		{
+//			handler->quit();
+//		});
+	//	handler->loop();
 
 		threadPool.push(new std::thread(SimplePocoHandler::loopThread, handler));
 		
@@ -198,13 +199,11 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		return false;
 	}
 
-	std::mutex mutex;
-	std::unique_lock<std::mutex> lock(mutex);
-	std::condition_variable cvPop;
+	ThreadLooper looper;
 
 	AMQP::Channel publChannel(connection);
 
-	publChannel.onReady([&cvPop, &message, &exchange, &publChannel, &routingKey, this]()
+	publChannel.onReady([&looper, &message, &exchange, &publChannel, &routingKey, this]()
 	{
 		AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
 		if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
@@ -220,17 +219,19 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		if (priority != 0) envelope.setPriority(priority);
 
 		publChannel.publish(exchange, routingKey, envelope);
-		cvPop.notify_one();
+		looper.notify();
+		
 	});
 
-	publChannel.onError([&cvPop, this](const char* messageErr)
+	publChannel.onError([&looper, this](const char* messageErr)
 	{
 		updateLastError(messageErr);
-		handler->quit();
-		cvPop.notify_one();
+		looper.notify();
+	
 	});
-
-	cvPop.wait(lock);
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	looper.wait();
+	publChannel.close();
 	return true;
 }
 
