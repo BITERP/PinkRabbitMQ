@@ -5,6 +5,7 @@
 #include <Poco/Exception.h>
 #include <Poco/Net/NetException.h>
 #include <thread>
+#include "AuthException.cpp"
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
@@ -13,7 +14,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	try
 	{
 		handler = new SimplePocoHandler(host, port);
-		connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
+		newConnection(login, pwd, vhost);
 
 		channel = new AMQP::Channel(connection);
 		
@@ -23,11 +24,30 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	{
 		updateLastError(ex.what());
 	}
+	catch (const AuthException& ex)
+	{
+		updateLastError(ex.what());
+	}
 	catch (const Poco::Net::NetException& ex)
 	{
 		updateLastError(ex.what());
 	}
 	return connected;
+}
+
+void RabbitMQClient::newConnection(const std::string& login, const std::string& pwd, const std::string& vhost) {
+
+	connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
+
+	const uint16_t timeout = 5000;
+	std::chrono::milliseconds timeoutMs{ timeout };
+	auto end = std::chrono::system_clock::now() + timeoutMs;
+	while (connection->waiting() && (end - std::chrono::system_clock::now()).count() > 0) {
+		handler->loopIteration();
+	}
+	if (!connection->ready()) {
+		throw AuthException();
+	}
 }
 
 AMQP::Channel* RabbitMQClient::openChannel() {

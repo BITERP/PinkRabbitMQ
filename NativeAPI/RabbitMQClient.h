@@ -41,6 +41,7 @@ public:
 	void updateLastError(const char* text);
 private:
 	AMQP::Channel* openChannel();
+	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
 	wchar_t* LAST_ERROR = L"";
 	// Transiting properties
 	const int CORRELATION_ID = 1;

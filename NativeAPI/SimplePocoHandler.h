@@ -22,6 +22,7 @@ public:
 	void loop(uint16_t timeout);
 	static void loopThread(SimplePocoHandler* clazz, uint16_t timeout);
     void quit();
+	void loopIteration();
 
     bool connected() const;
 
@@ -30,7 +31,6 @@ private:
     SimplePocoHandler(const SimplePocoHandler&) = delete;
     SimplePocoHandler& operator=(const SimplePocoHandler&) = delete;
 
-	void loopIteration();
 	void sendDataFromBuffer();
     void close();
 
