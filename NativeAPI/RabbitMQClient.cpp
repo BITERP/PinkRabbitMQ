@@ -229,7 +229,6 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		looper.notify();
 	
 	});
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	looper.wait();
 	publChannel.close();
 	return true;

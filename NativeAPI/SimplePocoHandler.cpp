@@ -114,7 +114,7 @@ void SimplePocoHandler::loop(uint16_t timeout)
 	// 
 	try
 	{
-		while (!m_impl->quitRead && (end - std::chrono::system_clock::now()).count() > 0)
+		while (!m_impl->quitRead)
 		{
 			loopIteration();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
