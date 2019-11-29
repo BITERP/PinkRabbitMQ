@@ -19,8 +19,8 @@ public:
     void loop();
 	void quitRead();
 	void resetQuitRead();
-	void loop(uint16_t timeout);
-	static void loopThread(SimplePocoHandler* clazz, uint16_t timeout);
+	void loopRead();
+	static void loopThread(SimplePocoHandler* clazz);
     void quit();
 	void loopIteration();
 

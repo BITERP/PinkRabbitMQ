@@ -334,7 +334,6 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	updateLastError("");
 
 	consQueue = queue;
-	uint16_t timeout = 60000000;
 	channel->consume(consQueue)
 		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
@@ -361,7 +360,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	});
 
 	for (int i = 0; i < 1; i++) {
-		threadPool.push(new std::thread(SimplePocoHandler::loopThread, handler, timeout));
+		threadPool.push(new std::thread(SimplePocoHandler::loopThread, handler));
 	}
 	return "";
 }

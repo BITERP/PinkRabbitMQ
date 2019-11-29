@@ -101,20 +101,17 @@ SimplePocoHandler::~SimplePocoHandler()
 	close();
 }
 
-void SimplePocoHandler::loopThread(SimplePocoHandler* clazz, uint16_t timeout) {
+void SimplePocoHandler::loopThread(SimplePocoHandler* clazz) {
 	clazz->resetQuitRead();
-	clazz->loop(timeout);
+	clazz->loopRead();
 }
 
-void SimplePocoHandler::loop(uint16_t timeout)
+void SimplePocoHandler::loopRead()
 {
-	std::chrono::milliseconds timeoutSec{ timeout };
-	auto end = std::chrono::system_clock::now() + timeoutSec;
 
-	// 
 	try
 	{
-		while (!m_impl->quitRead && (end - std::chrono::system_clock::now()).count() > 0)
+		while (!m_impl->quitRead)
 		{
 			loopIteration();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
