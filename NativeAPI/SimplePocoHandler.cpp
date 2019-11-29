@@ -101,9 +101,9 @@ SimplePocoHandler::~SimplePocoHandler()
 	close();
 }
 
-void SimplePocoHandler::loopThread(SimplePocoHandler* clazz) {
+void SimplePocoHandler::loopThread(SimplePocoHandler* clazz, uint16_t timeout) {
 	clazz->resetQuitRead();
-	clazz->loop(999999999);
+	clazz->loop(timeout);
 }
 
 void SimplePocoHandler::loop(uint16_t timeout)

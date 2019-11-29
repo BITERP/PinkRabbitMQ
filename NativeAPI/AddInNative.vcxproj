@@ -220,7 +220,6 @@
     <ClCompile Include="RabbitMQClient.cpp" />
     <ClCompile Include="SimplePocoHandler.cpp" />
     <ClCompile Include="MessageObject.cpp" />
-    <ClCompile Include="ThreadSafeQueue.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
