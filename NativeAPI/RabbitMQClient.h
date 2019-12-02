@@ -23,7 +23,7 @@ public:
 	std::string getMsgProp(int propIndex);
 	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
 	WCHAR_T* getLastError() noexcept;
-	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message);
+	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
 	bool basicAck();
 	bool basicReject();
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);

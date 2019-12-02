@@ -272,7 +272,7 @@ std::string RabbitMQClient::getMsgProp(int propNum) {
 	return msgProps[propNum];
 }
 
-bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey, std::string& message) {
+bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent) {
 
 	updateLastError("");
 
@@ -285,7 +285,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
 	AMQP::Channel publChannel(connection);
 
-	publChannel.onReady([&message, &exchange, &publChannel, &routingKey, this]()
+	publChannel.onReady([&message, &persistent, &exchange, &publChannel, &routingKey, this]()
 	{
 		AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
 		if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
@@ -299,7 +299,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
 		if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
 		if (priority != 0) envelope.setPriority(priority);
-
+		if (persistent) {envelope.setDeliveryMode(2);}
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
 	});

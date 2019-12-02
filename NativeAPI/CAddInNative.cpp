@@ -466,7 +466,8 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 		return client->basicPublish(
 			Utils::wsToString(paParams[0].pwstrVal),
 			Utils::wsToString(paParams[1].pwstrVal),
-			Utils::wsToString(paParams[2].pwstrVal)
+			Utils::wsToString(paParams[2].pwstrVal),
+			paParams[4].bVal
 		);
 	case eMethBasicCancel:
 		return client->basicCancel();
