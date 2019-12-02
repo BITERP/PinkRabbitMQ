@@ -328,6 +328,12 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	{
 		handler->quit();
 	});
+	channel->onError([this](const char* message)
+	{
+		updateLastError(message);
+		handler->quitRead();
+		handler->quit();
+	});
 
 	handler->loop();
 	channel->setQos(_selectSize, true);
@@ -479,7 +485,14 @@ RabbitMQClient::~RabbitMQClient() {
 	delete readQueue;
 	delete confirmQueue;
 
+	for (int i = 0; i < threadPool.size(); i++) {
+		std::thread* curr = threadPool.front();
+		curr->join();
+		threadPool.pop();
+	}
+
 	if (connection != nullptr) {
+		connection->close();
 		delete connection;
 	}
 	if (handler != nullptr) {
