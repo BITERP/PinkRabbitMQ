@@ -357,7 +357,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb->msgProps[REPLY_TO] = message.replyTo();
 		msgOb->messageTag = deliveryTag;
 		msgOb->priority = message.priority();
-
+		
 		readQueue->push(msgOb);
 	})
 		.onError([this](const char* message)
@@ -372,7 +372,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 }
 
 
-bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout) {
+bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout) {
 
 	updateLastError("");
 
@@ -381,8 +381,10 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
 		if (!readQueue->empty()) {
 			MessageObject* read = readQueue->front();
-			readQueue->pop();
+			
 			outdata = read->body;
+			outMessageTag = read->messageTag;
+
 			msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
 			msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
 			msgProps[MESSAGE_ID] = read->msgProps[MESSAGE_ID];
@@ -395,7 +397,9 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 			msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
 			priority = read->priority;
 
-			confirmQueue->push(read);
+			readQueue->pop();
+			delete read;
+
 			return true;
 		}
 	}
@@ -403,35 +407,29 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, uint16_t timeout)
 	return false;
 }
 
-bool RabbitMQClient::basicAck() {
+bool RabbitMQClient::basicAck(const std::uint64_t& messageTag) {
 
-	if (confirmQueue->empty()) {
-		updateLastError("There is no message in queue to confirm!");
+	if (messageTag == 0) {
+		updateLastError("Message tag cannot be empty!");
 		return false;
 	}
 
 	updateLastError("");
 
-	MessageObject* read = confirmQueue->front();
-	confirmQueue->pop();
-	channel->ack(read->messageTag);
-	delete read;
+	channel->ack(messageTag);
 
 	return true;
 }
 
-bool RabbitMQClient::basicReject() {
+bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
-	if (confirmQueue->empty()) {
-		updateLastError("There is no message in queue to reject!");
+	if (messageTag == 0) {
+		updateLastError("Message tag cannot be empty!");
 		return false;
 	}
 	updateLastError("");
 
-	MessageObject* read = confirmQueue->front();
-	confirmQueue->pop();
-	channel->reject(read->messageTag);
-	delete read;
+	channel->reject(messageTag);
 
 	return true;
 }
@@ -468,31 +466,25 @@ void RabbitMQClient::updateLastError(const char* text) {
 }
 
 RabbitMQClient::~RabbitMQClient() {
-	while (!readQueue->empty()) {
-		MessageObject* msgOb = readQueue->front();
-		readQueue->pop();
-		delete msgOb;
-	}
-	assert(readQueue->empty());
-
-	while (!confirmQueue->empty()) {
-		MessageObject* msgOb = confirmQueue->front();
-		confirmQueue->pop();
-		delete msgOb;
-	}
-	assert(confirmQueue->empty());
-
-	delete readQueue;
-	delete confirmQueue;
-
+	// Order below need to be kept
+	connection->close();
+	handler->quitRead();
 	for (int i = 0; i < threadPool.size(); i++) {
 		std::thread* curr = threadPool.front();
 		curr->join();
 		threadPool.pop();
 	}
 
+	while (!readQueue->empty()) {
+		MessageObject* msgOb = readQueue->front();
+		readQueue->pop();
+		delete msgOb;
+	}
+	assert(readQueue->empty());
+	delete readQueue;
+	// 
+
 	if (connection != nullptr) {
-		connection->close();
 		delete connection;
 	}
 	if (handler != nullptr) {

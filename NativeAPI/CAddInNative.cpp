@@ -378,13 +378,13 @@ long CAddInNative::GetNParams(const long lMethodNum)
 	case eMethBasicConsume:
 		return 5;
 	case eMethBasicConsumeMessage:
-		return 3;
+		return 4;
 	case eMethBasicCancel:
 		return 1;
 	case eMethBasicAck:
-		return 0;
+		return 1;
 	case eMethBasicReject:
-		return 0;
+		return 1;
 	case eMethDeleteQueue:
 		return 3;
 	case eMethBindQueue:
@@ -473,11 +473,11 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 		return client->basicCancel();
 	case eMethBasicAck:
 	{
-		auto res = client->basicAck();
+		auto res = client->basicAck(paParams[0].ullVal);
 		return res;
 	}
 	case eMethBasicReject:
-		return client->basicReject();
+		return client->basicReject(paParams[0].ullVal);
 	case eMethDeleteQueue:
 		return client->deleteQueue(
 			Utils::wsToString(paParams[0].pwstrVal),
@@ -581,9 +581,12 @@ bool CAddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 
 bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string outdata;
+	std::uint64_t outMessageTag;
+
 	bool hasMessage = client->basicConsumeMessage(
 		outdata,
-		paParams[2].intVal
+		outMessageTag,
+		paParams[3].intVal
 	);
 
 	if (wcslen(client->getLastError()) != 0) {
@@ -594,17 +597,20 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 	{
 		setWStringToTVariant(&paParams[1], Utils::stringToWs(outdata).c_str());
 	}
-	TV_VT(&paParams[1]) = VTYPE_PWSTR;
+	TV_VT(&paParams[1]) = VTYPE_PWSTR; // Передаем сообщение в исходящий параметр 1С-ого метода
 
-	TV_VT(pvarRetValue) = VTYPE_BOOL;
-	TV_BOOL(pvarRetValue) = hasMessage;
-	return true;
+
+	TV_VT(&paParams[2]) = VTYPE_UI4;
+	TV_UI8(&paParams[2]) = outMessageTag;
+
+	TV_VT(pvarRetValue) = VTYPE_BOOL; // Устаналиваем тип возвращаемого значения 1С-ого метода в булево
+	TV_BOOL(pvarRetValue) = hasMessage; // передаем возвращаемое значение 1с-ого метода как булево
+	return true; // True узначает, что метод выполнился успешно
 }
 
 bool CAddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
 	int priority = client->getPriority();
-	TV_VT(pvarRetValue) = VTYPE_I4;
-	TV_I4(pvarRetValue) = priority;
+
 	return true;
 }
 
@@ -665,11 +671,11 @@ bool CAddInNative::validateBasicConsumeMessage(tVariant* paParams, long const lM
 	for (int i = 0; i < lSizeArray; i++)
 	{
 		ENUMVAR typeCheck = VTYPE_PWSTR;
-		if (i == 2)
+		if (i == 3)
 		{
 			typeCheck = VTYPE_I4;
 		}
-		if (i == 1)
+		if (i == 1 || i == 2)
 		{
 			// This is output parameter with type VTYPE_EMPTY. Skip it
 			continue;

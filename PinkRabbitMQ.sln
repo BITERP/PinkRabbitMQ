@@ -1,25 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29001.49
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AddInNative", "NativeAPI\AddInNative.vcxproj", "{55890DF2-D13E-4C89-A01D-79CAD6726246}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PinkRabbitMQ", "NativeAPI\AddInNative.vcxproj", "{55890DF2-D13E-4C89-A01D-79CAD6726246}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|ARM.ActiveCfg = Debug|x64
+		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|ARM.Build.0 = Debug|x64
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|Win32.ActiveCfg = Debug|Win32
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|Win32.Build.0 = Debug|Win32
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|x64.ActiveCfg = Debug|x64
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|x64.Build.0 = Debug|x64
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Debug|x86.ActiveCfg = Debug|x64
+		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Release|ARM.ActiveCfg = Release|x64
+		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Release|ARM.Build.0 = Release|x64
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Release|Win32.ActiveCfg = Release|Win32
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Release|Win32.Build.0 = Release|Win32
 		{55890DF2-D13E-4C89-A01D-79CAD6726246}.Release|x64.ActiveCfg = Release|x64
@@ -28,5 +34,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DE8D27B-EB2F-48C2-A2DE-A324662D75C6}
 	EndGlobalSection
 EndGlobal

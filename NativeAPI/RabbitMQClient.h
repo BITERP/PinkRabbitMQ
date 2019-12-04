@@ -24,8 +24,8 @@ public:
 	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
 	WCHAR_T* getLastError() noexcept;
 	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
-	bool basicAck();
-	bool basicReject();
+	bool basicAck(const std::uint64_t& messageTag);
+	bool basicReject(const std::uint64_t& messageTag);
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
 	bool deleteExchange(const std::string& name, bool ifunused);
 	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete, uint16_t maxPriority);
@@ -33,8 +33,7 @@ public:
 	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	std::string basicConsume(const std::string& queue, int selectSize);
-	bool basicConsumeMessage(std::string& outdata, uint16_t timeout);
-	void basicConsumeMessageThread(uint16_t timeout);
+	bool basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout);
 	bool basicCancel();
 	bool setPriority(int _priority);
 	int getPriority();
@@ -63,7 +62,6 @@ private:
 
 	std::queue<std::thread*> threadPool;
 	std::queue<MessageObject*>* readQueue = new std::queue<MessageObject*>();
-	std::queue<MessageObject*>* confirmQueue = new std::queue<MessageObject*>();
 	std::string consQueue;
 	std::map<int, std::string> msgProps;
 };
