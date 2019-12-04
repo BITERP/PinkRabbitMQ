@@ -380,7 +380,8 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 	auto end = std::chrono::system_clock::now() + timeoutSec;
 	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
 		if (!readQueue->empty()) {
-			MessageObject* read = readQueue->front();
+			MessageObject* read;
+			readQueue->pop(read);
 			
 			outdata = read->body;
 			outMessageTag = read->messageTag;
@@ -397,7 +398,6 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 			msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
 			priority = read->priority;
 
-			readQueue->pop();
 			delete read;
 
 			return true;
@@ -476,8 +476,8 @@ RabbitMQClient::~RabbitMQClient() {
 	}
 
 	while (!readQueue->empty()) {
-		MessageObject* msgOb = readQueue->front();
-		readQueue->pop();
+		MessageObject* msgOb;
+		readQueue->pop(msgOb);
 		delete msgOb;
 	}
 	assert(readQueue->empty());
