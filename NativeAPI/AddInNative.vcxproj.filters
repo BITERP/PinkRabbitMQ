@@ -42,6 +42,9 @@
     <ClCompile Include="ThreadSafeQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ThreadLooper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addin\stdafx.h">

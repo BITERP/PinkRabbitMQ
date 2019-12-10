@@ -59,7 +59,7 @@ public:
 
 			// Check that the queue is not closed and thus pushing is allowed.
 			if (state == State::CLOSED)
-				throw std::runtime_error("Trying to push to a closed queue.");
+				return;
 
 			// Push to queue.
 			currentSize += 1;

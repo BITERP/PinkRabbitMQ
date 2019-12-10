@@ -6,6 +6,7 @@
 #include <Poco/Net/NetException.h>
 #include <thread>
 #include "AuthException.cpp"
+#include "ThreadLooper.cpp"
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
@@ -323,7 +324,6 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		return "";
 	}
 
-	selectSize = _selectSize;
 	channel->onReady([this]()
 	{
 		handler->quit();
@@ -435,8 +435,19 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 }
 
 bool RabbitMQClient::basicCancel() {
-	
+
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 	handler->quitRead();
+
+	readQueue->close();
+
+	MessageObject* msgOb;
+	ThreadSafeQueue<MessageObject*>::QueueResult result;
+	while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
+		delete msgOb;
+	};
 
 	for (int i = 0; i < threadPool.size(); i++) {
 		std::thread* curr = threadPool.front();

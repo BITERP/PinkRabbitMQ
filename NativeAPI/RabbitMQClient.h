@@ -54,7 +54,6 @@ private:
 	const int CLUSTER_ID = 8;
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
-	int selectSize = 1;
 	int priority = 0;
 	//
 	SimplePocoHandler* handler;
@@ -63,6 +62,6 @@ private:
 
 	std::queue<std::thread*> threadPool;
 	std::string consQueue;
-	ThreadSafeQueue<MessageObject*>* readQueue = new ThreadSafeQueue<MessageObject*>(1);
+	ThreadSafeQueue<MessageObject*>* readQueue = new ThreadSafeQueue<MessageObject*>(1);;
 	std::map<int, std::string> msgProps;
 };
