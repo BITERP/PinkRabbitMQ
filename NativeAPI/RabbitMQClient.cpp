@@ -11,6 +11,7 @@
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
 	updateLastError("");
+	std::string t1 = "sonar test";
 	bool connected = false;
 	try
 	{
