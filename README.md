@@ -323,6 +323,15 @@ cmake --build
 - PocoFoundationd.lib;
 13. Скомпилировать компоненту через проект
 
+## Разворачивание окружения разработки для Linux из-под WIndows 10
+1. Установить Visual Studio Community 2019 с последними обновлениями
+2. Развернуть отдельную виртуальную машину Linux с SSH парольным доступом
+3. Зайти на linux и выполнить команду для установки gdbserver и compiler-а
+```console
+sudo apt install -y build-essential gdbserver
+```
+4. Далее все по официальному [туториалу](https://devblogs.microsoft.com/cppblog/linux-development-with-c-in-visual-studio/)
+
 ## Сборка проекта через cmake
 ```
 mkdir build
