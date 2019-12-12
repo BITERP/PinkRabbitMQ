@@ -479,8 +479,12 @@ void RabbitMQClient::updateLastError(const char* text) {
 
 RabbitMQClient::~RabbitMQClient() {
 	// Order below need to be kept
-	connection->close();
-	handler->quitRead();
+	if (connection != nullptr) {
+		connection->close();
+	}
+	if (handler != nullptr) {
+		handler->quitRead();
+	}
 	for (int i = 0; i < threadPool.size(); i++) {
 		std::thread* curr = threadPool.front();
 		curr->join();
