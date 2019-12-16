@@ -16,6 +16,7 @@
 #include <wchar.h>
 #include "AddInNative.h"
 #include <string>
+#include <clocale>
 
 #define TIME_LEN 65
 
