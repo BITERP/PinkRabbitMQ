@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\AddInNative.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AddInNative.h" />
+    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\include\AddInDefBase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\addinlib.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\ComponentBase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\IAndroidComponentHelper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\IMemoryManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\mobile.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\types.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\AddInNative.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{f5a3a7fe-13c4-44df-b201-fc8f3425284a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,7 +1,7 @@
 #ifndef __ADDINNATIVE_H__
 #define __ADDINNATIVE_H__
 
-#include "D:\work\CPr\PinkRabbitMQ\PinkRabbitMQWindows\include\ComponentBase.h"
+#include "ComponentBase.h"
 #include "AddInDefBase.h"
 #include "IMemoryManager.h"
 

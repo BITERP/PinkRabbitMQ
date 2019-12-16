@@ -376,7 +376,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout) {
 
 	updateLastError("");
-
+	
 	std::chrono::milliseconds timeoutSec{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutSec;
 	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {

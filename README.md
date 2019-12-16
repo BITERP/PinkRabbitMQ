@@ -325,12 +325,8 @@ cmake --build
 
 ## Разворачивание окружения разработки для Linux из-под WIndows 10
 1. Установить Visual Studio Community 2019 с последними обновлениями
-2. Развернуть отдельную виртуальную машину Linux с SSH парольным доступом
-3. Зайти на linux и выполнить команду для установки gdbserver и compiler-а
-```console
-sudo apt install -y build-essential gdbserver
-```
-4. Далее все по официальному [туториалу](https://devblogs.microsoft.com/cppblog/linux-development-with-c-in-visual-studio/)
+2. Развернуть Linux system for Windows 10 и подключить VS Studio к своей машине [Туториал](https://devblogs.microsoft.com/cppblog/targeting-windows-subsystem-for-linux-from-visual-studio/)
+3. Запустить проект [PinrRabbitMQ для Linux](PinkRabbitMQLinux/PinkRabbitMQLinux.sln)
 
 ## Сборка проекта через cmake
 ```
