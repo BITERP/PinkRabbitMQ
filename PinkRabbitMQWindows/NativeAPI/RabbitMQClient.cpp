@@ -10,6 +10,9 @@
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
+
+	AMQP::ExchangeType topic = AMQP::ExchangeType::topic;
+
 	updateLastError("");
 	std::string t1 = "sonar test";
 	bool connected = false;

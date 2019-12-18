@@ -5,14 +5,13 @@
     <ClCompile Include="src\AddInNative.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\RMQConnection.cpp" />
+    <ClCompile Include="src\MyTCPHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AddInNative.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\include\AddInDefBase.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\addinlib.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="src\include\ComponentBase.h">
@@ -24,11 +23,185 @@
     <ClInclude Include="src\include\IMemoryManager.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\mobile.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="src\include\types.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RMQConnection.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\address.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\addresses.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\array.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\booleanset.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\buffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\bytebuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\callbacks.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\channel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\channelimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\classes.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connection.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionhandler.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\copiedbuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\decimalfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferred.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredcancel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconfirm.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconsumer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferreddelete.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredextreceiver.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredget.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredpublisher.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredqueue.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredreceiver.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\endian.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\entityimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\envelope.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\exception.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\exchangetype.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\field.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\fieldproxy.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\flags.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\frame.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libboostasio.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libev.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libevent.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libuv.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpchannel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpconnection.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpdefines.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcphandler.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpparent.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\login.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\message.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\metadata.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\monitor.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\numericfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\openssl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\outbuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\protocolexception.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\receivedframe.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\stack_ptr.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\stringfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\table.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\watchable.h">
+      <Filter>amqp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -38,5 +211,16 @@
     <Filter Include="include">
       <UniqueIdentifier>{f5a3a7fe-13c4-44df-b201-fc8f3425284a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{83703f16-ce55-45ed-bb47-5b44aa430e83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="amqp">
+      <UniqueIdentifier>{868d16e8-fb13-4f73-8429-9f1df14022c3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="src\amqp\libamqpcpp.a">
+      <Filter>amqp</Filter>
+    </Library>
   </ItemGroup>
 </Project>
