@@ -145,7 +145,7 @@ void CAddInNative::Done()
 //---------------------------------------------------------------------------//
 bool CAddInNative::RegisterExtensionAs(WCHAR_T** wsExtensionName)
 { 
-    const wchar_t *wsExtension = L"AddInNativeExtension";
+    const wchar_t* wsExtension = L"PinkRabbitMQ";
     int iActualSize = ::wcslen(wsExtension) + 1;
     WCHAR_T* dest = 0;
 

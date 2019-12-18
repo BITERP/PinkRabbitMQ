@@ -56,7 +56,7 @@
  */
 #elif (defined(_WIN16) || defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS__)) && !defined(__CYGWIN__)
 
-#include <winsock2.h>
+//#include <winsock2.h>
 #pragma comment(lib,"Ws2_32.lib")
 //# include <sys/param.h>
 

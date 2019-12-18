@@ -203,9 +203,108 @@
     <ClInclude Include="src\amqp\include\amqpcpp\watchable.h">
       <Filter>amqp</Filter>
     </ClInclude>
+    <ClInclude Include="src\libevent\include\evhttp.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evrpc.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evutil.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\buffer.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_ssl.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\buffer_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\keyvalq_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\listener.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\tag.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\tag_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\thread.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\util.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\visibility.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\watch.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evdns.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event-config.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\AddInNative.def" />
+    <None Include="src\libevent\include\include.am">
+      <Filter>libevent</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -217,10 +316,16 @@
     <Filter Include="amqp">
       <UniqueIdentifier>{868d16e8-fb13-4f73-8429-9f1df14022c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libevent">
+      <UniqueIdentifier>{f85e90af-81fc-4a7d-892f-bba347f1654a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="src\amqp\libamqpcpp.a">
+    <Library Include="src\amqp\libamqpcpp.so">
       <Filter>amqp</Filter>
+    </Library>
+    <Library Include="src\libevent\libevent.a">
+      <Filter>libevent</Filter>
     </Library>
   </ItemGroup>
 </Project>
