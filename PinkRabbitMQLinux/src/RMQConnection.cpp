@@ -20,7 +20,7 @@ bool RMQConnection::connect() {
     AMQP::TcpChannel channel(&connection);
 
     // create a temporary queue
-    channel.declareQueue("my_Tests3").onSuccess([&connection](const std::string& name, uint32_t messagecount, uint32_t consumercount) {
+    channel.declareQueue("my_Tests4").onSuccess([&connection](const std::string& name, uint32_t messagecount, uint32_t consumercount) {
 
         // report the name of the temporary queue
         std::cout << "declared queue " << name << std::endl;
