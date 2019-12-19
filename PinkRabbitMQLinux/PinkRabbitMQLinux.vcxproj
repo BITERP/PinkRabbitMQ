@@ -60,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseOfStl>libstdc++_static</UseOfStl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -198,132 +198,22 @@
     <ClInclude Include="src\libevent\include\evhttp.h" />
     <ClInclude Include="src\libevent\include\evrpc.h" />
     <ClInclude Include="src\libevent\include\evutil.h" />
-    <ClInclude Include="src\openssl\include\aes.h" />
-    <ClInclude Include="src\openssl\include\asn1.h" />
-    <ClInclude Include="src\openssl\include\asn1err.h" />
-    <ClInclude Include="src\openssl\include\asn1t.h" />
-    <ClInclude Include="src\openssl\include\asn1_mac.h" />
-    <ClInclude Include="src\openssl\include\async.h" />
-    <ClInclude Include="src\openssl\include\asyncerr.h" />
-    <ClInclude Include="src\openssl\include\bio.h" />
-    <ClInclude Include="src\openssl\include\bioerr.h" />
-    <ClInclude Include="src\openssl\include\blowfish.h" />
-    <ClInclude Include="src\openssl\include\bn.h" />
-    <ClInclude Include="src\openssl\include\bnerr.h" />
-    <ClInclude Include="src\openssl\include\buffer.h" />
-    <ClInclude Include="src\openssl\include\buffererr.h" />
-    <ClInclude Include="src\openssl\include\camellia.h" />
-    <ClInclude Include="src\openssl\include\cast.h" />
-    <ClInclude Include="src\openssl\include\cmac.h" />
-    <ClInclude Include="src\openssl\include\cms.h" />
-    <ClInclude Include="src\openssl\include\cmserr.h" />
-    <ClInclude Include="src\openssl\include\comp.h" />
-    <ClInclude Include="src\openssl\include\comperr.h" />
-    <ClInclude Include="src\openssl\include\conf.h" />
-    <ClInclude Include="src\openssl\include\conferr.h" />
-    <ClInclude Include="src\openssl\include\conf_api.h" />
-    <ClInclude Include="src\openssl\include\crypto.h" />
-    <ClInclude Include="src\openssl\include\cryptoerr.h" />
-    <ClInclude Include="src\openssl\include\ct.h" />
-    <ClInclude Include="src\openssl\include\cterr.h" />
-    <ClInclude Include="src\openssl\include\des.h" />
-    <ClInclude Include="src\openssl\include\dh.h" />
-    <ClInclude Include="src\openssl\include\dherr.h" />
-    <ClInclude Include="src\openssl\include\dsa.h" />
-    <ClInclude Include="src\openssl\include\dsaerr.h" />
-    <ClInclude Include="src\openssl\include\dtls1.h" />
-    <ClInclude Include="src\openssl\include\ebcdic.h" />
-    <ClInclude Include="src\openssl\include\ec.h" />
-    <ClInclude Include="src\openssl\include\ecdh.h" />
-    <ClInclude Include="src\openssl\include\ecdsa.h" />
-    <ClInclude Include="src\openssl\include\ecerr.h" />
-    <ClInclude Include="src\openssl\include\engine.h" />
-    <ClInclude Include="src\openssl\include\engineerr.h" />
-    <ClInclude Include="src\openssl\include\err.h" />
-    <ClInclude Include="src\openssl\include\evp.h" />
-    <ClInclude Include="src\openssl\include\evperr.h" />
-    <ClInclude Include="src\openssl\include\e_os2.h" />
-    <ClInclude Include="src\openssl\include\hmac.h" />
-    <ClInclude Include="src\openssl\include\idea.h" />
-    <ClInclude Include="src\openssl\include\kdf.h" />
-    <ClInclude Include="src\openssl\include\kdferr.h" />
-    <ClInclude Include="src\openssl\include\lhash.h" />
-    <ClInclude Include="src\openssl\include\md2.h" />
-    <ClInclude Include="src\openssl\include\md4.h" />
-    <ClInclude Include="src\openssl\include\md5.h" />
-    <ClInclude Include="src\openssl\include\mdc2.h" />
-    <ClInclude Include="src\openssl\include\modes.h" />
-    <ClInclude Include="src\openssl\include\objects.h" />
-    <ClInclude Include="src\openssl\include\objectserr.h" />
-    <ClInclude Include="src\openssl\include\obj_mac.h" />
-    <ClInclude Include="src\openssl\include\ocsp.h" />
-    <ClInclude Include="src\openssl\include\ocsperr.h" />
-    <ClInclude Include="src\openssl\include\opensslconf.h" />
-    <ClInclude Include="src\openssl\include\opensslv.h" />
-    <ClInclude Include="src\openssl\include\ossl_typ.h" />
-    <ClInclude Include="src\openssl\include\pem.h" />
-    <ClInclude Include="src\openssl\include\pem2.h" />
-    <ClInclude Include="src\openssl\include\pemerr.h" />
-    <ClInclude Include="src\openssl\include\pkcs12.h" />
-    <ClInclude Include="src\openssl\include\pkcs12err.h" />
-    <ClInclude Include="src\openssl\include\pkcs7.h" />
-    <ClInclude Include="src\openssl\include\pkcs7err.h" />
-    <ClInclude Include="src\openssl\include\rand.h" />
-    <ClInclude Include="src\openssl\include\randerr.h" />
-    <ClInclude Include="src\openssl\include\rand_drbg.h" />
-    <ClInclude Include="src\openssl\include\rc2.h" />
-    <ClInclude Include="src\openssl\include\rc4.h" />
-    <ClInclude Include="src\openssl\include\rc5.h" />
-    <ClInclude Include="src\openssl\include\ripemd.h" />
-    <ClInclude Include="src\openssl\include\rsa.h" />
-    <ClInclude Include="src\openssl\include\rsaerr.h" />
-    <ClInclude Include="src\openssl\include\safestack.h" />
-    <ClInclude Include="src\openssl\include\seed.h" />
-    <ClInclude Include="src\openssl\include\sha.h" />
-    <ClInclude Include="src\openssl\include\srp.h" />
-    <ClInclude Include="src\openssl\include\srtp.h" />
-    <ClInclude Include="src\openssl\include\ssl.h" />
-    <ClInclude Include="src\openssl\include\ssl2.h" />
-    <ClInclude Include="src\openssl\include\ssl3.h" />
-    <ClInclude Include="src\openssl\include\sslerr.h" />
-    <ClInclude Include="src\openssl\include\stack.h" />
-    <ClInclude Include="src\openssl\include\store.h" />
-    <ClInclude Include="src\openssl\include\storeerr.h" />
-    <ClInclude Include="src\openssl\include\symhacks.h" />
-    <ClInclude Include="src\openssl\include\tls1.h" />
-    <ClInclude Include="src\openssl\include\ts.h" />
-    <ClInclude Include="src\openssl\include\tserr.h" />
-    <ClInclude Include="src\openssl\include\txt_db.h" />
-    <ClInclude Include="src\openssl\include\ui.h" />
-    <ClInclude Include="src\openssl\include\uierr.h" />
-    <ClInclude Include="src\openssl\include\whrlpool.h" />
-    <ClInclude Include="src\openssl\include\x509.h" />
-    <ClInclude Include="src\openssl\include\x509err.h" />
-    <ClInclude Include="src\openssl\include\x509v3.h" />
-    <ClInclude Include="src\openssl\include\x509v3err.h" />
-    <ClInclude Include="src\openssl\include\x509_vfy.h" />
     <ClInclude Include="src\RMQConnection.h" />
     <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="src\amqp\libamqpcpp.a" />
+    <Library Include="src\dl\libdl.a" />
     <Library Include="src\libevent\libevent.a" />
-    <Library Include="src\libevent\libevent_core.a" />
-    <Library Include="src\libevent\libevent_extra.a" />
-    <Library Include="src\libevent\libevent_openssl.a" />
-    <Library Include="src\libevent\libevent_pthreads.a" />
-    <Library Include="src\openssl\libcrypto.a" />
-    <Library Include="src\openssl\libdl.a" />
-    <Library Include="src\openssl\libssl.a" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src\openssl\include;src\amqp\include;src\include;src\amqp\include\amqpcpp\linux_tcp;src\libevent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\amqp\include;src\include;src\amqp\include\amqpcpp\linux_tcp;src\libevent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <LibraryDependencies>amqpcpp;event;event_core;event_extra;event_openssl;dl;event_pthreads;crypto;ssl;%(LibraryDependencies)</LibraryDependencies>
-      <AdditionalLibraryDirectories>src/openssl;src/libevent;src/amqp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>amqpcpp;event;dl;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>src/dl;src/openssl;src/libevent;src/amqp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>-lpthread -pthread -lstdc++ -Wl,--no-as-needed -ldl %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
