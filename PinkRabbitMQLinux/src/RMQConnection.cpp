@@ -3,7 +3,6 @@
 #include "event2/event.h"
 #include <amqpcpp.h>
 #include <amqpcpp/libevent.h>
-#include "MyTCPHandler.cpp"
 
 bool RMQConnection::connect() {
 	

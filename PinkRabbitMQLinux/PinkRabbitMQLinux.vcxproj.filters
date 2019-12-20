@@ -6,11 +6,8 @@
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\RMQConnection.cpp" />
-    <ClCompile Include="src\MyTCPHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\AddInNative.h" />
-    <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\include\AddInDefBase.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -298,6 +295,12 @@
     </ClInclude>
     <ClInclude Include="src\libevent\include\event2\event-config.h">
       <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AddInNative.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.h">
+      <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
