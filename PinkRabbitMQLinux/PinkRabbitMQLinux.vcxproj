@@ -60,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseOfStl>libstdc++_static</UseOfStl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -93,8 +93,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\AddInNative.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
-    <ClCompile Include="src\RMQConnection.cpp" />
+    <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\AddInNative.def" />
@@ -197,8 +198,9 @@
     <ClInclude Include="src\libevent\include\evhttp.h" />
     <ClInclude Include="src\libevent\include\evrpc.h" />
     <ClInclude Include="src\libevent\include\evutil.h" />
-    <ClInclude Include="src\RMQConnection.h" />
+    <ClInclude Include="src\RabbitMQClient.h" />
     <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="src\amqp\libamqpcpp.a" />

@@ -5,7 +5,8 @@
     <ClCompile Include="src\AddInNative.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
-    <ClCompile Include="src\RMQConnection.cpp" />
+    <ClCompile Include="src\RabbitMQClient.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\AddInDefBase.h">
@@ -22,9 +23,6 @@
     </ClInclude>
     <ClInclude Include="src\include\types.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RMQConnection.h">
-      <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="src\amqp\include\amqpcpp.h">
       <Filter>amqp</Filter>
@@ -300,6 +298,12 @@
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RabbitMQClient.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>

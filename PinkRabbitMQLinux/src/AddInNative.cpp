@@ -17,6 +17,7 @@
 #include "AddInNative.h"
 #include <string>
 #include <clocale>
+#include "Utils.h"
 
 #define TIME_LEN 65
 
@@ -31,7 +32,7 @@ static const wchar_t *g_PropNames[] = {
     L"IsTimerPresent"
 };
 static const wchar_t *g_MethodNames[] = {
-    L"Enable", 
+    L"Connect", 
     L"Disable", 
     L"ShowInStatusLine",
     L"StartTimer", 
@@ -46,7 +47,7 @@ static const wchar_t *g_PropNamesRu[] = {
     L"ЕстьТаймер"
 };
 static const wchar_t *g_MethodNamesRu[] = {
-    L"Включить", 
+    L"Connect", 
     L"Выключить", 
     L"ПоказатьВСтрокеСтатуса", 
     L"СтартТаймер", 
@@ -119,6 +120,7 @@ CAddInNative::~CAddInNative()
 //---------------------------------------------------------------------------//
 bool CAddInNative::Init(void* pConnection)
 { 
+    client = new RabbitMQClient();
     m_iConnect = (IAddInDefBase*)pConnection;
     return m_iConnect != NULL;
 }
@@ -356,14 +358,6 @@ bool CAddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
 
     switch(lMethodNum)
     { 
-    case eMethEnable:
-    case eMethDisable:
-    case eMethShowInStatusLine:
-    case eMethStartTimer:
-    case eMethStopTimer:
-    case eMethShowMsgBox:
-        // There are no parameter values by default 
-        break;
     default:
         return false;
     }
@@ -390,10 +384,18 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 { 
     switch(lMethodNum)
     { 
-    case eMethEnable:
-        m_boolEnabled = true;
-        break;
-    case eMethDisable:
+    case eMethConnect: {
+        wchar_t* host = WcharWrapper(paParams[0].pwstrVal);
+        std::string shost = Utils::wsToString(host);
+        wchar_t* login = WcharWrapper(paParams[2].pwstrVal);
+        std::string slogin = Utils::wsToString(login);
+        wchar_t* pwd = WcharWrapper(paParams[3].pwstrVal);
+        std::string  spwd = Utils::wsToString(pwd);
+        wchar_t* vhost = WcharWrapper(paParams[4].pwstrVal);
+        std::string  svhost = Utils::wsToString(vhost);
+
+        return client->connect(shost, paParams[1].uintVal, slogin, spwd, svhost);
+    } case eMethDisable:
         m_boolEnabled = false;
         break;
     case eMethShowInStatusLine:
