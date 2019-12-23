@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\AddInNative.cpp" />
+    <ClCompile Include="src\ConversionWchar.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="src\amqp\include\amqpcpp\stringfield.h" />
     <ClInclude Include="src\amqp\include\amqpcpp\table.h" />
     <ClInclude Include="src\amqp\include\amqpcpp\watchable.h" />
+    <ClInclude Include="src\ConversionWchar.h" />
     <ClInclude Include="src\include\AddInDefBase.h" />
     <ClInclude Include="src\include\ComponentBase.h" />
     <ClInclude Include="src\include\IAndroidComponentHelper.h" />

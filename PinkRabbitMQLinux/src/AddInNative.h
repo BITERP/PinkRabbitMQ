@@ -1,38 +1,42 @@
+﻿
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Examples for the report "Making external components for 1C mobile platform for Android""
+// at the conference INFOSTART 2018 EVENT EDUCATION https://event.infostart.ru/2018/
+//
+// Sample 1: Delay in code
+// Sample 2: Getting device information
+// Sample 3: Device blocking: receiving external event about changing of sceen
+//
+// Copyright: Igor Kisil 2018
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef __ADDINNATIVE_H__
 #define __ADDINNATIVE_H__
 
-#include "ComponentBase.h"
-#include "AddInDefBase.h"
-#include "IMemoryManager.h"
+#include <string>
+#include "../include/ComponentBase.h"
+#include "../include/AddInDefBase.h"
+#include "../include/IMemoryManager.h"
 #include "RabbitMQClient.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// class CAddInNative
-class CAddInNative : public IComponentBase
+class AddInNative : public IComponentBase
 {
 public:
     enum Props
     {
-        ePropIsEnabled = 0,
-        ePropIsTimerPresent,
-        ePropLast      // Always last
+		ePropLast         // Always last
     };
 
     enum Methods
     {
-        eMethConnect = 0,
-        eMethDisable,
-        eMethShowInStatusLine,
-        eMethStartTimer,
-        eMethStopTimer,
-        eMethLoadPicture,
-        eMethShowMsgBox,
-		eLoopback,
-        eMethLast      // Always last
+        eMethConnect,
+		eMethLast       // Always last
     };
 
-    CAddInNative(void);
-    virtual ~CAddInNative();
+		AddInNative(void);
+    virtual ~AddInNative();
     // IInitDoneBase
     virtual bool ADDIN_API Init(void*);
     virtual bool ADDIN_API setMemManager(void* mem);
@@ -59,49 +63,25 @@ public:
                     tVariant* paParams, const long lSizeArray);
     virtual bool ADDIN_API CallAsFunc(const long lMethodNum,
                 tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray);
-    // LocaleBase
+    // ILocaleBase
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
-    
+
 private:
-
-    RabbitMQClient* client;
-
     long findName(const wchar_t* names[], const wchar_t* name, const uint32_t size) const;
     void addError(uint32_t wcode, const wchar_t* source, 
                     const wchar_t* descriptor, long code);
-    // Attributes
-    IAddInDefBase      *m_iConnect;
+
+		bool isNumericParameter(tVariant*);
+		long numericValue(tVariant*);
+
+		void ToV8String(const wchar_t* wstr, tVariant*);
+
+    IAddInDefBaseEx    *m_iConnect;
     IMemoryManager     *m_iMemory;
 
-    bool                m_boolEnabled;
-    uint32_t            m_uiTimer;
-#if !defined( __linux__ ) && !defined(__APPLE__)
-    HANDLE              m_hTimer;
-    HANDLE              m_hTimerQueue;
-#endif //__linux__
+    RabbitMQClient client;
+    std::string inputParamToStr(tVariant* paParams, int parIndex);
+
 };
 
-class WcharWrapper
-{
-public:
-#ifdef LINUX_OR_MACOS
-    WcharWrapper(const WCHAR_T* str);
 #endif
-    WcharWrapper(const wchar_t* str);
-    ~WcharWrapper();
-#ifdef LINUX_OR_MACOS
-    operator const WCHAR_T*(){ return m_str_WCHAR; }
-    operator WCHAR_T*(){ return m_str_WCHAR; }
-#endif
-    operator const wchar_t*(){ return m_str_wchar; }
-    operator wchar_t*(){ return m_str_wchar; }
-private:
-    WcharWrapper& operator = (const WcharWrapper& other) { return *this; }
-    WcharWrapper(const WcharWrapper& other) { }
-private:
-#ifdef LINUX_OR_MACOS
-    WCHAR_T* m_str_WCHAR;
-#endif
-    wchar_t* m_str_wchar;
-};
-#endif //__ADDINNATIVE_H__

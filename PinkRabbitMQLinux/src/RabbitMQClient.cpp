@@ -30,9 +30,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 
     event_base_dispatch(eventLoop);
 
-    // done
-    
-    return 0;
+    return true;
 }
 
 RabbitMQClient::~RabbitMQClient() {

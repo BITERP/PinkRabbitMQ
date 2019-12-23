@@ -7,6 +7,7 @@
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\Utils.cpp" />
+    <ClCompile Include="src\ConversionWchar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\AddInDefBase.h">
@@ -304,6 +305,9 @@
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="src\Utils.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ConversionWchar.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
