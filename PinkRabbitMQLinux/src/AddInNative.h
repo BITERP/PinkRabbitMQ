@@ -26,13 +26,39 @@ class AddInNative : public IComponentBase
 public:
     enum Props
     {
-		ePropLast         // Always last
+        ePropVersion,
+        ePropCorrelationId,
+        ePropType,
+        ePropMessageId,
+        ePropAppId,
+        ePropContentEncoding,
+        ePropContentType,
+        ePropUserId,
+        ePropClusterId,
+        ePropExpiration,
+        ePropReplyTo,
+        ePropLast // Always last
     };
 
     enum Methods
     {
+        eMethGetLastError,
         eMethConnect,
-		eMethLast       // Always last
+        eMethDeclareQueue,
+        eMethBasicPublish,
+        eMethBasicConsume,
+        eMethBasicConsumeMessage,
+        eMethBasicCancel,
+        eMethBasicAck,
+        eMethDeleteQueue,
+        eMethBindQueue,
+        eMethBasicReject,
+        eMethDeclareExchange,
+        eMethDeleteExchange,
+        eMethUnbindQueue,
+        eMethSetPriority,
+        eMethGetPriority,
+        eMethLast      // Always last
     };
 
 		AddInNative(void);
@@ -68,19 +94,27 @@ public:
 
 private:
     long findName(const wchar_t* names[], const wchar_t* name, const uint32_t size) const;
-    void addError(uint32_t wcode, const wchar_t* source, 
-                    const wchar_t* descriptor, long code);
+    void addError(uint32_t wcode, const wchar_t* source, const wchar_t* descriptor, long code);
 
-		bool isNumericParameter(tVariant*);
-		long numericValue(tVariant*);
+	bool isNumericParameter(tVariant*);
+	long numericValue(tVariant*);
 
-		void ToV8String(const wchar_t* wstr, tVariant*);
+	void ToV8String(const wchar_t* wstr, tVariant*);
 
     IAddInDefBaseEx    *m_iConnect;
     IMemoryManager     *m_iMemory;
 
     RabbitMQClient client;
+    const wchar_t* m_version = L"1.8";
+
+    void setWStringToTVariant(tVariant* dest, const wchar_t* source);
     std::string inputParamToStr(tVariant* paParams, int parIndex);
+
+    bool getLastError(tVariant* pvarRetValue);
+    bool basicConsume(tVariant* pvarRetValue, tVariant* paParams);
+    bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
+    bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
+    bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
 
 };
 

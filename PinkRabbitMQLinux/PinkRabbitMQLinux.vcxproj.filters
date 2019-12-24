@@ -8,6 +8,11 @@
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\Utils.cpp" />
     <ClCompile Include="src\ConversionWchar.cpp" />
+    <ClCompile Include="RabbitMQClientTest.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MessageObject.cpp" />
+    <ClCompile Include="src\ThreadSafeQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\AddInDefBase.h">
@@ -332,6 +337,9 @@
     </Filter>
     <Filter Include="dl">
       <UniqueIdentifier>{9c7bb2da-c463-4416-b47d-63e00660ca3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{25e20e10-3157-4e5d-8352-3bb9429fc6b7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

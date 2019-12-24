@@ -23,23 +23,73 @@
 
 static const wchar_t *g_PropNames[] = 
 {
-	L"DeviceInfo"
+	L"Version",
+	L"CorrelationId",
+	L"Type",
+	L"MessageId",
+	L"AppId",
+	L"ContentEncoding",
+	L"ContentType",
+	L"UserId",
+	L"ClusterId",
+	L"Expiration",
+	L"ReplyTo",
 };
 
 static const wchar_t* g_PropNamesRu[] =
 {
-	L"ОписаниеУстройства"
+	L"Version",
+	L"CorrelationId",
+	L"Type",
+	L"MessageId",
+	L"AppId",
+	L"ContentEncoding",
+	L"ContentType",
+	L"UserId",
+	L"ClusterId",
+	L"Expiration",
+	L"ReplyTo",
 };
 
 static const wchar_t *g_MethodNames[] =
 {
-	L"Connect",
+	L"GetLastError",
+	L"Connect,",
+	L"DeclareQueue",
+	L"BasicPublish",
+	L"BasicConsume",
+	L"BasicConsumeMessage",
+	L"BasicCancel",
+	L"BasicAck",
+	L"DeleteQueue",
+	L"BindQueue",
+	L"BasicReject",
+	L"DeclareExchange",
+	L"DeleteExchange",
+	L"UnbindQueue",
+	L"SetPriority",
+	L"GetPriority",
 };
 
 
 static const wchar_t *g_MethodNamesRu[] =
 {
-	L"Connect",
+	L"GetLastError",
+	L"Connect,",
+	L"DeclareQueue",
+	L"BasicPublish",
+	L"BasicConsume",
+	L"BasicConsumeMessage",
+	L"BasicCancel",
+	L"BasicAck",
+	L"DeleteQueue",
+	L"BindQueue",
+	L"BasicReject",
+	L"DeclareExchange",
+	L"DeleteExchange",
+	L"UnbindQueue",
+	L"SetPriority",
+	L"GetPriority",
 };
 
 static const wchar_t g_ComponentNameAddIn[] = L"PinkRabbitMQ";
@@ -203,11 +253,31 @@ const WCHAR_T* AddInNative::GetPropName(long lPropNum, long lPropAlias)
 //---------------------------------------------------------------------------//
 bool AddInNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal)
 {
+
+	std::string prop;
 	switch (lPropNum)
 	{
+	case ePropVersion:
+		setWStringToTVariant(pvarPropVal, m_version);
+		break;
+	case ePropCorrelationId:
+	case ePropType:
+	case ePropMessageId:
+	case ePropAppId:
+	case ePropContentEncoding:
+	case ePropContentType:
+	case ePropUserId:
+	case ePropClusterId:
+	case ePropExpiration:
+	case ePropReplyTo:
+		prop = client.getMsgProp(lPropNum);
+		setWStringToTVariant(pvarPropVal, Utils::stringToWs(prop).c_str());
+		break;
 	default:
 		return false;
 	}
+
+	return true;
 }
 
 //---------------------------------------------------------------------------//
@@ -215,9 +285,26 @@ bool AddInNative::SetPropVal(const long lPropNum, tVariant *varPropVal)
 {
 	switch (lPropNum)
 	{
+	case ePropCorrelationId:
+	case ePropType:
+	case ePropMessageId:
+	case ePropAppId:
+	case ePropContentEncoding:
+	case ePropContentType:
+	case ePropUserId:
+	case ePropClusterId:
+	case ePropExpiration:
+	case ePropReplyTo:
+	{
+		std::string propVal = inputParamToStr(varPropVal, 0);
+		client.setMsgProp(lPropNum, propVal);
+		break;
+	}
 	default:
 		return false;
 	}
+
+	return true;
 }
 
 //---------------------------------------------------------------------------//
@@ -334,14 +421,59 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 			std::string login = inputParamToStr(paParams, 2);
 			std::string pwd = inputParamToStr(paParams, 3);
 			std::string vhost = inputParamToStr(paParams, 4);
-			return client.connect(
-				host,
-				paParams[1].uintVal,
-				login,
-				pwd,
-				vhost
-			);
-			return true;
+			return client.connect(host, paParams[1].uintVal, login,	pwd, vhost);
+		}
+		case eMethBasicPublish:
+		{
+			std::string exchange = inputParamToStr(paParams, 0);
+			std::string routingKey = inputParamToStr(paParams, 1);
+			std::string message = inputParamToStr(paParams, 2);
+			return client.basicPublish(exchange, routingKey, message, paParams[4].bVal);
+		}
+		case eMethBasicCancel:
+		{
+			//return client.basicCancel();
+		}
+		case eMethBasicAck:
+		{
+			//auto res = client.basicAck(paParams[0].ullVal);
+			//return res;
+		}
+		case eMethBasicReject:
+			//return client-.asicReject(paParams[0].ullVal);
+		case eMethDeleteQueue:
+		{
+			std::string name = inputParamToStr(paParams, 0);
+			return client.deleteQueue(name,	paParams[1].bVal, paParams[2].bVal);
+		}
+		case eMethBindQueue: 
+		{
+			std::string queue = inputParamToStr(paParams, 0);
+			std::string exchange = inputParamToStr(paParams, 1);
+			std::string routingKey = inputParamToStr(paParams, 2);
+			return client.bindQueue(queue, exchange, routingKey);
+		}
+		case eMethUnbindQueue:
+		{
+			std::string queue = inputParamToStr(paParams, 0);
+			std::string exchange = inputParamToStr(paParams, 1);
+			std::string routingKey = inputParamToStr(paParams, 2);
+			return client.unbindQueue(queue, exchange, routingKey);
+		}
+		case eMethDeclareExchange:
+		{
+			std::string name = inputParamToStr(paParams, 0);
+			std::string type = inputParamToStr(paParams, 1);
+			return client.declareExchange(name, type, paParams[2].bVal, paParams[3].bVal, paParams[4].bVal);
+		}
+		case eMethDeleteExchange:
+		{
+			std::string name = inputParamToStr(paParams, 0);
+			return client.deleteExchange(name, paParams[1].bVal);
+		}
+		case eMethSetPriority:
+		{
+			return client.setPriority(paParams[0].intVal);
 		}
 		default:
 			return false;
@@ -363,11 +495,115 @@ bool AddInNative::CallAsFunc(const long lMethodNum, tVariant* pvarRetValue, tVar
 {
 	switch (lMethodNum)
 	{
-		default:
-			return false;
+	case eMethGetLastError:
+		return getLastError(pvarRetValue);
+	case eMethBasicConsume:
+		return basicConsume(pvarRetValue, paParams);
+	case eMethBasicConsumeMessage:
+		return basicConsumeMessage(pvarRetValue, paParams);
+	case eMethDeclareQueue:
+		return declareQueue(pvarRetValue, paParams);
+	case eMethGetPriority:
+		return getPriority(pvarRetValue, paParams);
+	default:
+		return false;
 	}
 
 	return false;
+}
+
+bool AddInNative::getLastError(tVariant* pvarRetValue) {
+	//wchar_t* error = client->getLastError();
+	//setWStringToTVariant(pvarRetValue, error);
+	TV_VT(pvarRetValue) = VTYPE_PWSTR;
+	return true;
+}
+
+bool AddInNative::basicConsume(tVariant* pvarRetValue, tVariant* paParams) {
+	/*
+	std::string channelId = client->basicConsume(
+		Utils::wsToString(paParams[0].pwstrVal),
+		paParams[4].intVal
+	);
+
+	if (wcslen(client->getLastError()) != 0) {
+		return false;
+	}
+
+	setWStringToTVariant(pvarRetValue, Utils::stringToWs(channelId).c_str());
+	TV_VT(pvarRetValue) = VTYPE_PWSTR;
+	*/
+	return true;
+}
+
+bool AddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
+	std::string name = inputParamToStr(paParams, 0);
+	std::string queueName = client.declareQueue(
+		name,
+		paParams[1].bVal,
+		paParams[2].bVal,
+		paParams[4].bVal,
+		paParams[5].ushortVal
+	);
+
+	setWStringToTVariant(pvarRetValue, Utils::stringToWs(queueName).c_str());
+	TV_VT(pvarRetValue) = VTYPE_PWSTR;
+	/*
+	if (wcslen(client->getLastError()) != 0) {
+		return false;
+	}
+	*/
+	return true;
+}
+
+bool AddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams) {
+	std::string outdata;
+	std::uint64_t outMessageTag;
+	/*
+	bool hasMessage = client->basicConsumeMessage(
+		outdata,
+		outMessageTag,
+		paParams[3].intVal
+	);
+
+	if (wcslen(client->getLastError()) != 0) {
+		return false;
+	}
+
+	if (hasMessage)
+	{
+		setWStringToTVariant(&paParams[1], Utils::stringToWs(outdata).c_str());
+	}
+	TV_VT(&paParams[1]) = VTYPE_PWSTR; // Передаем сообщение в исходящий параметр 1С-ого метода
+
+
+	TV_VT(&paParams[2]) = VTYPE_UI4;
+	TV_UI8(&paParams[2]) = outMessageTag;
+
+	TV_VT(pvarRetValue) = VTYPE_BOOL; // Устаналиваем тип возвращаемого значения 1С-ого метода в булево
+	TV_BOOL(pvarRetValue) = hasMessage; // передаем возвращаемое значение 1с-ого метода как булево
+	*/
+	return true; // True узначает, что метод выполнился успешно
+}
+
+bool AddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
+	int priority = client.getPriority();
+
+	return true;
+}
+
+void AddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
+
+	size_t len = ::wcslen(source) + 1;
+
+	TV_VT(dest) = VTYPE_PWSTR;
+
+	if (m_iMemory) 
+	{
+		if (m_iMemory->AllocMemory((void**)&dest->pwstrVal, len * sizeof(WCHAR_T)))
+			convToShortWchar(&dest->pwstrVal, source, len);
+	}
+	dest->wstrLen = ::wcslen(source);
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -60,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfStl>libstdc++_static</UseOfStl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -91,11 +91,14 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RabbitMQClientTest.cpp" />
     <ClCompile Include="src\AddInNative.cpp" />
     <ClCompile Include="src\ConversionWchar.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\MessageObject.cpp" />
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\ThreadSafeQueue.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
