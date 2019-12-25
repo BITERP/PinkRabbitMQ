@@ -383,18 +383,64 @@ long AddInNative::GetNParams(const long lMethodNum)
 {
 	switch (lMethodNum)
 	{
-		case eMethConnect:
-			return 6;
-		default:
-			return 0;
-		}
+	case eMethGetLastError:
+		return 0;
+	case eMethConnect:
+		return 6;
+	case eMethDeclareQueue:
+		return 6;
+	case eMethBasicPublish:
+		return 5;
+	case eMethBasicConsume:
+		return 5;
+	case eMethBasicConsumeMessage:
+		return 4;
+	case eMethBasicCancel:
+		return 1;
+	case eMethBasicAck:
+		return 1;
+	case eMethBasicReject:
+		return 1;
+	case eMethDeleteQueue:
+		return 3;
+	case eMethBindQueue:
+		return 3;
+	case eMethDeclareExchange:
+		return 5;
+	case eMethDeleteExchange:
+		return 2;
+	case eMethUnbindQueue:
+		return 3;
+	case eMethSetPriority:
+		return 1;
+	default:
+		return 0;
+	}
 }
 
 //---------------------------------------------------------------------------//
 bool AddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,	tVariant *pvarParamDefValue)
 {
+	TV_VT(pvarParamDefValue) = VTYPE_EMPTY;
+
 	switch (lMethodNum)
 	{
+	case eMethConnect:
+		if (lParamNum == 5) {
+			TV_VT(pvarParamDefValue) = VTYPE_I4;
+			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		return false;
+	case eMethDeclareQueue:
+		if (lParamNum == 5) {
+			TV_VT(pvarParamDefValue) = VTYPE_I4;
+			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		return false;
+	case eMethGetLastError:
+		return false;
 	default:
 		return false;
 	}
@@ -432,15 +478,17 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 		}
 		case eMethBasicCancel:
 		{
-			//return client.basicCancel();
+			return client.basicCancel();
 		}
 		case eMethBasicAck:
 		{
-			//auto res = client.basicAck(paParams[0].ullVal);
-			//return res;
+			auto res = client.basicAck(paParams[0].ullVal);
+			return res;
 		}
 		case eMethBasicReject:
-			//return client-.asicReject(paParams[0].ullVal);
+		{
+			return client.basicReject(paParams[0].ullVal);
+		}
 		case eMethDeleteQueue:
 		{
 			std::string name = inputParamToStr(paParams, 0);
@@ -513,26 +561,25 @@ bool AddInNative::CallAsFunc(const long lMethodNum, tVariant* pvarRetValue, tVar
 }
 
 bool AddInNative::getLastError(tVariant* pvarRetValue) {
-	//wchar_t* error = client->getLastError();
-	//setWStringToTVariant(pvarRetValue, error);
+	std::string error = client.getLastError();
+	setWStringToTVariant(pvarRetValue, Utils::stringToWs(error).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
 }
 
 bool AddInNative::basicConsume(tVariant* pvarRetValue, tVariant* paParams) {
-	/*
-	std::string channelId = client->basicConsume(
-		Utils::wsToString(paParams[0].pwstrVal),
-		paParams[4].intVal
-	);
+	
+	std::string queue = inputParamToStr(paParams, 0);
 
-	if (wcslen(client->getLastError()) != 0) {
+	std::string channelId = client.basicConsume(queue,	paParams[4].intVal);
+
+	if (client.getLastError().length() != 0) {
 		return false;
 	}
 
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(channelId).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
-	*/
+	
 	return true;
 }
 
@@ -548,25 +595,25 @@ bool AddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(queueName).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
-	/*
-	if (wcslen(client->getLastError()) != 0) {
+	
+	if (client.getLastError().length() != 0) {
 		return false;
 	}
-	*/
+	
 	return true;
 }
 
 bool AddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string outdata;
 	std::uint64_t outMessageTag;
-	/*
-	bool hasMessage = client->basicConsumeMessage(
+	
+	bool hasMessage = client.basicConsumeMessage(
 		outdata,
 		outMessageTag,
 		paParams[3].intVal
 	);
 
-	if (wcslen(client->getLastError()) != 0) {
+	if (client.getLastError().length() != 0) {
 		return false;
 	}
 
@@ -576,13 +623,17 @@ bool AddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams
 	}
 	TV_VT(&paParams[1]) = VTYPE_PWSTR; // Передаем сообщение в исходящий параметр 1С-ого метода
 
-
 	TV_VT(&paParams[2]) = VTYPE_UI4;
 	TV_UI8(&paParams[2]) = outMessageTag;
 
 	TV_VT(pvarRetValue) = VTYPE_BOOL; // Устаналиваем тип возвращаемого значения 1С-ого метода в булево
 	TV_BOOL(pvarRetValue) = hasMessage; // передаем возвращаемое значение 1с-ого метода как булево
-	*/
+
+	if (debugMode) {
+		TV_VT(&paParams[1]) = VTYPE_PSTR;
+		TV_STR(&paParams[1]) = Utils::stringToChar(outdata);
+	}
+	
 	return true; // True узначает, что метод выполнился успешно
 }
 
@@ -684,4 +735,8 @@ long AddInNative::numericValue(tVariant* par)
 		break;
 	}
 	return ret;
+}
+
+void AddInNative::enableDebugMode() {
+	debugMode = true;
 }

@@ -91,6 +91,7 @@ public:
                 tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray);
     // ILocaleBase
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
+    void enableDebugMode();
 
 private:
     long findName(const wchar_t* names[], const wchar_t* name, const uint32_t size) const;
@@ -106,6 +107,7 @@ private:
 
     RabbitMQClient client;
     const wchar_t* m_version = L"1.8";
+    bool debugMode = false;
 
     void setWStringToTVariant(tVariant* dest, const wchar_t* source);
     std::string inputParamToStr(tVariant* paParams, int parIndex);
@@ -115,6 +117,7 @@ private:
     bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
     bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
     bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
+
 
 };
 

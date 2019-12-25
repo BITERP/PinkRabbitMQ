@@ -1,6 +1,7 @@
 
 #include "RabbitMQClient.h"
 #include <unistd.h>
+#include <cassert>
 
 /*ESTABLISHING CONNECTION*/
 
@@ -254,12 +255,13 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         return "";
     }
 
-    event_base_loop(eventLoop, EVLOOP_NONBLOCK);
+    channel->setQos(_selectSize, true);
 
     channel->consume(queue)
         .onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
     {
         MessageObject* msgOb = new MessageObject();
+        int leng = msgOb->body.length();
         msgOb->body.assign(message.body(), message.bodySize());
         msgOb->msgProps[CORRELATION_ID] = message.correlationID();
         msgOb->msgProps[TYPE_NAME] = message.typeName();
@@ -282,15 +284,20 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
 
     return "";
+}
+
+void RabbitMQClient::loopThread(event_base* eventLoop) {
+    event_base_loop(eventLoop, EVLOOP_NO_EXIT_ON_EMPTY);
+    std::string t = "";
 }
 
 bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout) {
 
     lastError = "";
-
+    int size = readQueue->size();
     std::chrono::milliseconds timeoutSec{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutSec;
     while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
@@ -319,6 +326,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
         }
     }
 
+    event_base_loopbreak(eventLoop);
 
     return false;
 }
@@ -361,10 +369,11 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
 bool RabbitMQClient::basicCancel() {
 
-    
+    event_base_loopbreak(eventLoop);
 
     MessageObject* msgOb;
     ThreadSafeQueue<MessageObject*>::QueueResult result;
+    readQueue->close();
     while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
         delete msgOb;
     };
@@ -374,10 +383,16 @@ bool RabbitMQClient::basicCancel() {
         curr->join();
         threadPool.pop();
     }
+
     return true;
 }
 
 /*HELPERS*/
+
+std::string RabbitMQClient::getLastError()
+{
+    return lastError;
+}
 
 bool RabbitMQClient::checkConnection() {
     lastError = "";
@@ -387,7 +402,6 @@ bool RabbitMQClient::checkConnection() {
     }
     return true;
 }
-
 
 bool RabbitMQClient::checkChannel(AMQP::TcpChannel* _channel) {
 
@@ -422,6 +436,13 @@ RabbitMQClient::~RabbitMQClient() {
         channel->close();
         delete channel;
     }
+
+    while (!readQueue->empty()) {
+        MessageObject* msgOb;
+        readQueue->pop(msgOb);
+        delete msgOb;
+    }
+    assert(readQueue->empty());
 
     if (connection != nullptr) {
         connection->close();

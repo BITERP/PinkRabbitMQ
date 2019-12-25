@@ -18,3 +18,10 @@ std::wstring Utils::stringToWs(const std::string& s)
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
 	return conv.from_bytes(s);
 }
+
+char* Utils::stringToChar(std::string str) {
+	char* writable = new char[str.size() + 1];
+	std::copy(str.begin(), str.end(), writable);
+	writable[str.size()] = '\0'; // don't forget the terminating 0
+	return writable;
+}

@@ -10,6 +10,7 @@ public:
 	static std::string wsToString(const std::wstring ws);
 	static std::wstring stringToWs(const std::string& s);
 	template<typename T> static std::string anyToString(const T& t);
+	static char* stringToChar(std::string str);
 };
 
 

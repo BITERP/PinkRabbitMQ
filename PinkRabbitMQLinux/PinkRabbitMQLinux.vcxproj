@@ -98,6 +98,7 @@
     <ClCompile Include="src\MessageObject.cpp" />
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\ThreadRunner.cpp" />
     <ClCompile Include="src\ThreadSafeQueue.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
@@ -211,6 +212,9 @@
     <Library Include="src\amqp\libamqpcpp.a" />
     <Library Include="src\dl\libdl.a" />
     <Library Include="src\libevent\libevent.a" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\testMessage560kb.txt" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

@@ -145,6 +145,10 @@ public:
 		return list.empty();
 	}
 
+	size_t size() {
+		return list.size();
+	}
+
 private:
 
 	// Whether the queue is running or closed.

@@ -13,6 +13,7 @@
     </ClCompile>
     <ClCompile Include="src\MessageObject.cpp" />
     <ClCompile Include="src\ThreadSafeQueue.cpp" />
+    <ClCompile Include="src\ThreadRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\AddInDefBase.h">
@@ -352,5 +353,10 @@
     <Library Include="src\dl\libdl.a">
       <Filter>dl</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\testMessage560kb.txt">
+      <Filter>test</Filter>
+    </Text>
   </ItemGroup>
 </Project>

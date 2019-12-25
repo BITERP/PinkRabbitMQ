@@ -5,7 +5,7 @@
 int main()
 {
     RabbitMQClientTest unit;
-    unit.testSendReceive();
+    unit.testDeclareSendReceive();
     sleep(2);
     return 0;
 }

@@ -32,6 +32,8 @@ public:
 	bool basicAck(const std::uint64_t& messageTag);
 	bool basicReject(const std::uint64_t& messageTag);
 	bool basicCancel();
+	std::string getLastError();
+	static void loopThread(event_base* eventLoop);
 
 private:
 

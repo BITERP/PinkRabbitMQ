@@ -2,6 +2,7 @@
 #include "src/AddInNative.h"
 #include "src/ConversionWchar.h"
 #include "src/Utils.h"
+#include <fstream>
 
 class RabbitMQClientTest
 {
@@ -9,21 +10,53 @@ public:
 
 	explicit RabbitMQClientTest()
 	{
-
+		native.enableDebugMode();
 	}
 
-	void testSendReceive() {
+	void testDeclareSendReceive() {
 		testConnect();
 		testDeleteQueue();
 		testDeleteExchange();
 		testDeclareExchange();
 		testDeclareQueue();
 		testBindQueue();
-	//	testSetProps(AddInNative::Props::ePropAppId);
-	//	testSetProps(AddInNative::Props::ePropClusterId);
-//		testSetProps(AddInNative::Props::ePropContentEncoding);
-		testBasicPublish();
+		testSetProps(AddInNative::Props::ePropAppId);
+		testSetProps(AddInNative::Props::ePropClusterId);
+		testSetProps(AddInNative::Props::ePropContentEncoding);
+		testSendReceiveSingle();
+	}
 
+	void testSendReceiveSingle() {
+		
+		//char* testMessage = "helloworld";
+		
+		std::ifstream myReadFile;
+		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt");
+		std::string testMessage = "";
+		while (!myReadFile.eof()) {
+			std::string msgLine;
+			getline(myReadFile, msgLine);
+			testMessage += msgLine;
+		}
+		myReadFile.close();
+
+		
+
+		for (int i = 0; i < 3; i++) {
+			testBasicPublish(Utils::stringToChar(testMessage));
+		}
+		testBasicConsume();
+
+		std::string outdata;
+		std::uint64_t outMessageTag;
+
+		while (testBasicConsumeMessage(outdata, outMessageTag)) {
+			assertTrue(outdata == testMessage, "Messages that were sent and read are equal");
+
+			testBasicAck(outMessageTag);
+		}
+
+		testBasicCancel();
 	}
 
 	void testConnect() {
@@ -99,12 +132,12 @@ public:
 		assertTrue(result == true, "testBindQueue");
 	}
 
-	void testBasicPublish() {
+	void testBasicPublish(char* message) {
 		tVariant* params = new tVariant[5];
 
 		params[0].pstrVal = queueExchange;
 		params[1].pstrVal = queueExchange;
-		params[2].pstrVal = queueExchange;
+		params[2].pstrVal = message;
 		params[3].uintVal = 0;
 		params[4].bVal = false;
 
@@ -125,6 +158,61 @@ public:
 		assertTrue(getResult && setResult, "testSetProps");
 	}
 
+	void testBasicConsume() {
+		
+		tVariant* returnValue = new tVariant;
+		tVariant* params = new tVariant[5];
+
+		params[0].pstrVal = queueExchange;
+		params[4].uintVal= 100;
+
+		bool result = native.CallAsFunc(AddInNative::Methods::eMethBasicConsume, returnValue, params, sizeof(params));
+
+		assertTrue(result, "testBasicConsume");
+	}
+
+	uint64_t testBasicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag) {
+
+		tVariant* returnValue = new tVariant;
+		tVariant* params = new tVariant[4];
+
+		params[3].uintVal = 3000;
+
+		bool result = native.CallAsFunc(AddInNative::Methods::eMethBasicConsumeMessage, returnValue, params, sizeof(params));
+
+		outdata = params[1].pstrVal;
+		outMessageTag = params[2].ullVal;
+
+		assertTrue(result, "testBasicConsumeMessage");
+		return returnValue->bVal;
+	}
+
+	void testBasicCancel() {
+		tVariant* params = new tVariant[0];
+
+		bool result = native.CallAsProc(AddInNative::Methods::eMethBasicCancel, params, sizeof(params));
+
+		assertTrue(result == true, "testBasicCancel");
+	}
+
+	void testBasicAck(uint64_t messageTag) {
+		tVariant* params = new tVariant[1];
+		params[0].ullVal = messageTag;
+
+		bool result = native.CallAsProc(AddInNative::Methods::eMethBasicAck, params, sizeof(params));
+
+		assertTrue(result == true, "testBasicAck");
+	}
+
+	void testBasicReject(uint64_t messageTag) {
+		tVariant* params = new tVariant[1];
+		params[0].ullVal = messageTag;
+
+		bool result = native.CallAsProc(AddInNative::Methods::eMethBasicReject, params, sizeof(params));
+
+		assertTrue(result == true, "testBasicReject");
+	}
+
 private:
 	char* host = "devdevopsrmq.bit-erp.loc";
 	int port = 5672;
@@ -134,8 +222,8 @@ private:
 	char* queueExchange = "unit_test_linux";
 	AddInNative native;
 
-	void assertTrue(bool condition, std::string methodName) {
+	void assertTrue(bool condition, std::string msg) {
 		assert(condition);
-		std::cout << "TEST PASSED " << methodName << std::endl;
+		std::cout << "TEST PASSED: " << msg << std::endl;
 	};
 };
