@@ -98,7 +98,6 @@
     <ClCompile Include="src\MessageObject.cpp" />
     <ClCompile Include="src\RabbitMQClient.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
-    <ClCompile Include="src\ThreadRunner.cpp" />
     <ClCompile Include="src\ThreadSafeQueue.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>

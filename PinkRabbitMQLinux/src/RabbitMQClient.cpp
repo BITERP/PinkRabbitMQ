@@ -430,6 +430,7 @@ AMQP::TcpChannel* RabbitMQClient::openChannel() {
 }
 
 RabbitMQClient::~RabbitMQClient() {
+    /*
     event_base_free(eventLoop);
 
     if (channel != nullptr) {
@@ -447,4 +448,5 @@ RabbitMQClient::~RabbitMQClient() {
     if (connection != nullptr) {
         connection->close();
     }
+    */
 }

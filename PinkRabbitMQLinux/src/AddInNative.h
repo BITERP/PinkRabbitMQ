@@ -42,23 +42,23 @@ public:
 
     enum Methods
     {
-        eMethGetLastError,
-        eMethConnect,
-        eMethDeclareQueue,
-        eMethBasicPublish,
-        eMethBasicConsume,
-        eMethBasicConsumeMessage,
-        eMethBasicCancel,
-        eMethBasicAck,
-        eMethDeleteQueue,
-        eMethBindQueue,
-        eMethBasicReject,
-        eMethDeclareExchange,
-        eMethDeleteExchange,
-        eMethUnbindQueue,
-        eMethSetPriority,
-        eMethGetPriority,
-        eMethLast      // Always last
+        eMethGetLastError = 0,
+        eMethConnect = 1,
+        eMethDeclareQueue = 2,
+        eMethBasicPublish = 3,
+        eMethBasicConsume = 4,
+        eMethBasicConsumeMessage = 5,
+        eMethBasicCancel = 6,
+        eMethBasicAck = 7,
+        eMethDeleteQueue = 8,
+        eMethBindQueue = 9,
+        eMethBasicReject = 10,
+        eMethDeclareExchange = 11,
+        eMethDeleteExchange = 12,
+        eMethUnbindQueue = 13,
+        eMethSetPriority = 14,
+        eMethGetPriority = 15,
+        eMethLast = 16      // Always last
     };
 
 		AddInNative(void);
