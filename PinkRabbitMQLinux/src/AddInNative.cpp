@@ -469,6 +469,9 @@ bool AddInNative::HasRetVal(const long lMethodNum)
 //---------------------------------------------------------------------------//
 bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const long lSizeArray)
 {
+	if (!validateInputParameters(paParams, lMethodNum, lSizeArray))
+		return false;
+
 	switch (lMethodNum)
 	{
 		case eMethConnect:
@@ -546,6 +549,9 @@ std::string AddInNative::inputParamToStr(tVariant* paParams, int parIndex) {
 //---------------------------------------------------------------------------//
 bool AddInNative::CallAsFunc(const long lMethodNum, tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray)
 {
+	if (!validateInputParameters(paParams, lMethodNum, lSizeArray))
+		return false;
+
 	switch (lMethodNum)
 	{
 	case eMethGetLastError:
@@ -661,6 +667,201 @@ void AddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
 	}
 	dest->wstrLen = ::wcslen(source);
 
+}
+
+//---------------------------------------------------------------------------//
+bool AddInNative::validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+
+	if (debugMode) {
+		return true;
+	}
+
+	switch (lMethodNum)
+	{
+	case eMethConnect:
+		return validateConnect(paParams, lMethodNum, lSizeArray);
+	case eMethBasicPublish:
+		return validateBasicPublish(paParams, lMethodNum, lSizeArray);
+	case eMethBasicCancel:
+		return checkInputParameter(paParams, lMethodNum, 0, VTYPE_PWSTR);
+	case eMethBasicAck:
+		return true;
+	case eMethBasicReject:
+		return true;
+	case eMethDeleteQueue:
+	case eMethDeclareQueue:
+		return validateDeclDelQueue(paParams, lMethodNum, lSizeArray);
+	case eMethBindQueue:
+	case eMethUnbindQueue:
+		return validateBindUnbindQueue(paParams, lMethodNum, lSizeArray);
+	case eMethDeclareExchange:
+		return validateDeclareExchange(paParams, lMethodNum, lSizeArray);
+	case eMethDeleteExchange:
+		return validateDeleteExchange(paParams, lMethodNum, lSizeArray);
+	case eMethBasicConsumeMessage:
+		return validateBasicConsumeMessage(paParams, lMethodNum, lSizeArray);
+	case eMethBasicConsume:
+		return validateBasicConsume(paParams, lMethodNum, lSizeArray);
+	default:
+		return true;
+	}
+}
+
+bool AddInNative::validateBasicConsume(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i == 2 || i == 3)
+		{
+			typeCheck = VTYPE_BOOL;
+		}
+		if (i == 4)
+		{
+			typeCheck = VTYPE_I4;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateBasicConsumeMessage(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i == 3)
+		{
+			typeCheck = VTYPE_I4;
+		}
+		if (i == 1 || i == 2)
+		{
+			// This is output parameter with type VTYPE_EMPTY. Skip it
+			continue;
+		}
+
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateDeclDelQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_BOOL;
+		if (i == 0)
+		{
+			typeCheck = VTYPE_PWSTR;
+		}
+		else if (i == 5)
+		{
+			typeCheck = VTYPE_I4;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateDeleteExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i == 1)
+		{
+			typeCheck = VTYPE_BOOL;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateDeclareExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i > 1)
+		{
+			typeCheck = VTYPE_BOOL;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateBindUnbindQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i == 1 || i == 5)
+		{
+			typeCheck = VTYPE_I4;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
+	for (int i = 0; i < lSizeArray; i++)
+	{
+		ENUMVAR typeCheck = VTYPE_PWSTR;
+		if (i == 3) {
+			typeCheck = VTYPE_I4;
+		}
+		else if (i == 4) {
+			typeCheck = VTYPE_BOOL;
+		}
+		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AddInNative::checkInputParameter(tVariant* params, long const methodNum, long const parameterNum, ENUMVAR type) {
+	
+	const wchar_t* methodName = WcharWrapper(GetMethodName(methodNum, 1));
+
+	if (!(TV_VT(&params[parameterNum]) == type)) {
+		std::string errDescr = "Error occured when calling method "
+			+ Utils::wsToString(methodName)
+			+ "() - wrong type for parameter number "
+			+ Utils::anyToString(parameterNum);
+
+		addError(ADDIN_E_FAIL, L"NativeRabbitMQ", Utils::stringToWs(errDescr).c_str(), 1);
+		client.updateLastError(errDescr.c_str());
+		return false;
+	}
+	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -33,6 +33,7 @@ public:
 	bool basicReject(const std::uint64_t& messageTag);
 	bool basicCancel();
 	std::string getLastError();
+	void updateLastError(const char* text);
 	static void loopThread(event_base* eventLoop);
 
 private:

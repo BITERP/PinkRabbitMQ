@@ -117,7 +117,16 @@ private:
     bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
     bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
     bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
-
+    bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeclDelQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBindUnbindQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeclareExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeleteExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicConsumeMessage(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicConsume(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool checkInputParameter(tVariant* params, const long methodNum, const long index, ENUMVAR type);
+    bool validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray);
 
 };
 

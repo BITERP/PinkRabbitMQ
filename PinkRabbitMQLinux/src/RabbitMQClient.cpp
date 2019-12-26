@@ -284,7 +284,9 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         event_base_loopbreak(eventLoop);
     });
 
-    threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
+    for (int i = 0; i < 1; i++) {
+        threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
+    }
 
     return "";
 }
@@ -369,21 +371,19 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
 bool RabbitMQClient::basicCancel() {
 
-    event_base_loopbreak(eventLoop);
-
     MessageObject* msgOb;
     ThreadSafeQueue<MessageObject*>::QueueResult result;
     readQueue->close();
     while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
         delete msgOb;
     };
-
+        
     for (int i = 0; i < threadPool.size(); i++) {
         std::thread* curr = threadPool.front();
-        curr->join();
+        curr->detach();
         threadPool.pop();
     }
-
+    
     return true;
 }
 
@@ -429,13 +429,19 @@ AMQP::TcpChannel* RabbitMQClient::openChannel() {
     return channelLoc;
 }
 
+void RabbitMQClient::updateLastError(const char* text) {
+    lastError = text;
+}
+
 RabbitMQClient::~RabbitMQClient() {
-    
-    event_base_free(eventLoop);
 
     if (channel != nullptr) {
         channel->close();
         delete channel;
+    }
+
+    if (connection != nullptr) {
+        connection->close();
     }
 
     while (!readQueue->empty()) {
@@ -443,10 +449,15 @@ RabbitMQClient::~RabbitMQClient() {
         readQueue->pop(msgOb);
         delete msgOb;
     }
+    
     assert(readQueue->empty());
 
-    if (connection != nullptr) {
-        connection->close();
+    event_base_free(eventLoop);
+
+    for (int i = 0; i < threadPool.size(); i++) {
+        std::thread* curr = threadPool.front();
+        curr->detach();
+        threadPool.pop();
     }
    
 }
