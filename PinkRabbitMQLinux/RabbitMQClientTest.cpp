@@ -28,8 +28,6 @@ public:
 
 	void testSendReceiveSingle() {
 		
-		//char* testMessage = "helloworld";
-		
 		std::ifstream myReadFile;
 		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt");
 		std::string testMessage = "";
@@ -40,10 +38,9 @@ public:
 		}
 		myReadFile.close();
 
-		
-
 		for (int i = 0; i < 3; i++) {
-			testBasicPublish(Utils::stringToChar(testMessage));
+			std::wstring wmsg = Utils::stringToWs(testMessage);
+			testBasicPublish(Utils::wstringToWchar(wmsg));
 		}
 		testBasicConsume();
 
@@ -62,11 +59,11 @@ public:
 	void testConnect() {
 		tVariant* params = new tVariant[6];
 
-		params[0].pstrVal = host;
+		params[0].pwstrVal = WcharWrapper(host);
 		params[1].uintVal = 5672;
-		params[2].pstrVal = usr;
-		params[3].pstrVal = pwd;
-		params[4].pstrVal = vhost;
+		params[2].pwstrVal = WcharWrapper(usr);
+		params[3].pwstrVal = WcharWrapper(pwd);
+		params[4].pwstrVal = WcharWrapper(vhost);
 
 		bool result = native.CallAsProc(AddInNative::Methods::eMethConnect, params, sizeof(params));
 		assertTrue(result == true, "testConnect");		
@@ -76,7 +73,7 @@ public:
 		tVariant* returnValue = new tVariant;
 		tVariant* params = new tVariant[6];
 
-		params[0].pstrVal = queueExchange;
+		params[0].pwstrVal = WcharWrapper(queueExchange);
 		params[1].bVal = false;
 		params[2].bVal = false;
 		params[3].bVal = false;
@@ -90,7 +87,7 @@ public:
 	void testDeleteQueue() {
 		tVariant* params = new tVariant[3];
 
-		params[0].pstrVal = queueExchange;
+		params[0].pwstrVal = WcharWrapper(queueExchange);
 		params[1].bVal = false;
 		params[2].bVal = false;
 
@@ -101,8 +98,8 @@ public:
 	void testDeclareExchange() {
 		tVariant* params = new tVariant[5];
 
-		params[0].pstrVal = queueExchange;
-		params[1].pstrVal = "topic";
+		params[0].pwstrVal = WcharWrapper(queueExchange);
+		params[1].pwstrVal = WcharWrapper(L"topic");
 		params[2].bVal = false;
 		params[3].bVal = false;
 		params[4].bVal = false;
@@ -114,7 +111,7 @@ public:
 	void testDeleteExchange() {
 		tVariant* params = new tVariant[2];
 
-		params[0].pstrVal = queueExchange;
+		params[0].pwstrVal = WcharWrapper(queueExchange);
 		params[1].bVal = false;
 
 		bool result = native.CallAsProc(AddInNative::Methods::eMethDeleteExchange, params, sizeof(params));
@@ -124,20 +121,20 @@ public:
 	void testBindQueue() {
 		tVariant* params = new tVariant[3];
 
-		params[0].pstrVal = queueExchange;
-		params[1].pstrVal = queueExchange;
-		params[2].pstrVal = "#";
+		params[0].pwstrVal = WcharWrapper(queueExchange);
+		params[1].pwstrVal = WcharWrapper(queueExchange);
+		params[2].pwstrVal = WcharWrapper(L"#");
 
 		bool result = native.CallAsProc(AddInNative::Methods::eMethBindQueue, params, sizeof(params));
 		assertTrue(result == true, "testBindQueue");
 	}
 
-	void testBasicPublish(char* message) {
+	void testBasicPublish(wchar_t* message) {
 		tVariant* params = new tVariant[5];
 
-		params[0].pstrVal = queueExchange;
-		params[1].pstrVal = queueExchange;
-		params[2].pstrVal = message;
+		params[0].pwstrVal = WcharWrapper(queueExchange);
+		params[1].pwstrVal = WcharWrapper(queueExchange);
+		params[2].pwstrVal = WcharWrapper(message);
 		params[3].uintVal = 0;
 		params[4].bVal = false;
 
@@ -148,12 +145,12 @@ public:
 
 	void testSetProps(int propNum) {
 
-		tVariant* provVar = new tVariant();
-		provVar->pstrVal = "test_prop";
-		bool setResult = native.SetPropVal(propNum, provVar);
+		tVariant* propVar = new tVariant();
+		propVar->pstrVal = "test_prop";
+		bool setResult = native.SetPropVal(propNum, propVar);
 
-		tVariant* provVarRet;
-		bool getResult = native.GetPropVal(propNum, provVarRet);
+		tVariant* propVarRet;
+		bool getResult = native.GetPropVal(propNum, propVarRet);
 
 		assertTrue(getResult && setResult, "testSetProps");
 	}
@@ -163,7 +160,7 @@ public:
 		tVariant* returnValue = new tVariant;
 		tVariant* params = new tVariant[5];
 
-		params[0].pstrVal = queueExchange;
+		params[0].pwstrVal = WcharWrapper(queueExchange);
 		params[4].uintVal= 100;
 
 		bool result = native.CallAsFunc(AddInNative::Methods::eMethBasicConsume, returnValue, params, sizeof(params));
@@ -214,12 +211,12 @@ public:
 	}
 
 private:
-	char* host = "devdevopsrmq.bit-erp.loc";
+	wchar_t* host = L"devdevopsrmq.bit-erp.loc";
 	int port = 5672;
-	char* usr = "rkudakov_devops";
-	char* pwd = "rkudakov_devops";
-	char* vhost = "rkudakov_devops";
-	char* queueExchange = "unit_test_linux";
+	wchar_t* usr = L"rkudakov_devops";
+	wchar_t* pwd = L"rkudakov_devops";
+	wchar_t* vhost = L"rkudakov_devops";
+	wchar_t* queueExchange = L"unit_test_linux";
 	AddInNative native;
 
 	void assertTrue(bool condition, std::string msg) {

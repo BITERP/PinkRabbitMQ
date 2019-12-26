@@ -11,6 +11,7 @@ public:
 	static std::wstring stringToWs(const std::string& s);
 	template<typename T> static std::string anyToString(const T& t);
 	static char* stringToChar(std::string str);
+	static wchar_t* wstringToWchar(std::wstring source);
 };
 
 

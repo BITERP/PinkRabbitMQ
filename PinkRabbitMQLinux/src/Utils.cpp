@@ -25,3 +25,8 @@ char* Utils::stringToChar(std::string str) {
 	writable[str.size()] = '\0'; // don't forget the terminating 0
 	return writable;
 }
+
+wchar_t* Utils::wstringToWchar(std::wstring source) {
+	wchar_t* dest = const_cast<wchar_t*>(source.c_str());
+	return dest;
+}

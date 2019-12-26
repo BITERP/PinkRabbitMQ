@@ -473,19 +473,11 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 	{
 		case eMethConnect:
 		{
-			//std::string host = inputParamToStr(paParams, 0);
-			//std::string login = inputParamToStr(paParams, 2);
-			//std::string pwd = inputParamToStr(paParams, 3);
-			//std::string vhost = inputParamToStr(paParams, 4);
-			wchar_t* host = WcharWrapper(paParams[0].pwstrVal);
-			std::string shost = Utils::wsToString(host);
-			wchar_t* login = WcharWrapper(paParams[2].pwstrVal);
-			std::string slogin = Utils::wsToString(login);
-			wchar_t* pwd = WcharWrapper(paParams[3].pwstrVal);
-			std::string  spwd = Utils::wsToString(pwd);
-			wchar_t* vhost = WcharWrapper(paParams[4].pwstrVal);
-			std::string  svhost = Utils::wsToString(vhost);
-			return client.connect("devdevopsrmq.bit-erp.loc", 5672, "rkudakov_devops", "rkudakov_devops", "rkudakov_devops");
+			std::string host = inputParamToStr(paParams, 0);
+			std::string login = inputParamToStr(paParams, 2);
+			std::string pwd = inputParamToStr(paParams, 3);
+			std::string vhost = inputParamToStr(paParams, 4);
+			return client.connect(host, 5672, login, pwd, vhost);
 		}
 		case eMethBasicPublish:
 		{
@@ -547,13 +539,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 }
 
 std::string AddInNative::inputParamToStr(tVariant* paParams, int parIndex) {
-	if (TV_VT(&paParams[parIndex]) == VTYPE_PWSTR) {
-		wchar_t* parVal = WcharWrapper(paParams[parIndex].pwstrVal);
-		return Utils::wsToString(parVal);
-	}
-	else {
-		return paParams[parIndex].pstrVal;
-	}
+	wchar_t* parVal = WcharWrapper(paParams[parIndex].pwstrVal);
+	return Utils::wsToString(parVal);
 }
 
 //---------------------------------------------------------------------------//
@@ -673,6 +660,7 @@ void AddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
 			convToShortWchar(&dest->pwstrVal, source, len);
 	}
 	dest->wstrLen = ::wcslen(source);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
