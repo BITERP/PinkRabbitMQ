@@ -13,6 +13,7 @@
     </ClCompile>
     <ClCompile Include="src\MessageObject.cpp" />
     <ClCompile Include="src\ThreadSafeQueue.cpp" />
+    <ClCompile Include="src\ThreadLooper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\AddInDefBase.h">
