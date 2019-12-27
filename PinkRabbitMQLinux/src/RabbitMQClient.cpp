@@ -2,7 +2,6 @@
 #include "RabbitMQClient.h"
 #include <unistd.h>
 #include <cassert>
-#include "ThreadLooper.cpp"
 
 /*ESTABLISHING CONNECTION*/
 
@@ -11,10 +10,6 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
     eventLoop = event_base_new();
 
     handler = new AMQP::LibEventHandler(eventLoop);
-
-    for (int i = 0; i < 1; i++) {
-        threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
-    }
     
     connection = new AMQP::TcpConnection(handler, AMQP::Address(host, port, AMQP::Login(login, pwd), vhost));
 
@@ -51,21 +46,19 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 
     bool result = true;
 
-    ThreadLooper threadLooper;
-
     channel->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([&result, this, &threadLooper](const char* message)
+        .onError([&result, this](const char* message)
     {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
         result = false;
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -79,21 +72,19 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
         return false;
     }
 
-    ThreadLooper threadLooper;
-
     channel->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([&result, this, &threadLooper](const char* message)
+        .onError([&result, this](const char* message)
     {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
         result = false;
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -112,20 +103,18 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
         args.set("x-max-priority", maxPriority);
     }
 
-    ThreadLooper threadLooper;
-
     channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([this, &threadLooper](const char* message)
+        .onError([this](const char* message)
     {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
     return name;
 }
 
@@ -138,21 +127,19 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
         return "";
     }
 
-    ThreadLooper threadLooper;
-
     channel->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([&result, this, &threadLooper](const char* message)
+        .onError([&result, this](const char* message)
     {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
         result = false;
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -166,21 +153,19 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
         return false;
     }
 
-    ThreadLooper threadLooper;
-
     channel->bindQueue(exchange, queue, routingKey)
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([&result, this, &threadLooper](const char* message)
+        .onError([&result, this](const char* message)
     {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
         result = false;
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -194,21 +179,19 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
         return false;
     }
 
-    ThreadLooper threadLooper;
-
     channel->unbindQueue(exchange, queue, routingKey)
-        .onSuccess([this, &threadLooper]()
+        .onSuccess([this]()
     {
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     })
-        .onError([&result, this, &threadLooper](const char* message)
+        .onError([&result, this](const char* message)
     {
         lastError = message; 
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
         result = false;
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -224,9 +207,10 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         return false;
     }
 
-    ThreadLooper threadLooper;
+    event_base_loopbreak(eventLoop);
+    event_base_loopexit(eventLoop, NULL);
 
-    channel->onReady([this, &persistent, &message, &exchange, &routingKey, &threadLooper]() {
+    channel->onReady([this, &persistent, &message, &exchange, &routingKey]() {
         AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
         if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
         if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
@@ -241,10 +225,10 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         if (priority != 0) envelope.setPriority(priority);
         if (persistent) { envelope.setDeliveryMode(2); }
         channel->publish(exchange, routingKey, envelope);
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     });
 
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -305,8 +289,12 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         .onError([this](const char* message)
     {
         lastError = message;
+        event_base_loopbreak(eventLoop);
     });
 
+    for (int i = 0; i < 1; i++) {
+        threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
+    }
 
     return "";
 }
@@ -347,6 +335,8 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
             return true;
         }
     }
+
+    event_base_loopbreak(eventLoop);
 
     return false;
 }
@@ -395,6 +385,12 @@ bool RabbitMQClient::basicCancel() {
     while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
         delete msgOb;
     };
+        
+    for (int i = 0; i < threadPool.size(); i++) {
+        std::thread* curr = threadPool.front();
+        curr->detach();
+        threadPool.pop();
+    }
     
     return true;
 }
@@ -428,18 +424,15 @@ AMQP::TcpChannel* RabbitMQClient::openChannel() {
 
     AMQP::TcpChannel* channelLoc = new AMQP::TcpChannel(connection);
 
-    ThreadLooper threadLooper;
-
-    channelLoc->onReady([this, &threadLooper]() {
+    channelLoc->onReady([this]() {
         std::cout << " Main channel is ready" << std::endl;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     });
-    channelLoc->onError([this, &threadLooper](const char* message) {
+    channelLoc->onError([this](const char* message) {
         lastError = message;
-        threadLooper.notify();
+        event_base_loopbreak(eventLoop);
     });
-    
-    threadLooper.wait();
+    event_base_dispatch(eventLoop);
 
     return channelLoc;
 }
