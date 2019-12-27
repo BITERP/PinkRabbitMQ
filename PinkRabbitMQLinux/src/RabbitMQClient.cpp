@@ -208,8 +208,6 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
     }
 
     AMQP::TcpChannel* channelLoc = openChannel();
-
-    event_base_loopexit(eventLoop, NULL);
     channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey]() {
         AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
         if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
