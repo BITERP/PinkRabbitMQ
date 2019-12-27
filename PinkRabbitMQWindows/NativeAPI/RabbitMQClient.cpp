@@ -52,12 +52,12 @@ void RabbitMQClient::newConnection(const std::string& login, const std::string& 
 	}
 }
 
-AMQP::Channel* RabbitMQClient::openChannel() {
+AMQP::TcpChannel* RabbitMQClient::openChannel() {
 	if (connection == nullptr) {
 		updateLastError("Connection is not established! Use the method Connect() first");
 		return nullptr;
 	}
-	AMQP::Channel* channelLoc = new AMQP::Channel (connection);
+	AMQP::TcpChannel* channelLoc = new AMQP::TcpChannel(connection);
 	channelLoc->onReady([this]()
 	{
 		handler->quit();
