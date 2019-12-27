@@ -207,20 +207,28 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         return false;
     }
 
-    AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
-    if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
-    if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
-    if (!msgProps[TYPE_NAME].empty()) envelope.setTypeName(msgProps[TYPE_NAME]);
-    if (!msgProps[APP_ID].empty()) envelope.setAppID(msgProps[APP_ID]);
-    if (!msgProps[CONTENT_ENCODING].empty()) envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
-    if (!msgProps[CONTENT_TYPE].empty()) envelope.setContentType(msgProps[CONTENT_TYPE]);
-    if (!msgProps[USER_ID].empty()) envelope.setUserID(msgProps[USER_ID]);
-    if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
-    if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
-    if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
-    if (priority != 0) envelope.setPriority(priority);
-    if (persistent) { envelope.setDeliveryMode(2); }
-    channel->publish(exchange, routingKey, envelope);
+    event_base_loopbreak(eventLoop);
+    event_base_loopexit(eventLoop, NULL);
+
+    channel->onReady([this, &persistent, &message, &exchange, &routingKey]() {
+        AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
+        if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
+        if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
+        if (!msgProps[TYPE_NAME].empty()) envelope.setTypeName(msgProps[TYPE_NAME]);
+        if (!msgProps[APP_ID].empty()) envelope.setAppID(msgProps[APP_ID]);
+        if (!msgProps[CONTENT_ENCODING].empty()) envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
+        if (!msgProps[CONTENT_TYPE].empty()) envelope.setContentType(msgProps[CONTENT_TYPE]);
+        if (!msgProps[USER_ID].empty()) envelope.setUserID(msgProps[USER_ID]);
+        if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
+        if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
+        if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
+        if (priority != 0) envelope.setPriority(priority);
+        if (persistent) { envelope.setDeliveryMode(2); }
+        channel->publish(exchange, routingKey, envelope);
+        event_base_loopbreak(eventLoop);
+    });
+
+    event_base_dispatch(eventLoop);
 
     return result;
 }
@@ -453,6 +461,7 @@ RabbitMQClient::~RabbitMQClient() {
     assert(readQueue->empty());
 
     event_base_free(eventLoop);
+    libevent_global_shutdown();
 
     for (int i = 0; i < threadPool.size(); i++) {
         std::thread* curr = threadPool.front();

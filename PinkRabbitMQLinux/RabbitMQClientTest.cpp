@@ -52,15 +52,16 @@ public:
 		testDeclareQueue();
 		testBindQueue();
 		std::wstring wmsg = Utils::stringToWs(testMessage);
-		testBasicPublish(Utils::wstringToWchar(wmsg), 1);
+
+		for (int i = 1; i <= 1000; i++) {
+			testBasicPublish(Utils::wstringToWchar(wmsg), i);
+		}
 
 		delete native;
 	}
 
 	void testSendReceiveSingle() {
 		
-
-
 		int out;
 		for (out = 1; out <= 100; out++) {
 			std::wstring wmsg = Utils::stringToWs(testMessage);
@@ -132,6 +133,8 @@ public:
 		params[4].bVal = false;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, sizeof(params));
+
+
 		assertTrue(result == true, "testDeclareExchange");
 	}
 
