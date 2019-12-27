@@ -543,7 +543,10 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 
 std::string AddInNative::inputParamToStr(tVariant* paParams, int parIndex) {
 	wchar_t* parVal = WcharWrapper(paParams[parIndex].pwstrVal);
-	return Utils::wsToString(parVal);
+	std::string res = Utils::wsToString(parVal);
+	delete[] parVal;
+	parVal = NULL;
+	return res;
 }
 
 //---------------------------------------------------------------------------//
