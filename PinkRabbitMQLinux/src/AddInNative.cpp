@@ -269,10 +269,12 @@ bool AddInNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal)
 	case ePropUserId:
 	case ePropClusterId:
 	case ePropExpiration:
-	case ePropReplyTo:
+	case ePropReplyTo: {
 		prop = client.getMsgProp(lPropNum);
-		setWStringToTVariant(pvarPropVal, Utils::stringToWs(prop).c_str());
+		std::wstring wmsg = Utils::stringToWs(prop);
+		setWStringToTVariant(pvarPropVal, wmsg.c_str());
 		break;
+	}
 	default:
 		return false;
 	}
@@ -488,6 +490,7 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 			std::string routingKey = inputParamToStr(paParams, 1);
 			std::string message = inputParamToStr(paParams, 2);
 			return client.basicPublish(exchange, routingKey, message, paParams[4].bVal);
+			return true;
 		}
 		case eMethBasicCancel:
 		{
@@ -542,10 +545,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 }
 
 std::string AddInNative::inputParamToStr(tVariant* paParams, int parIndex) {
-	wchar_t* parVal = WcharWrapper(paParams[parIndex].pwstrVal);
-	std::string res = Utils::wsToString(parVal);
-	delete[] parVal;
-	parVal = NULL;
+	WcharWrapper wWrapper(paParams[parIndex].pwstrVal);
+	std::string res = Utils::wsToString(std::wstring(wWrapper));
 	return res;
 }
 

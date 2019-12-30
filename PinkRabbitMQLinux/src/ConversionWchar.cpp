@@ -96,7 +96,6 @@ m_str_wchar(NULL)
 //---------------------------------------------------------------------------//
 WcharWrapper::~WcharWrapper()
 {
-#if defined(__APPLE__) || defined(__ANDROID__)
     if (m_str_WCHAR)
     {
         delete[] m_str_WCHAR;
@@ -109,5 +108,4 @@ WcharWrapper::~WcharWrapper()
         delete[] m_str_wchar;
         m_str_wchar = NULL;
     }
-#endif //__APPLE__ || __ANDROID__ 
 }

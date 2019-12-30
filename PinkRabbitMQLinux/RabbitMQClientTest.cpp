@@ -12,7 +12,7 @@ public:
 	{
 		testMessage;
 		std::ifstream myReadFile;
-		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt");
+		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage10mb.txt");
 		while (!myReadFile.eof()) {
 			std::string msgLine;
 			getline(myReadFile, msgLine);
@@ -53,8 +53,10 @@ public:
 		testBindQueue();
 		std::wstring wmsg = Utils::stringToWs(testMessage);
 
-		for (int i = 1; i <= 1000; i++) {
-			testBasicPublish(Utils::wstringToWchar(wmsg), i);
+		wchar_t* messageToPublish =  Utils::wstringToWchar(wmsg);
+
+		for (int i = 1; i <= 5; i++) {
+			testBasicPublish(messageToPublish, i);
 		}
 
 		delete native;
@@ -63,10 +65,12 @@ public:
 	void testSendReceiveSingle() {
 		
 		int out;
-		for (out = 1; out <= 100; out++) {
-			std::wstring wmsg = Utils::stringToWs(testMessage);
-			testBasicPublish(Utils::wstringToWchar(wmsg), out);
+		std::wstring wmsg = Utils::stringToWs(testMessage);
+		wchar_t* messageToPublish = Utils::wstringToWchar(wmsg);
+		for (out = 1; out <= 5; out++) {
+			testBasicPublish(messageToPublish, out);
 		}
+
 		testBasicConsume();
 
 		std::string outdata;
@@ -77,6 +81,8 @@ public:
 
 			testBasicAck(outMessageTag);
 			in++;
+
+			outdata = "";
 		}
 
 		assertTrue(in == out, "Sent amount corresponding to received amount =" + Utils::anyToString(in));
@@ -87,13 +93,17 @@ public:
 	void testConnect() {
 		tVariant* params = new tVariant[6];
 
-		params[0].pwstrVal = WcharWrapper(host);
+		WcharWrapper wHost(host);
+		params[0].pwstrVal = wHost;
 		params[1].uintVal = 5672;
-		params[2].pwstrVal = WcharWrapper(usr);
-		params[3].pwstrVal = WcharWrapper(pwd);
-		params[4].pwstrVal = WcharWrapper(vhost);
+		WcharWrapper wUsr(usr);
+		params[2].pwstrVal = wUsr;
+		WcharWrapper wPwd(pwd);
+		params[3].pwstrVal = wPwd;
+		WcharWrapper wVhost(vhost);
+		params[4].pwstrVal = wVhost;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 6);
 		assertTrue(result == true, "testConnect");		
 	}
 
@@ -101,38 +111,42 @@ public:
 		tVariant* returnValue = new tVariant;
 		tVariant* params = new tVariant[6];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 		params[2].bVal = false;
 		params[3].bVal = false;
 		params[4].bVal = false;
 		params[5].uintVal = 0;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, returnValue, params, sizeof(params));
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, returnValue, params, 6);
 		assertTrue(result == true, "testDeclareQueue");
 	}
 
 	void testDeleteQueue() {
 		tVariant* params = new tVariant[3];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 		params[2].bVal = false;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethDeleteQueue, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethDeleteQueue, params, 3);
 		assertTrue(result == true, "testDeleteQueue");
 	}
 
 	void testDeclareExchange() {
 		tVariant* params = new tVariant[5];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
-		params[1].pwstrVal = WcharWrapper(L"topic");
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
+		WcharWrapper wExchangeType(L"topic");
+		params[1].pwstrVal = wExchangeType;
 		params[2].bVal = false;
 		params[3].bVal = false;
 		params[4].bVal = false;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 5);
 
 
 		assertTrue(result == true, "testDeclareExchange");
@@ -141,34 +155,39 @@ public:
 	void testDeleteExchange() {
 		tVariant* params = new tVariant[2];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethDeleteExchange, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethDeleteExchange, params, 2);
 		assertTrue(result == true, "testDeleteExchange");
 	}
 
 	void testBindQueue() {
 		tVariant* params = new tVariant[3];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
-		params[1].pwstrVal = WcharWrapper(queueExchange);
-		params[2].pwstrVal = WcharWrapper(L"#");
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
+		params[1].pwstrVal = wQueueExchange;
+		WcharWrapper wRoutingKey(L"#");
+		params[2].pwstrVal = wRoutingKey;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBindQueue, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBindQueue, params, 3);
 		assertTrue(result == true, "testBindQueue");
 	}
 
 	void testBasicPublish(wchar_t* message, int count) {
 		tVariant* params = new tVariant[5];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
-		params[1].pwstrVal = WcharWrapper(queueExchange);
-		params[2].pwstrVal = WcharWrapper(message);
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
+		params[1].pwstrVal = wQueueExchange;
+		WcharWrapper wMessage(message);
+		params[2].pwstrVal = wMessage;
 		params[3].uintVal = 0;
 		params[4].bVal = false;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 5);
 	
 		assertTrue(result == true, "testBasicPublish " + Utils::anyToString(count));
 	}
@@ -179,8 +198,8 @@ public:
 		propVar->pstrVal = "test_prop";
 		bool setResult = native->SetPropVal(propNum, propVar);
 
-		tVariant* propVarRet;
-		bool getResult = native->GetPropVal(propNum, propVarRet);
+		tVariant propVarRet;
+		bool getResult = native->GetPropVal(propNum, &propVarRet);
 
 		assertTrue(getResult && setResult, "testSetProps");
 	}
@@ -190,26 +209,29 @@ public:
 		tVariant* returnValue = new tVariant;
 		tVariant* params = new tVariant[5];
 
-		params[0].pwstrVal = WcharWrapper(queueExchange);
+		WcharWrapper wQueueExchange(queueExchange);
+		params[0].pwstrVal = wQueueExchange;
 		params[4].uintVal= 100;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsume, returnValue, params, sizeof(params));
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsume, returnValue, params, 5);
 
 		assertTrue(result, "testBasicConsume");
 	}
 
 	uint64_t testBasicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, int i) {
 		
-
 		tVariant* returnValue = new tVariant;
-		tVariant* params = new tVariant[4];
+		tVariant params[4] = {};
 
 		params[3].uintVal = 3000;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsumeMessage, returnValue, params, sizeof(params));
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsumeMessage, returnValue, params, 4);
 
 		outdata = params[1].pstrVal;
 		outMessageTag = params[2].ullVal;
+
+		if (params[1].pstrVal)
+			delete[] params[1].pstrVal;
 
 		assertTrue(result, "testBasicConsumeMessage " + Utils::anyToString(i));
 		return returnValue->bVal;
@@ -218,7 +240,7 @@ public:
 	void testBasicCancel() {
 		tVariant* params = new tVariant[0];
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicCancel, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicCancel, params, 0);
 
 		assertTrue(result == true, "testBasicCancel");
 	}
@@ -227,7 +249,7 @@ public:
 		tVariant* params = new tVariant[1];
 		params[0].ullVal = messageTag;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicAck, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicAck, params, 1);
 
 		assertTrue(result == true, "testBasicAck");
 	}
@@ -236,7 +258,7 @@ public:
 		tVariant* params = new tVariant[1];
 		params[0].ullVal = messageTag;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicReject, params, sizeof(params));
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicReject, params, 1);
 
 		assertTrue(result == true, "testBasicReject");
 	}

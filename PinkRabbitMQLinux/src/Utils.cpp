@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <locale>
 
-std::string Utils::wsToString(const std::wstring ws)
+std::string Utils::wsToString(const std::wstring &ws)
 {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
 	return conv.to_bytes(ws);
@@ -19,14 +19,13 @@ std::wstring Utils::stringToWs(const std::string& s)
 	return conv.from_bytes(s);
 }
 
-char* Utils::stringToChar(std::string str) {
+char* Utils::stringToChar(const std::string &str) {
 	char* writable = new char[str.size() + 1];
 	std::copy(str.begin(), str.end(), writable);
 	writable[str.size()] = '\0'; // don't forget the terminating 0
 	return writable;
 }
 
-wchar_t* Utils::wstringToWchar(std::wstring source) {
-	wchar_t* dest = const_cast<wchar_t*>(source.c_str());
-	return dest;
+wchar_t* Utils::wstringToWchar(std::wstring &source) {
+	return &source[0];
 }
