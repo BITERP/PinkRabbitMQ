@@ -1,0 +1,361 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\AddInNative.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\RabbitMQClient.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
+    <ClCompile Include="src\ConversionWchar.cpp" />
+    <ClCompile Include="RabbitMQClientTest.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MessageObject.cpp" />
+    <ClCompile Include="src\ThreadSafeQueue.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\include\AddInDefBase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\ComponentBase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\IAndroidComponentHelper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\IMemoryManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\types.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\address.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\addresses.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\array.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\booleanset.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\buffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\bytebuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\callbacks.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\channel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\channelimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\classes.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connection.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionhandler.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\copiedbuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\decimalfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferred.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredcancel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconfirm.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconsumer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferreddelete.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredextreceiver.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredget.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredpublisher.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredqueue.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredreceiver.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\endian.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\entityimpl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\envelope.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\exception.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\exchangetype.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\field.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\fieldproxy.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\flags.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\frame.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libboostasio.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libev.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libevent.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\libuv.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpchannel.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpconnection.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpdefines.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcphandler.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpparent.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\login.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\message.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\metadata.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\monitor.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\numericfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\openssl.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\outbuffer.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\protocolexception.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\receivedframe.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\stack_ptr.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\stringfield.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\table.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\amqp\include\amqpcpp\watchable.h">
+      <Filter>amqp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evhttp.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evrpc.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evutil.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\buffer.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_ssl.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\bufferevent_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\buffer_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\dns_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\http_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\keyvalq_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\listener.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\rpc_struct.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\tag.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\tag_compat.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\thread.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\util.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\visibility.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\watch.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\evdns.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libevent\include\event2\event-config.h">
+      <Filter>libevent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AddInNative.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RabbitMQClient.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ConversionWchar.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\AddInNative.def" />
+    <None Include="src\libevent\include\include.am">
+      <Filter>libevent</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{f5a3a7fe-13c4-44df-b201-fc8f3425284a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{83703f16-ce55-45ed-bb47-5b44aa430e83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="amqp">
+      <UniqueIdentifier>{868d16e8-fb13-4f73-8429-9f1df14022c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libevent">
+      <UniqueIdentifier>{f85e90af-81fc-4a7d-892f-bba347f1654a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dl">
+      <UniqueIdentifier>{9c7bb2da-c463-4416-b47d-63e00660ca3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{25e20e10-3157-4e5d-8352-3bb9429fc6b7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="src\libevent\libevent.a">
+      <Filter>libevent</Filter>
+    </Library>
+    <Library Include="src\amqp\libamqpcpp.a">
+      <Filter>amqp</Filter>
+    </Library>
+    <Library Include="src\dl\libdl.a">
+      <Filter>dl</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\testMessage560kb.txt">
+      <Filter>test</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

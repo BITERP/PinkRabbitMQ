@@ -12,10 +12,10 @@
 # Введение
 Внешняя Native API компонента для 1C 8.3, которая реализует методы для работы с сервером Rabbit MQ через TCP IP протокол. Компонента поддерживается командой разработки [БИТ.Адаптер](https://bit-erp.ru/adapter) и используется в БИТ.Адаптере. Ид компоненты - PinkRabbitMQ. Компонента поставляется для 32 и 64 битной платформы 1С.
 
-## Ограничения
+## Поддерживаемые системы
 
-* Компонента поддерживает только Windows
-
+* Windows 32 и 64 бит
+* Linux 64 бит
 
 ## API
 Компонента реализует протокол [AMQP 0.9.1](https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf).
@@ -323,7 +323,12 @@ cmake --build
 - PocoFoundationd.lib;
 13. Скомпилировать компоненту через проект
 
-## Сборка проекта через cmake
+## Разворачивание окружения разработки для Linux из-под WIndows 10
+1. Установить Visual Studio Community 2019 с последними обновлениями
+2. Развернуть Linux system for Windows 10 и подключить VS Studio к своей машине [Туториал](https://devblogs.microsoft.com/cppblog/targeting-windows-subsystem-for-linux-from-visual-studio/)
+3. Запустить проект [PinrRabbitMQ для Linux](PinkRabbitMQLinux/PinkRabbitMQLinux.sln)
+
+## Сборка проекта через cmake для Windows 10
 ```
 mkdir build
 cd build
@@ -331,11 +336,19 @@ cmake ..
 cmake --build . --config Release
 ```
 
+## Сборка проекта через Visual Studio для Linux
+
+1. Запустить проект [PinrRabbitMQ для Linux](PinkRabbitMQLinux/PinkRabbitMQLinux.sln) 
+2. Открыть свойства проекта и в меню  Confugartion properties -> General -> Configuration type выбрать Dynamic library (so)
+3. Скомпилировать проект через f5
+4. Либа будет скомпилирована в каталоге ~/projects/PinkRabbitMQLinux/bin/x64/debug/ удаленной машины
+
 ## Лицензия
 
 Лицензировано на условиях MIT. Смотрите файл [LICENSE](LICENSE)
 
 ## Используемые сторонние продукты
 
-* [AMQP-CPP](https://github.com/CopernicaMarketingSoftware/AMQP-CPP) - для взаимодействия с Rabbit MQ на основе [лицензии Apache](licenses/AMQP-CPP_LICENSE)
+* [AMQP-CPP](https://github.com/CopernicaMarketingSoftware/AMQP-CPP) - для взаимодействия с RabbitMQ на основе [лицензии Apache](licenses/AMQP-CPP_LICENSE)
 * [POCO](https://github.com/pocoproject/poco) - для работы с сокетом по TCP протоколу для windows на основе [лицензии Boost](licenses/POCO_LICENSE)
+* [LIBEVENT](https://github.com/libevent/libevent) - для работы с сокетом по TCP протоколу для Linux на основе [3-clause BSD лицензии](https://libevent.org/LICENSE.txt)

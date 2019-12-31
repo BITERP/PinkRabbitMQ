@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{a0c07c3d-798b-46b1-bff6-693b37262177}</ProjectGuid>
+    <Keyword>Linux</Keyword>
+    <RootNamespace>PinkRabbitMQLinux</RootNamespace>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <ApplicationType>Linux</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+    <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
+    <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfStl>libstdc++_static</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfStl>libstdc++_static</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(ProjectName)Lin64</TargetName>
+    <IncludePath>
+    </IncludePath>
+    <AdditionalSourcesToCopyMapping>
+    </AdditionalSourcesToCopyMapping>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>$(ProjectName)Lin64</TargetName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="RabbitMQClientTest.cpp" />
+    <ClCompile Include="src\AddInNative.cpp" />
+    <ClCompile Include="src\ConversionWchar.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\MessageObject.cpp" />
+    <ClCompile Include="src\RabbitMQClient.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\ThreadSafeQueue.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\AddInNative.def" />
+    <None Include="src\libevent\include\include.am" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AddInNative.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\address.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\addresses.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\array.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\booleanset.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\buffer.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\bytebuffer.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\callbacks.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\channel.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\channelimpl.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\classes.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\connection.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionhandler.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\connectionimpl.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\copiedbuffer.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\decimalfield.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferred.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredcancel.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconfirm.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredconsumer.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferreddelete.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredextreceiver.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredget.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredpublisher.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredqueue.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\deferredreceiver.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\endian.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\entityimpl.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\envelope.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\exception.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\exchangetype.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\field.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\fieldproxy.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\flags.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\frame.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\libboostasio.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\libev.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\libevent.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\libuv.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpchannel.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpconnection.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpdefines.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcphandler.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\linux_tcp\tcpparent.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\login.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\message.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\metadata.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\monitor.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\numericfield.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\openssl.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\outbuffer.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\protocolexception.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\receivedframe.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\stack_ptr.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\stringfield.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\table.h" />
+    <ClInclude Include="src\amqp\include\amqpcpp\watchable.h" />
+    <ClInclude Include="src\ConversionWchar.h" />
+    <ClInclude Include="src\include\AddInDefBase.h" />
+    <ClInclude Include="src\include\ComponentBase.h" />
+    <ClInclude Include="src\include\IAndroidComponentHelper.h" />
+    <ClInclude Include="src\include\IMemoryManager.h" />
+    <ClInclude Include="src\include\types.h" />
+    <ClInclude Include="src\libevent\include\evdns.h" />
+    <ClInclude Include="src\libevent\include\event.h" />
+    <ClInclude Include="src\libevent\include\event2\buffer.h" />
+    <ClInclude Include="src\libevent\include\event2\bufferevent.h" />
+    <ClInclude Include="src\libevent\include\event2\bufferevent_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\bufferevent_ssl.h" />
+    <ClInclude Include="src\libevent\include\event2\bufferevent_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\buffer_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\dns.h" />
+    <ClInclude Include="src\libevent\include\event2\dns_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\dns_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\event-config.h" />
+    <ClInclude Include="src\libevent\include\event2\event.h" />
+    <ClInclude Include="src\libevent\include\event2\event_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\event_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\http.h" />
+    <ClInclude Include="src\libevent\include\event2\http_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\http_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\keyvalq_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\listener.h" />
+    <ClInclude Include="src\libevent\include\event2\rpc.h" />
+    <ClInclude Include="src\libevent\include\event2\rpc_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\rpc_struct.h" />
+    <ClInclude Include="src\libevent\include\event2\tag.h" />
+    <ClInclude Include="src\libevent\include\event2\tag_compat.h" />
+    <ClInclude Include="src\libevent\include\event2\thread.h" />
+    <ClInclude Include="src\libevent\include\event2\util.h" />
+    <ClInclude Include="src\libevent\include\event2\visibility.h" />
+    <ClInclude Include="src\libevent\include\event2\watch.h" />
+    <ClInclude Include="src\libevent\include\evhttp.h" />
+    <ClInclude Include="src\libevent\include\evrpc.h" />
+    <ClInclude Include="src\libevent\include\evutil.h" />
+    <ClInclude Include="src\RabbitMQClient.h" />
+    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="src\amqp\libamqpcpp.a" />
+    <Library Include="src\dl\libdl.a" />
+    <Library Include="src\libevent\libevent.a" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\testMessage560kb.txt" />
+  </ItemGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>src\amqp\include;src\include;src\amqp\include\amqpcpp\linux_tcp;src\libevent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-fpic %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <LibraryDependencies>amqpcpp;event;dl;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>src/dl;src/openssl;src/libevent;src/amqp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-pthread -Wl,--no-as-needed -ldl -fpic %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>src\amqp\include;src\include;src\amqp\include\amqpcpp\linux_tcp;src\libevent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>Minimal</DebugInformationFormat>
+      <AdditionalOptions>-fpic %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>src/dl;src/openssl;src/libevent;src/amqp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <LibraryDependencies>amqpcpp;event;dl;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalOptions>-pthread -Wl,--no-as-needed -ldl -fpic %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
