@@ -349,5 +349,6 @@ cmake --build . --config Release
 
 ## Используемые сторонние продукты
 
-* [AMQP-CPP](https://github.com/CopernicaMarketingSoftware/AMQP-CPP) - для взаимодействия с Rabbit MQ на основе [лицензии Apache](licenses/AMQP-CPP_LICENSE)
+* [AMQP-CPP](https://github.com/CopernicaMarketingSoftware/AMQP-CPP) - для взаимодействия с RabbitMQ на основе [лицензии Apache](licenses/AMQP-CPP_LICENSE)
 * [POCO](https://github.com/pocoproject/poco) - для работы с сокетом по TCP протоколу для windows на основе [лицензии Boost](licenses/POCO_LICENSE)
+* [LIBEVENT](https://github.com/libevent/libevent) - для работы с сокетом по TCP протоколу для Linux на основе [3-clause BSD лицензии](https://libevent.org/LICENSE.txt)
