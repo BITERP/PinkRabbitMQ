@@ -381,6 +381,11 @@ const WCHAR_T* AddInNative::GetMethodName(const long lMethodNum, const long lMet
 			convToShortWchar(&wsMethodName, wsCurrentName, iActualSize);
 	}
 
+	if (debugMode) {
+		convToShortWchar(&wsMethodName, wsCurrentName, iActualSize);
+		return wsMethodName;
+	}
+
 	return wsMethodName;
 }
 
@@ -676,10 +681,6 @@ void AddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
 //---------------------------------------------------------------------------//
 bool AddInNative::validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray) {
 
-	if (debugMode) {
-		return true;
-	}
-
 	switch (lMethodNum)
 	{
 	case eMethConnect:
@@ -825,6 +826,12 @@ bool AddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lon
 		{
 			typeCheck = VTYPE_I4;
 		}
+		else {
+			typeCheck = VTYPE_PWSTR;
+			if (paParams[i].intVal == 0) {
+				return false;
+			}
+		}
 		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
 		{
 			return false;
@@ -852,8 +859,12 @@ bool AddInNative::validateBasicPublish(tVariant* paParams, long const lMethodNum
 }
 
 bool AddInNative::checkInputParameter(tVariant* params, long const methodNum, long const parameterNum, ENUMVAR type) {
-	
+
 	const wchar_t* methodName = WcharWrapper(GetMethodName(methodNum, 1));
+
+	if (debugMode) {
+		return true;
+	}
 
 	if (!(TV_VT(&params[parameterNum]) == type)) {
 		std::string errDescr = "Error occured when calling method "

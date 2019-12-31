@@ -10,8 +10,8 @@
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
 {
-
 	updateLastError("");
+	std::string t1 = "sonar test";
 	bool connected = false;
 	try
 	{
@@ -19,18 +19,18 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 		newConnection(login, pwd, vhost);
 
 		channel = new AMQP::Channel(connection);
-		
+
 		connected = true;
 	}
-	catch (const Poco::TimeoutException& ex)
+	catch (const Poco::TimeoutException & ex)
 	{
 		updateLastError(ex.what());
 	}
-	catch (const AuthException& ex)
+	catch (const AuthException & ex)
 	{
 		updateLastError(ex.what());
 	}
-	catch (const Poco::Net::NetException& ex)
+	catch (const Poco::Net::NetException & ex)
 	{
 		updateLastError(ex.what());
 	}
@@ -52,12 +52,12 @@ void RabbitMQClient::newConnection(const std::string& login, const std::string& 
 	}
 }
 
-AMQP::TcpChannel* RabbitMQClient::openChannel() {
+AMQP::Channel* RabbitMQClient::openChannel() {
 	if (connection == nullptr) {
 		updateLastError("Connection is not established! Use the method Connect() first");
 		return nullptr;
 	}
-	AMQP::TcpChannel* channelLoc = new AMQP::TcpChannel(connection);
+	AMQP::Channel* channelLoc = new AMQP::Channel(connection);
 	channelLoc->onReady([this]()
 	{
 		handler->quit();
@@ -121,7 +121,7 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
 
 	updateLastError("");
 	bool result = true;
-	
+
 	AMQP::Channel* channelLoc = openChannel();
 	if (channelLoc == nullptr) {
 		return false;
@@ -301,7 +301,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 		if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
 		if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
 		if (priority != 0) envelope.setPriority(priority);
-		if (persistent) {envelope.setDeliveryMode(2);}
+		if (persistent) { envelope.setDeliveryMode(2); }
 		publChannel.publish(exchange, routingKey, envelope);
 		handler->quit();
 	});
@@ -358,7 +358,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb->msgProps[REPLY_TO] = message.replyTo();
 		msgOb->messageTag = deliveryTag;
 		msgOb->priority = message.priority();
-		
+
 		readQueue->push(msgOb);
 	})
 		.onError([this](const char* message)
@@ -376,14 +376,14 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout) {
 
 	updateLastError("");
-	
+
 	std::chrono::milliseconds timeoutSec{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutSec;
 	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
 		if (!readQueue->empty()) {
 			MessageObject* read;
 			readQueue->pop(read);
-			
+
 			outdata = read->body;
 			outMessageTag = read->messageTag;
 

@@ -787,6 +787,9 @@ bool CAddInNative::validateBasicPublish(tVariant* paParams, long const lMethodNu
 }
 
 bool CAddInNative::checkInputParameter(tVariant* params, long const methodNum, long const parameterNum, ENUMVAR type) {
+	
+	bool test = params[parameterNum].intVal == 0;
+
 	if (!(TV_VT(&params[parameterNum]) == type)) {
 		std::string errDescr = "Error occured when calling method "
 		+ Utils::wsToString(GetMethodName(methodNum, 1))

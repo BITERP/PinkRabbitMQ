@@ -12,7 +12,7 @@ public:
 	{
 		testMessage;
 		std::ifstream myReadFile;
-		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage10mb.txt");
+		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt");
 		while (!myReadFile.eof()) {
 			std::string msgLine;
 			getline(myReadFile, msgLine);
@@ -40,6 +40,25 @@ public:
 		delete native;
 	}
 
+	void testPassEmptyParameters() {
+
+		native = new AddInNative();
+		native->enableDebugMode();
+
+		tVariant* params = new tVariant[6];
+		params[0].pwstrVal = NULL;
+		params[1].intVal = NULL;
+		params[2].pwstrVal = NULL;
+		params[3].pwstrVal = NULL;
+		params[4].pwstrVal = NULL;
+		params[5].intVal = NULL;
+
+		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 6);
+		assertTrue(result == false, "testPassEmptyParameters");
+
+		delete native;
+	}
+
 	void tesSendMessage() {
 
 		native = new AddInNative();
@@ -53,7 +72,7 @@ public:
 		testBindQueue();
 		std::wstring wmsg = Utils::stringToWs(testMessage);
 
-		wchar_t* messageToPublish =  Utils::wstringToWchar(wmsg);
+		wchar_t* messageToPublish = Utils::wstringToWchar(wmsg);
 
 		for (int i = 1; i <= 5; i++) {
 			testBasicPublish(messageToPublish, i);
@@ -61,6 +80,8 @@ public:
 
 		delete native;
 	}
+
+private:
 
 	void testSendReceiveSingle() {
 		
@@ -114,7 +135,7 @@ public:
 		WcharWrapper wQueueExchange(queueExchange);
 		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
-		params[2].bVal = false;
+		params[2].bVal = true;
 		params[3].bVal = false;
 		params[4].bVal = false;
 		params[5].uintVal = 0;
@@ -143,7 +164,7 @@ public:
 		WcharWrapper wExchangeType(L"topic");
 		params[1].pwstrVal = wExchangeType;
 		params[2].bVal = false;
-		params[3].bVal = false;
+		params[3].bVal = true;
 		params[4].bVal = false;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 5);

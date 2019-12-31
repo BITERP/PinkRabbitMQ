@@ -357,8 +357,5 @@
     <Text Include="src\testMessage560kb.txt">
       <Filter>test</Filter>
     </Text>
-    <Text Include="src\testMessage10mb.txt">
-      <Filter>test</Filter>
-    </Text>
   </ItemGroup>
 </Project>

@@ -50,10 +50,10 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 
-	event_base* eventLoop;
-	AMQP::TcpConnection* connection;
-	AMQP::LibEventHandler* handler;
-	AMQP::TcpChannel* channel;
+	event_base* eventLoop = 0;
+	AMQP::TcpConnection* connection = 0;
+	AMQP::LibEventHandler* handler = 0;
+	AMQP::TcpChannel* channel = 0;
 	std::map<int, std::string> msgProps;
 	std::string lastError;
 
