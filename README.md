@@ -4,7 +4,7 @@
 
 [![Sonar bugs](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=bugs)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
 [![Sonar code smells](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=code_smells)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
-[![Sonar dublications](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonar/dashboard?id=PinGetPriority kRabbitMQ)
+[![Sonar dublications](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=duplicated_lines_density)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
 [![Sonar lines of code](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=ncloc)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
 [![Sonar technical debt](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=sqale_index)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
 [![Sonar vulnerables](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=vulnerabilities)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
