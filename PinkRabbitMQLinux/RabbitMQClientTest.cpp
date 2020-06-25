@@ -59,7 +59,7 @@ public:
 		delete native;
 	}
 
-	void tesSendMessage() {
+	void testSendMessage() {
 
 		native = new AddInNative();
 		native->enableDebugMode();
