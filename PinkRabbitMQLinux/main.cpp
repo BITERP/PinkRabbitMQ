@@ -6,7 +6,7 @@ int main()
 {
     RabbitMQClientTest unit;
     unit.testPassEmptyParameters();
-    unit.tesSendMessage();
+    unit.testSendMessage();
     unit.testDeclareSendReceive();
     sleep(2);
     return 0;
