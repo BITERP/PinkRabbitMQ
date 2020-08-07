@@ -660,6 +660,9 @@ bool AddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams
 bool AddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
 	int priority = client.getPriority();
 
+	TV_VT(pvarRetValue) = VTYPE_I4;
+	TV_INT(pvarRetValue) = priority; 
+
 	return true;
 }
 

@@ -611,6 +611,8 @@ bool CAddInNative::basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParam
 bool CAddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
 	int priority = client->getPriority();
 
+	TV_VT(pvarRetValue) = VTYPE_I4;
+	TV_INT(pvarRetValue) = priority;
 	return true;
 }
 
