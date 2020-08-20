@@ -90,7 +90,7 @@ SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port) :
 {
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket.connect(address);
-	m_impl->socket.setBlocking(false);
+	m_impl->socket.setBlocking(true);
 	m_impl->socket.setSendBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket.setReceiveBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket.setKeepAlive(true);
