@@ -21,7 +21,7 @@ PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation/*
 !PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation/include
 
 PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Net/*
-!PinkRabbitMQWindows/!libs/poco-poco-1.9.0-release/Net/include
+!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Net/include
 
 !package/
 package/*
