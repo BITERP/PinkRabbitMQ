@@ -370,7 +370,7 @@ long CAddInNative::GetNParams(const long lMethodNum)
 	case eMethGetLastError:
 		return 0;
 	case eMethConnect:
-		return 6;
+		return 7;
 	case eMethDeclareQueue:
 		return 6;
 	case eMethBasicPublish:
@@ -413,6 +413,11 @@ bool CAddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_I4;
 			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		if (lParamNum == 6) {
+			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
+			TV_BOOL(pvarParamDefValue) = false;
 			return true;
 		}
 		return false;
@@ -460,7 +465,8 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 			paParams[1].uintVal, 
 			Utils::wsToString(paParams[2].pwstrVal),
 			Utils::wsToString(paParams[3].pwstrVal),
-			Utils::wsToString(paParams[4].pwstrVal)
+			Utils::wsToString(paParams[4].pwstrVal),
+			paParams[6].bVal
 		);
 	case eMethBasicPublish:
 		return client->basicPublish(

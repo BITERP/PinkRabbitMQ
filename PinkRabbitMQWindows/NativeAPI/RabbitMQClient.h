@@ -22,7 +22,7 @@ public:
 	~RabbitMQClient();
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
 	WCHAR_T* getLastError() noexcept;
 	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
 	bool basicAck(const std::uint64_t& messageTag);

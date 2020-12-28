@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include <Poco/Net/StreamSocket.h>
+#include <Poco/Net/SecureStreamSocket.h>
 
 #include "SimplePocoHandler.h"
 
@@ -65,18 +66,19 @@ namespace
 
 struct SimplePocoHandlerImpl
 {
-	SimplePocoHandlerImpl() :
+	SimplePocoHandlerImpl(bool ssl) :
 		connected(false),
 		connection(nullptr),
 		quit(false),
 		quitRead(false),
 		inputBuffer(SimplePocoHandler::BUFFER_SIZE),
 		outBuffer(SimplePocoHandler::BUFFER_SIZE),
-		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE)
+		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE),
+		socket(ssl ? new Poco::Net::SecureStreamSocket() : new Poco::Net::StreamSocket())
 	{
 	}
 
-	Poco::Net::StreamSocket socket;
+	std::unique_ptr<Poco::Net::StreamSocket> socket;
 	bool connected;
 	AMQP::Connection* connection;
 	bool quit;
@@ -85,15 +87,15 @@ struct SimplePocoHandlerImpl
 	Buffer outBuffer;
 	std::vector<char> tmpBuff;
 };
-SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port) :
-	m_impl(new SimplePocoHandlerImpl)
+SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl) :
+	m_impl(new SimplePocoHandlerImpl(ssl))
 {
 	const Poco::Net::SocketAddress address(host, port);
-	m_impl->socket.connect(address);
-	m_impl->socket.setBlocking(true);
-	m_impl->socket.setSendBufferSize(TEMP_BUFFER_SIZE);
-	m_impl->socket.setReceiveBufferSize(TEMP_BUFFER_SIZE);
-	m_impl->socket.setKeepAlive(true);
+	m_impl->socket->connect(address);
+	m_impl->socket->setBlocking(true);
+	m_impl->socket->setSendBufferSize(TEMP_BUFFER_SIZE);
+	m_impl->socket->setReceiveBufferSize(TEMP_BUFFER_SIZE);
+	m_impl->socket->setKeepAlive(true);
 }
 
 SimplePocoHandler::~SimplePocoHandler()
@@ -149,19 +151,19 @@ void SimplePocoHandler::loop()
 
 void SimplePocoHandler::loopIteration() {
 
-	if (m_impl->socket.available() > 0)
+	if (m_impl->socket->available() > 0)
 	{
-		const int avail = m_impl->socket.available();
+		const int avail = m_impl->socket->available();
 		if (m_impl->tmpBuff.size() < avail)
 		{
 			m_impl->tmpBuff.resize(avail, 0);
 		}
 
-		m_impl->socket.receiveBytes(&m_impl->tmpBuff[0], avail);
+		m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
 		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), avail);
 
 	}
-	if (m_impl->socket.available() < 0)
+	if (m_impl->socket->available() < 0)
 	{
 		std::cerr << "SOME socket error!!!" << std::endl;
 	}
@@ -199,7 +201,7 @@ void SimplePocoHandler::resetQuitRead()
 
 void SimplePocoHandler::SimplePocoHandler::close()
 {
-	m_impl->socket.close();
+	m_impl->socket->close();
 }
 
 void SimplePocoHandler::onData(
@@ -240,7 +242,7 @@ void SimplePocoHandler::sendDataFromBuffer()
 {
 	if (m_impl->outBuffer.available())
 	{
-		m_impl->socket.sendBytes(m_impl->outBuffer.data(), m_impl->outBuffer.available());
+		m_impl->socket->sendBytes(m_impl->outBuffer.data(), m_impl->outBuffer.available());
 		m_impl->outBuffer.drain();
 	}
 }

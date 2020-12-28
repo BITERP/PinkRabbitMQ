@@ -8,13 +8,13 @@
 #include "AuthException.cpp"
 #include "ThreadLooper.cpp"
 
-bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
+bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl)
 {
 	updateLastError("");
 	bool connected = false;
 	try
 	{
-		handler = new SimplePocoHandler(host, port);
+		handler = new SimplePocoHandler(host, port, ssl);
 		newConnection(login, pwd, vhost);
 
 		channel = new AMQP::Channel(connection);
