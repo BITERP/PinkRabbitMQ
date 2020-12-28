@@ -5,13 +5,13 @@
 
 /*ESTABLISHING CONNECTION*/
 
-bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost) {
+bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl) {
 	
     eventLoop = event_base_new();
 
     handler = new AMQP::LibEventHandler(eventLoop);
     
-    connection = new AMQP::TcpConnection(handler, AMQP::Address(host, port, AMQP::Login(login, pwd), vhost));
+    connection = new AMQP::TcpConnection(handler, AMQP::Address(host, port, AMQP::Login(login, pwd), vhost, ssl));
 
     channel = openChannel();
 

@@ -397,7 +397,7 @@ long AddInNative::GetNParams(const long lMethodNum)
 	case eMethGetLastError:
 		return 0;
 	case eMethConnect:
-		return 6;
+		return 7;
 	case eMethDeclareQueue:
 		return 6;
 	case eMethBasicPublish:
@@ -440,6 +440,11 @@ bool AddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,	
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_I4;
 			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		if (lParamNum == 6) {
+			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
+			TV_BOOL(pvarParamDefValue) = false;
 			return true;
 		}
 		return false;
@@ -487,7 +492,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 			std::string login = inputParamToStr(paParams, 2);
 			std::string pwd = inputParamToStr(paParams, 3);
 			std::string vhost = inputParamToStr(paParams, 4);
-			return client.connect(host, 5672, login, pwd, vhost);
+			bool ssl = paParams[6].bVal;
+			return client.connect(host, 5672, login, pwd, vhost, ssl);
 		}
 		case eMethBasicPublish:
 		{

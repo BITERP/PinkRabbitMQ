@@ -15,7 +15,7 @@ public:
 	RabbitMQClient() = default;
 	~RabbitMQClient();
 
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
 	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority);
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
 	bool deleteExchange(const std::string& name, bool ifunused);

@@ -17,16 +17,20 @@ SET(AddInNative_SRC
     )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/libevent/include)
+include_directories(${CMAKE_SOURCE_DIR}/amqp/include)
 
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR})
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 SET(AddInDef_SRC ${CMAKE_SOURCE_DIR}/AddInNative.def)
-SET(CMAKE_LINK_DEF_FILE_FLAG AddInNative.def)
+# SET(CMAKE_LINK_DEF_FILE_FLAG AddInNative.def)
 add_definitions(-DUNICODE -DWIN32 -DNOMINMAX)
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC} ${AddInDef_SRC})
 
+target_link_libraries(${PROJECT_NAME} -lssl)
+
 set_target_properties( ${PROJECT_NAME} PROPERTIES
    CLEAN_DIRECT_OUTPUT 1
-   OUTPUT_NAME $(ProjectName)Lin64
+   OUTPUT_NAME ${PROJECT_NAME}Lin64
 )
