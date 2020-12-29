@@ -22,8 +22,8 @@ extern "C" {
  * OpenSSL was configured with the following options:
  */
 
-#ifndef OPENSSL_SYS_WIN64A
-# define OPENSSL_SYS_WIN64A 1
+#ifndef OPENSSL_SYS_WIN32
+# define OPENSSL_SYS_WIN32 1
 #endif
 #define OPENSSL_MIN_API 0x10000000L
 #ifndef OPENSSL_NO_ASAN
@@ -159,11 +159,11 @@ extern "C" {
  * The following are cipher-specific, but are part of the public API.
  */
 #if !defined(OPENSSL_SYS_UEFI)
-# undef BN_LLONG
+# define BN_LLONG
 /* Only one for the following should be defined */
 # undef SIXTY_FOUR_BIT_LONG
-# define SIXTY_FOUR_BIT
-# undef THIRTY_TWO_BIT
+# undef SIXTY_FOUR_BIT
+# define THIRTY_TWO_BIT
 #endif
 
 #define RC4_INT unsigned int
