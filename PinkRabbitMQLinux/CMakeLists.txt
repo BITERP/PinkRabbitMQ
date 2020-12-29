@@ -6,9 +6,13 @@ PROJECT(PinkRabbitMQLinux)
 
 set (ROOT_DIR ${CMAKE_SOURCE_DIR})
 set (CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-set(AddInNative_SRC ${CMAKE_SOURCE_DIR}/src)
+set(CMAKE_BUILD_TYPE Debug)
 
 SET(AddInNative_SRC 
+    ${CMAKE_SOURCE_DIR}/Utils.cpp
+    ${CMAKE_SOURCE_DIR}/ConversionWchar.cpp
+    ${CMAKE_SOURCE_DIR}/RabbitMQClient.cpp
+    ${CMAKE_SOURCE_DIR}/MessageObject.cpp
     ${CMAKE_SOURCE_DIR}/AddInNative.cpp
     ${CMAKE_SOURCE_DIR}/AddInNative.h
     ${CMAKE_SOURCE_DIR}/dllmain.cpp
@@ -28,9 +32,14 @@ add_definitions(-DUNICODE -DWIN32 -DNOMINMAX)
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC} ${AddInDef_SRC})
 
-target_link_libraries(${PROJECT_NAME} -lssl)
+target_link_libraries(${PROJECT_NAME} -lssl -lamqpcpp -levent -lpthread -ldl)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES
    CLEAN_DIRECT_OUTPUT 1
    OUTPUT_NAME ${PROJECT_NAME}Lin64
 )
+
+# -- tests
+
+add_executable(test main.cpp RabbitMQClientTest.cpp)
+target_link_libraries(test ${PROJECT_NAME})

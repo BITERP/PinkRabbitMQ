@@ -106,7 +106,7 @@ private:
     IMemoryManager     *m_iMemory;
 
     RabbitMQClient client;
-    const wchar_t* m_version = L"1.8";
+    const wchar_t* m_version = L"1.10";
     bool debugMode = false;
 
     void setWStringToTVariant(tVariant* dest, const wchar_t* source);

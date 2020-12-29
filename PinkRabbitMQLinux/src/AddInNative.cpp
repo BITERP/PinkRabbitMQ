@@ -146,6 +146,8 @@ AddInNative::~AddInNative()
 //---------------------------------------------------------------------------//
 bool AddInNative::Init(void* pConnection)
 {
+	OPENSSL_init_ssl(0, NULL);
+
 	m_iConnect = (IAddInDefBaseEx*)pConnection;
 	if (m_iConnect)
 	{
@@ -489,11 +491,12 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 		case eMethConnect:
 		{
 			std::string host = inputParamToStr(paParams, 0);
+			uint16_t port = (uint16_t) paParams[1].intVal;
 			std::string login = inputParamToStr(paParams, 2);
 			std::string pwd = inputParamToStr(paParams, 3);
 			std::string vhost = inputParamToStr(paParams, 4);
 			bool ssl = paParams[6].bVal;
-			return client.connect(host, 5672, login, pwd, vhost, ssl);
+			return client.connect(host, port, login, pwd, vhost, ssl);
 		}
 		case eMethBasicPublish:
 		{
