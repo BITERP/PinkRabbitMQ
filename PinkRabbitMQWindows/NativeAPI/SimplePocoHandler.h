@@ -16,6 +16,7 @@ public:
     SimplePocoHandler(const std::string& host, uint16_t port, bool ssl);
     virtual ~SimplePocoHandler();
 
+    void setConnection(AMQP::Connection* connection);
     void loop();
 	void quitRead();
 	void resetQuitRead();
@@ -44,6 +45,7 @@ private:
     virtual void onClosed(AMQP::Connection *connection);
 
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
+
 };
 
 #endif /* SRC_SIMPLEPOCOHANDLER_H_ */

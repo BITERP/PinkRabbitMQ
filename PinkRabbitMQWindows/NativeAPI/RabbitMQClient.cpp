@@ -31,7 +31,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	}
 	catch (const Poco::Net::NetException & ex)
 	{
-		updateLastError(ex.what());
+		updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
 	}
 	return connected;
 }
@@ -39,6 +39,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 void RabbitMQClient::newConnection(const std::string& login, const std::string& pwd, const std::string& vhost) {
 
 	connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
+	handler->setConnection(connection);
 
 	const uint16_t timeout = 5000;
 	std::chrono::milliseconds timeoutMs{ timeout };
@@ -465,14 +466,14 @@ int RabbitMQClient::getPriority() {
 	return priority;
 }
 
-WCHAR_T* RabbitMQClient::getLastError() noexcept
+const WCHAR_T* RabbitMQClient::getLastError() noexcept
 {
-	return LAST_ERROR;
+	return LAST_ERROR.c_str();
 }
 
 void RabbitMQClient::updateLastError(const char* text) {
-	LAST_ERROR = new wchar_t[strlen(text) + 1];
-	Utils::convetToWChar(LAST_ERROR, text);
+	LAST_ERROR.resize(strlen(text)+1);
+	Utils::convetToWChar(&LAST_ERROR[0], text);
 }
 
 RabbitMQClient::~RabbitMQClient() {

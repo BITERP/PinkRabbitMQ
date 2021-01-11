@@ -547,7 +547,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 }
 
 bool CAddInNative::getLastError(tVariant* pvarRetValue) {
-	wchar_t* error = client->getLastError();
+	const wchar_t* error = client->getLastError();
 	setWStringToTVariant(pvarRetValue, error);
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
@@ -767,6 +767,10 @@ bool CAddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lo
 		if (i == 1 || i == 5)
 		{
 			typeCheck = VTYPE_I4;
+		}
+		if (i == 6) 
+		{
+			typeCheck = VTYPE_BOOL;
 		}
 		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
 		{

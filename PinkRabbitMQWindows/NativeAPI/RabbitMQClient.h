@@ -23,7 +23,7 @@ public:
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
 	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
-	WCHAR_T* getLastError() noexcept;
+	const WCHAR_T* getLastError() noexcept;
 	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
 	bool basicAck(const std::uint64_t& messageTag);
 	bool basicReject(const std::uint64_t& messageTag);
@@ -42,7 +42,7 @@ public:
 private:
 	AMQP::Channel* openChannel();
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
-	wchar_t* LAST_ERROR = L"";
+	std::wstring LAST_ERROR;
 	// Transiting properties
 	const int CORRELATION_ID = 1;
 	const int TYPE_NAME = 2;

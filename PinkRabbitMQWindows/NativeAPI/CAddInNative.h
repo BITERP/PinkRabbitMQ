@@ -81,8 +81,8 @@ public:
                 tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray);
     // LocaleBase
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
-	void CAddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source);
-	void CAddInNative::setStringToTVariant(tVariant* dest, std::string source);
+	void setWStringToTVariant(tVariant* dest, const wchar_t* source);
+	void setStringToTVariant(tVariant* dest, std::string source);
     
 private:
 
