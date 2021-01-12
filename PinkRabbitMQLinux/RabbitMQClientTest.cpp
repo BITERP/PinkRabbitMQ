@@ -8,12 +8,12 @@ class RabbitMQClientTest
 {
 public:
 
-	explicit RabbitMQClientTest()
+	explicit RabbitMQClientTest(std::string &configFile):config(configFile)
 	{
 		testMessage;
 		std::ifstream myReadFile;
-		myReadFile.open("/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt");
-		while (!myReadFile.eof()) {
+		myReadFile.open(config.messageFile);
+		while (myReadFile && !myReadFile.eof()) {
 			std::string msgLine;
 			getline(myReadFile, msgLine);
 			testMessage += msgLine;
@@ -45,7 +45,7 @@ public:
 		native = new AddInNative();
 		native->enableDebugMode();
 
-		tVariant* params = new tVariant[6];
+		tVariant params[6];
 		params[0].pwstrVal = NULL;
 		params[1].intVal = NULL;
 		params[2].pwstrVal = NULL;
@@ -80,6 +80,26 @@ public:
 
 		delete native;
 	}
+	
+	void testSSL(){
+		if (!config.sslport) {
+			return;
+		}
+	    std::cout << "SSLTest Start" << std::endl;
+		native = new AddInNative();
+		native->enableDebugMode();
+		
+		testConnect(true);
+		testDeclareExchange();
+		testDeclareQueue();
+		testBindQueue();
+		testBasicPublish(L"Hello", 5);
+	    
+	    delete native;
+	    std::cout << "SSLTest End" << std::endl;
+	}
+
+
 
 private:
 
@@ -111,28 +131,29 @@ private:
 		testBasicCancel();
 	}
 
-	void testConnect() {
-		tVariant* params = new tVariant[6];
+	void testConnect(bool ssl = false) {
+		tVariant params[7];
 
-		WcharWrapper wHost(host);
+		WcharWrapper wHost(config.host.c_str());
 		params[0].pwstrVal = wHost;
-		params[1].uintVal = 5672;
-		WcharWrapper wUsr(usr);
+		params[1].uintVal = ssl ? config.sslport : config.port;
+		WcharWrapper wUsr(config.usr.c_str());
 		params[2].pwstrVal = wUsr;
-		WcharWrapper wPwd(pwd);
+		WcharWrapper wPwd(config.pwd.c_str());
 		params[3].pwstrVal = wPwd;
-		WcharWrapper wVhost(vhost);
+		WcharWrapper wVhost(config.vhost.c_str());
 		params[4].pwstrVal = wVhost;
+		params[6].bVal = ssl;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 6);
+		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 7);
 		assertTrue(result == true, "testConnect");		
 	}
 
 	void testDeclareQueue() {
-		tVariant* returnValue = new tVariant;
-		tVariant* params = new tVariant[6];
+		tVariant returnValue;
+		tVariant params[6];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 		params[2].bVal = true;
@@ -140,14 +161,14 @@ private:
 		params[4].bVal = false;
 		params[5].uintVal = 0;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, returnValue, params, 6);
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, &returnValue, params, 6);
 		assertTrue(result == true, "testDeclareQueue");
 	}
 
 	void testDeleteQueue() {
-		tVariant* params = new tVariant[3];
+		tVariant params[3];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 		params[2].bVal = false;
@@ -157,9 +178,9 @@ private:
 	}
 
 	void testDeclareExchange() {
-		tVariant* params = new tVariant[5];
+		tVariant params[5];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		WcharWrapper wExchangeType(L"topic");
 		params[1].pwstrVal = wExchangeType;
@@ -174,9 +195,9 @@ private:
 	}
 
 	void testDeleteExchange() {
-		tVariant* params = new tVariant[2];
+		tVariant params[2];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].bVal = false;
 
@@ -185,9 +206,9 @@ private:
 	}
 
 	void testBindQueue() {
-		tVariant* params = new tVariant[3];
+		tVariant params[3];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].pwstrVal = wQueueExchange;
 		WcharWrapper wRoutingKey(L"#");
@@ -197,10 +218,10 @@ private:
 		assertTrue(result == true, "testBindQueue");
 	}
 
-	void testBasicPublish(wchar_t* message, int count) {
-		tVariant* params = new tVariant[5];
+	void testBasicPublish(const wchar_t* message, int count) {
+		tVariant params[5];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].pwstrVal = wQueueExchange;
 		WcharWrapper wMessage(message);
@@ -215,9 +236,9 @@ private:
 
 	void testSetProps(int propNum) {
 
-		tVariant* propVar = new tVariant();
-		propVar->pstrVal = "test_prop";
-		bool setResult = native->SetPropVal(propNum, propVar);
+		tVariant propVar;
+		propVar.pstrVal = "test_prop";
+		bool setResult = native->SetPropVal(propNum, &propVar);
 
 		tVariant propVarRet;
 		bool getResult = native->GetPropVal(propNum, &propVarRet);
@@ -227,26 +248,26 @@ private:
 
 	void testBasicConsume() {
 		
-		tVariant* returnValue = new tVariant;
-		tVariant* params = new tVariant[5];
+		tVariant returnValue;
+		tVariant params[5];
 
-		WcharWrapper wQueueExchange(queueExchange);
+		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[4].uintVal= 100;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsume, returnValue, params, 5);
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsume, &returnValue, params, 5);
 
 		assertTrue(result, "testBasicConsume");
 	}
 
 	uint64_t testBasicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, int i) {
 		
-		tVariant* returnValue = new tVariant;
+		tVariant returnValue;
 		tVariant params[4] = {};
 
 		params[3].uintVal = 3000;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsumeMessage, returnValue, params, 4);
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethBasicConsumeMessage, &returnValue, params, 4);
 
 		outdata = params[1].pstrVal;
 		outMessageTag = params[2].ullVal;
@@ -255,11 +276,11 @@ private:
 			delete[] params[1].pstrVal;
 
 		assertTrue(result, "testBasicConsumeMessage " + Utils::anyToString(i));
-		return returnValue->bVal;
+		return returnValue.bVal;
 	}
 
 	void testBasicCancel() {
-		tVariant* params = new tVariant[0];
+		tVariant params[0];
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicCancel, params, 0);
 
@@ -267,7 +288,7 @@ private:
 	}
 
 	void testBasicAck(uint64_t messageTag) {
-		tVariant* params = new tVariant[1];
+		tVariant params[1];
 		params[0].ullVal = messageTag;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicAck, params, 1);
@@ -276,7 +297,7 @@ private:
 	}
 
 	void testBasicReject(uint64_t messageTag) {
-		tVariant* params = new tVariant[1];
+		tVariant params[1];
 		params[0].ullVal = messageTag;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicReject, params, 1);
@@ -284,17 +305,58 @@ private:
 		assertTrue(result == true, "testBasicReject");
 	}
 
+public:
+
+	struct Config{
+		Config(std::string &filename) {
+			if (!filename.length()) {
+				return;
+			}
+			std::ifstream file(filename);
+			messageFile = readString(file);
+			host = readWString(file);
+			port = readInt(file);
+			usr = readWString(file);
+			pwd = readWString(file);
+			vhost = readWString(file);
+			queueExchange = readWString(file);
+			sslport = readInt(file);
+		}
+
+		std::string readString(std::ifstream &file) {
+			std::string s;
+			getline(file, s);
+			return s;
+		}
+
+		std::wstring readWString(std::ifstream &file) {
+			return Utils::stringToWs(readString(file));
+		}
+
+		int readInt(std::ifstream &file) {
+			return std::stoi(readString(file));
+		}
+		
+		std::string messageFile = "/home/rkudakov/projects/PinkRabbitMQLinux/src/testMessage560kb.txt";
+		std::wstring host = L"devdevopsrmq.bit-erp.loc";
+		int port = 5672;
+		std::wstring usr = L"rkudakov_devops";
+		std::wstring pwd = L"rkudakov_devops";
+		std::wstring vhost = L"rkudakov_devops";
+		std::wstring queueExchange = L"unit_test_linux";
+		int sslport = 0;
+	};
+
+
 private:
-	wchar_t* host = L"devdevopsrmq.bit-erp.loc";
-	int port = 5672;
-	wchar_t* usr = L"rkudakov_devops";
-	wchar_t* pwd = L"rkudakov_devops";
-	wchar_t* vhost = L"rkudakov_devops";
-	wchar_t* queueExchange = L"unit_test_linux";
+	Config config;
 	AddInNative* native;
 	std::string testMessage;
 
 	void assertTrue(bool condition, std::string msg) {
+		if (!condition) {
+			std::cerr << " TEST FAILED: " << msg << std::endl;
+		}
 		assert(condition);
 		
 		auto now = std::chrono::system_clock::now();
@@ -302,4 +364,5 @@ private:
 		
 		std::cout << std::ctime(&end_time) << " TEST PASSED: " << msg << std::endl;
 	};
+
 };
