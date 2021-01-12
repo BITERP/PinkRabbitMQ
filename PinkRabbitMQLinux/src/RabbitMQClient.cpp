@@ -3,19 +3,26 @@
 #include <unistd.h>
 #include <cassert>
 
+RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) {
+
+    eventLoop = event_base_new();
+    handler = new AMQP::LibEventHandler(eventLoop);
+}
+
 /*ESTABLISHING CONNECTION*/
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl) {
 	
-    eventLoop = event_base_new();
+    if (connection) {
+        connection->close();
+        delete connection;
+    }    
 
-    handler = new AMQP::LibEventHandler(eventLoop);
-    
     connection = new AMQP::TcpConnection(handler, AMQP::Address(host, port, AMQP::Login(login, pwd), vhost, ssl));
 
-    channel = openChannel();
+    channel.reset(openChannel());
 
-    return checkChannel(channel);
+    return checkChannel();
 }
 
 /*PROCESSING EXCHANGES AND QUEUES*/
@@ -24,7 +31,7 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 
     lastError = "";
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -68,7 +75,7 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -94,7 +101,7 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return "";
     }
 
@@ -123,7 +130,7 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return "";
     }
 
@@ -149,7 +156,7 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -175,7 +182,7 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -203,7 +210,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
     lastError = "";
     bool result = true;
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -229,9 +236,10 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
     event_base_dispatch(eventLoop);
 
-    channelLoc->close()
-        .onSuccess([this]() {
+    channelLoc->close().onSuccess([this]() {
         event_base_loopbreak(eventLoop);
+    }).onFinalize([channelLoc]() {
+        delete channelLoc;
     });
 
     event_base_dispatch(eventLoop);
@@ -265,7 +273,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 
     lastError = "";
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return "";
     }
 
@@ -290,7 +298,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         msgOb->messageTag = deliveryTag;
         msgOb->priority = message.priority();
 
-        readQueue->push(msgOb);
+        readQueue.push(msgOb);
     })
         .onError([this](const char* message)
     {
@@ -299,7 +307,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
     });
 
     for (int i = 0; i < 1; i++) {
-        threadPool.push(new std::thread(RabbitMQClient::loopThread, eventLoop));
+        threadPool.push(std::thread(RabbitMQClient::loopThread, eventLoop));
     }
 
     return "";
@@ -313,13 +321,13 @@ void RabbitMQClient::loopThread(event_base* eventLoop) {
 bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout) {
 
     lastError = "";
-    int size = readQueue->size();
+    int size = readQueue.size();
     std::chrono::milliseconds timeoutSec{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutSec;
-    while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
-        if (!readQueue->empty()) {
+    while (!readQueue.empty() || (end - std::chrono::system_clock::now()).count() > 0) {
+        if (!readQueue.empty()) {
             MessageObject* read;
-            readQueue->pop(read);
+            readQueue.pop(read);
 
             outdata = read->body;
             outMessageTag = read->messageTag;
@@ -351,7 +359,7 @@ bool RabbitMQClient::basicAck(const std::uint64_t& messageTag) {
 
     lastError = "";
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -369,7 +377,7 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
     lastError = "";
 
-    if (!checkChannel(channel)) {
+    if (!checkChannel()) {
         return false;
     }
 
@@ -387,14 +395,13 @@ bool RabbitMQClient::basicCancel() {
 
     MessageObject* msgOb;
     ThreadSafeQueue<MessageObject*>::QueueResult result;
-    readQueue->close();
-    while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
+    readQueue.close();
+    while ((result = readQueue.pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
         delete msgOb;
     };
-        
-    for (int i = 0; i < threadPool.size(); i++) {
-        std::thread* curr = threadPool.front();
-        curr->detach();
+
+    while(!threadPool.empty()) { 
+        threadPool.front().detach();
         threadPool.pop();
     }
     
@@ -410,16 +417,16 @@ std::string RabbitMQClient::getLastError()
 
 bool RabbitMQClient::checkConnection() {
     lastError = "";
-    if (connection == nullptr || !connection->ready()) {
+    if (!connection || !connection->ready()) {
         lastError = "Error. RabbitMQ connection is not open";
         return false;
     }
     return true;
 }
 
-bool RabbitMQClient::checkChannel(AMQP::TcpChannel* _channel) {
+bool RabbitMQClient::checkChannel() {
 
-    if (_channel == nullptr || !_channel->usable()) {
+    if (channel == nullptr || !channel->usable()) {
         lastError = "Error. RabbitMQ channel is not in usable state";
         return false;
     }
@@ -449,33 +456,31 @@ void RabbitMQClient::updateLastError(const char* text) {
 
 RabbitMQClient::~RabbitMQClient() {
 
-    if (channel != nullptr) {
+    if (channel) {
         channel->close();
-        delete channel;
     }
 
-    if (connection != nullptr) {
+    if (connection) {
         connection->close();
+        delete connection;
     }
 
-    while (!readQueue->empty()) {
+    while (!readQueue.empty()) {
         MessageObject* msgOb;
-        readQueue->pop(msgOb);
+        readQueue.pop(msgOb);
         delete msgOb;
     }
     
-    assert(readQueue->empty());
+    assert(readQueue.empty());
+
+    while(!threadPool.empty()) { 
+        threadPool.front().detach();
+        threadPool.pop();
+    }
+
+    delete handler;
 
     event_base_free(eventLoop);
     libevent_global_shutdown();
 
-    for (int i = 0; i < threadPool.size(); i++) {
-        std::thread* curr = threadPool.front();
-        curr->detach();
-        threadPool.pop();
-    }
-
-    if (connection != nullptr) {
-        delete connection;
-    }
 }

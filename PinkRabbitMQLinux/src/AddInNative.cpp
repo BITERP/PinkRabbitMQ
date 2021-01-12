@@ -877,17 +877,22 @@ bool AddInNative::validateBasicPublish(tVariant* paParams, long const lMethodNum
 
 bool AddInNative::checkInputParameter(tVariant* params, long const methodNum, long const parameterNum, ENUMVAR type) {
 
-	const wchar_t* methodName = WcharWrapper(GetMethodName(methodNum, 1));
-
 	if (debugMode) {
 		return true;
 	}
 
 	if (!(TV_VT(&params[parameterNum]) == type)) {
+		const WCHAR_T* methName = GetMethodName(methodNum, 1);
+		const wchar_t* methodName = WcharWrapper(methName);
+
 		std::string errDescr = "Error occured when calling method "
 			+ Utils::wsToString(methodName)
 			+ "() - wrong type for parameter number "
 			+ Utils::anyToString(parameterNum);
+		
+		if (methName && m_iMemory){
+			m_iMemory->FreeMemory((void**)&methName);
+		}
 
 		addError(ADDIN_E_FAIL, L"NativeRabbitMQ", Utils::stringToWs(errDescr).c_str(), 1);
 		client.updateLastError(errDescr.c_str());
