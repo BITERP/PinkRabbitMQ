@@ -838,7 +838,12 @@ bool AddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lon
 		{
 			typeCheck = VTYPE_I4;
 		}
-		else {
+		else if (i == 6) 
+		{
+			typeCheck = VTYPE_BOOL;
+		}
+		else 
+		{
 			typeCheck = VTYPE_PWSTR;
 			if (paParams[i].intVal == 0) {
 				return false;

@@ -1,7 +1,7 @@
 /**
  *  AMQP field table
  *
- *  @copyright 2014 Copernica BV
+ *  @copyright 2014 - 2020 Copernica BV
  */
 
 /**
@@ -14,6 +14,7 @@
  */
 #include "field.h"
 #include "fieldproxy.h"
+#include <cstddef>
 #include <vector>
 #include <map>
 
@@ -51,7 +52,7 @@ public:
      *
      *  @param  frame   received frame to decode
      */
-    Table(ReceivedFrame &frame);
+    Table(InBuffer &frame);
 
     /**
      *  Copy constructor
@@ -138,6 +139,7 @@ public:
     Table &set(const std::string &name, int64_t value) { return set(name, LongLong(value)); }
     Table &set(const std::string &name, const std::string &value) { return set(name, LongString(value)); }
     Table &set(const std::string &name, const char *value) { return set(name, LongString(std::string(value))); }
+    Table &set(const std::string &name, std::nullptr_t) { return set(name, VoidField()); }
 
     /**
      *  Is a certain field set in the table

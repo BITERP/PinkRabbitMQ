@@ -5,7 +5,7 @@
  *  possibly happen in the future that can be
  *  caught.
  *
- *  @copyright 2014 - 2018 Copernica BV
+ *  @copyright 2014 - 2020 Copernica BV
  */
 
 /**
@@ -178,12 +178,22 @@ protected:
         // store pointer
         _next = deferred;
     }
+    
+    /**
+     *  Remove this object from the chain of deferreds
+     */
+    void unchain()
+    {
+        // we no longer need the next pointer
+        _next = nullptr;
+    }
 
     /**
      *  The channel implementation may call our
      *  private members and construct us
      */
     friend class ChannelImpl;
+    friend class Tagger;
 
 public:
     /**
@@ -281,11 +291,11 @@ public:
      */
     Deferred &onFinalize(const FinalizeCallback &callback)
     {
-        // store callback
-        _finalizeCallback = callback;
-
         // if the object is already in a failed state, we call the callback right away
         if (_failed) callback();
+
+        // otherwise we store callback until it's time for the call
+        else _finalizeCallback = callback;
 
         // allow chaining
         return *this;

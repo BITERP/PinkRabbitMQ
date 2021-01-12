@@ -5,7 +5,7 @@
  *  that has a private constructor so that it can not be used from outside
  *  the AMQP library
  *
- *  @copyright 2014 - 2018 Copernica BV
+ *  @copyright 2014 - 2020 Copernica BV
  */
 
 /**
@@ -45,7 +45,7 @@ class DeferredCancel;
 class DeferredConfirm;
 class DeferredQueue;
 class DeferredGet;
-class DeferredPublisher;
+class DeferredRecall;
 class Connection;
 class Envelope;
 class Table;
@@ -77,13 +77,13 @@ private:
 
     /**
      *  Handler that deals with incoming messages as a result of publish operations
-     *  @var    std::shared_ptr<DeferredPublisher>
+     *  @var    DeferredRecall
      */
-    std::shared_ptr<DeferredPublisher> _publisher;
+    std::shared_ptr<DeferredRecall> _recall;
 
     /**
-     * Handler that deals with publisher confirms frames
-     * @var    std::shared_ptr<DeferredConfirm>
+     *  Handler that deals with publisher confirms frames
+     *  @var    std::shared_ptr<DeferredConfirm>
      */
     std::shared_ptr<DeferredConfirm> _confirm;
 
@@ -218,7 +218,7 @@ public:
         _readyCallback = callback;
 
         // direct call if channel is already ready
-        if (_state == state_ready) callback();
+        if (_state == state_ready && callback) callback();
     }
 
     /**
@@ -258,6 +258,15 @@ public:
     bool usable() const
     {
         return _state == state_connected || _state == state_ready;
+    }
+
+    /**
+     *  Is the channel ready / has it passed the initial handshake?
+     *  @return bool
+     */
+    bool ready() const
+    {
+        return _state == state_ready;
     }
 
     /**
@@ -384,7 +393,7 @@ public:
      *
      *      void myCallback(AMQP::Channel *channel, uint32_t messageCount);
      *
-     *  For example: channel.declareQueue("myqueue").onSuccess([](AMQP::Channel *channel, uint32_t messageCount) {
+     *  For example: channel.purgeQueue("myqueue").onSuccess([](AMQP::Channel *channel, uint32_t messageCount) {
      *
      *      std::cout << "Queue purged, all " << messageCount << " messages removed" << std::endl;
      *
@@ -424,9 +433,9 @@ public:
      *  @param  message     the message to send
      *  @param  size        size of the message
      *  @param  flags       optional flags
-     *  @return DeferredPublisher
+     *  @return bool
      */
-    DeferredPublisher &publish(const std::string &exchange, const std::string &routingKey, const Envelope &envelope, int flags);
+    bool publish(const std::string &exchange, const std::string &routingKey, const Envelope &envelope, int flags);
 
     /**
      *  Set the Quality of Service (QOS) of the entire connection
@@ -461,6 +470,17 @@ public:
      *  });
      */
     DeferredConsumer& consume(const std::string &queue, const std::string &tag, int flags, const Table &arguments);
+
+    /**
+     *  Tell that you are prepared to recall/take back messages that could not be
+     *  published. This is only meaningful if you pass the 'immediate' or 'mandatory'
+     *  flag to publish() operations.
+     * 
+     *  THis function returns a deferred handler more or less similar to the object
+     *  return by the consume() method and that can be used to install callbacks that
+     *  handle the recalled messages.
+     */
+    DeferredRecall &recall();
 
     /**
      *  Cancel a running consumer
@@ -562,6 +582,13 @@ public:
      *  @param  frame       frame to send
      *  @return bool        was frame succesfully sent?
      */
+    bool send(CopiedBuffer &&frame);
+
+    /**
+     *  Send a frame over the channel
+     *  @param  frame       frame to send
+     *  @return bool        was frame succesfully sent?
+     */
     bool send(const Frame &frame);
 
     /**
@@ -574,10 +601,16 @@ public:
     }
 
     /**
-     *  Signal the channel that a synchronous operation was completed.
-     *  After this operation, waiting frames can be sent out.
+     *  The max payload size for frames
+     *  @return uint32_t
      */
-    void onSynchronized();
+    uint32_t maxPayload() const;
+
+    /**
+     *  Signal the channel that a synchronous operation was completed, and that any
+     *  queued frames can be sent out.
+     */
+    void flush();
 
     /**
      *  Report to the handler that the channel is opened
@@ -596,8 +629,8 @@ public:
         // inform handler
         if (_readyCallback) _readyCallback();
 
-        // if the monitor is still valid, we exit synchronous mode now
-        if (monitor.valid()) onSynchronized();
+        // if the monitor is still valid, we flush any waiting operations 
+        if (monitor.valid()) flush();
     }
 
     /**
@@ -644,10 +677,10 @@ public:
     {
         // skip if there is no oldest callback
         if (!_oldestCallback) return true;
-        
-        // the last (possibly synchronous) operation was received, so we're no longer in synchronous mode
-        if (_synchronous && _queue.empty()) _synchronous = false;
 
+        // flush the queue, which will send the next operation if the current operation was synchronous
+        flush();
+        
         // we are going to call callbacks that could destruct the channel
         Monitor monitor(this);
 
@@ -658,8 +691,13 @@ public:
         // call the callback
         auto next = cb->reportSuccess(std::forward<Arguments>(parameters)...);
 
-        // leap out if channel no longer exists
+        // leap out if channel no longer exist
         if (!monitor.valid()) return false;
+        
+        // in case the callback-shared-pointer is still kept in scope (for example because it
+        // is stored in the list of consumers), we do want to ensure that it no longer maintains
+        // a chain of queued deferred objects
+        cb->unchain();
 
         // set the oldest callback
         _oldestCallback = next;
@@ -723,14 +761,14 @@ public:
     DeferredReceiver *receiver() const { return _receiver.get(); }
     
     /**
-     *  Retrieve the deferred publisher that handles returned messages
-     *  @return The deferred publisher object
+     *  Retrieve the recalls-object that handles bounces
+     *  @return The deferred recall object
      */
-    DeferredPublisher *publisher() const { return _publisher.get(); }
+    DeferredRecall *recalls() const { return _recall.get(); }
 
     /**
-     * Retrieve the deferred confirm that handles publisher confirms
-     * @return The deferred confirm object
+     *  Retrieve the deferred confirm that handles publisher confirms
+     *  @return The deferred confirm object
      */
     DeferredConfirm *confirm() const { return _confirm.get(); }
 

@@ -474,5 +474,8 @@ RabbitMQClient::~RabbitMQClient() {
         curr->detach();
         threadPool.pop();
     }
-   
+
+    if (connection != nullptr) {
+        delete connection;
+    }
 }
