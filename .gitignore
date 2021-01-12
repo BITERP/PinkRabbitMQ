@@ -7,11 +7,11 @@
 !PinkRabbitMQWindows/libs/
 
 PinkRabbitMQWindows/libs/*
-!PinkRabbitMQWindows/libs/AMQP-CPP-4.1.4/
+!PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/
 !PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/
 
-PinkRabbitMQWindows/libs/AMQP-CPP-4.1.4/*
-!PinkRabbitMQWindows/libs/AMQP-CPP-4.1.4/include
+PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/*
+!PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/include
 
 PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/*
 !PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation
