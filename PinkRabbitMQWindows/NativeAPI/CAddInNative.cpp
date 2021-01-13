@@ -804,7 +804,7 @@ bool CAddInNative::checkInputParameter(tVariant* params, long const methodNum, l
 
 	if (!(TV_VT(&params[parameterNum]) == type)) {
 		std::string errDescr = "Error occured when calling method "
-		+ Utils::wsToString(GetMethodName(methodNum, 1))
+		+ Utils::wsToString(g_MethodNames[methodNum])
 		+ "() - wrong type for parameter number "
 		+ Utils::anyToString(parameterNum);
 

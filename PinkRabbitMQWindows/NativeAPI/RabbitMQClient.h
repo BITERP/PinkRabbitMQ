@@ -18,7 +18,7 @@ public:
 	RabbitMQClient(const RabbitMQClient &&) = delete;
 	RabbitMQClient & operator = (const RabbitMQClient&) = delete;
 	RabbitMQClient& operator = (const RabbitMQClient&&) = delete;
-	RabbitMQClient() = default;
+	RabbitMQClient();
 	~RabbitMQClient();
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
@@ -56,12 +56,12 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 	//
-	SimplePocoHandler* handler;
+	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;
-	AMQP::Channel* channel;
+	std::unique_ptr<AMQP::Channel> channel;
 
-	std::queue<std::thread*> threadPool;
+	std::queue<std::thread> threadPool;
 	std::string consQueue;
-	ThreadSafeQueue<MessageObject*>* readQueue = new ThreadSafeQueue<MessageObject*>(1);;
+	ThreadSafeQueue<MessageObject*> readQueue;
 	std::map<int, std::string> msgProps;
 };
