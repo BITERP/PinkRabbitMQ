@@ -18,12 +18,12 @@ public:
 	RabbitMQClient(const RabbitMQClient &&) = delete;
 	RabbitMQClient & operator = (const RabbitMQClient&) = delete;
 	RabbitMQClient& operator = (const RabbitMQClient&&) = delete;
-	RabbitMQClient() = default;
+	RabbitMQClient();
 	~RabbitMQClient();
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
-	WCHAR_T* getLastError() noexcept;
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
+	const WCHAR_T* getLastError() noexcept;
 	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
 	bool basicAck(const std::uint64_t& messageTag);
 	bool basicReject(const std::uint64_t& messageTag);
@@ -42,7 +42,7 @@ public:
 private:
 	AMQP::Channel* openChannel();
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
-	wchar_t* LAST_ERROR = L"";
+	std::wstring LAST_ERROR;
 	// Transiting properties
 	const int CORRELATION_ID = 1;
 	const int TYPE_NAME = 2;
@@ -56,12 +56,12 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 	//
-	SimplePocoHandler* handler;
+	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;
-	AMQP::Channel* channel;
+	std::unique_ptr<AMQP::Channel> channel;
 
-	std::queue<std::thread*> threadPool;
+	std::queue<std::thread> threadPool;
 	std::string consQueue;
-	ThreadSafeQueue<MessageObject*>* readQueue = new ThreadSafeQueue<MessageObject*>(1);;
+	ThreadSafeQueue<MessageObject*> readQueue;
 	std::map<int, std::string> msgProps;
 };

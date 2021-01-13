@@ -2,12 +2,17 @@
 #include "RabbitMQClientTest.cpp"
 #include <unistd.h>
 
-int main()
+int main(int argc, char** argv)
 {
-    RabbitMQClientTest unit;
+	std::string configFile;
+	if (argc > 1) {
+		configFile = argv[1];
+	}
+    RabbitMQClientTest unit(configFile);
     unit.testPassEmptyParameters();
     unit.testSendMessage();
     unit.testDeclareSendReceive();
+    unit.testSSL();
     sleep(2);
     return 0;
 }

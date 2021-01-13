@@ -24,9 +24,12 @@ SET(AddInNative_SRC
     )
 
 include_directories(${CMAKE_SOURCE_DIR}/../include)
+include_directories(${CMAKE_SOURCE_DIR}/../libs)
 include_directories(${CMAKE_SOURCE_DIR}/../libs/AMQP-CPP-4.1.4/include)
 include_directories(${CMAKE_SOURCE_DIR}/../libs/poco-poco-1.9.0-release/Foundation/include)
 include_directories(${CMAKE_SOURCE_DIR}/../libs/poco-poco-1.9.0-release/Net/include)
+include_directories(${CMAKE_SOURCE_DIR}/../libs/poco-poco-1.9.0-release/NetSSL_OpenSSL/include)
+include_directories(${CMAKE_SOURCE_DIR}/../libs/poco-poco-1.9.0-release/Crypto/include)
 
 SET (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR})
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
@@ -48,6 +51,6 @@ set_target_properties( ${PROJECT_NAME} PROPERTIES
    )
 # Link the executable and the library together
 target_link_libraries(${PROJECT_NAME} amqpcpp.lib)
-target_link_libraries(${PROJECT_NAME} PocoFoundationmt.lib)
-target_link_libraries(${PROJECT_NAME} PocoNetmt.lib)
+target_link_libraries(${PROJECT_NAME} CRYPT32.LIB)
+target_link_libraries(${PROJECT_NAME} Iphlpapi.lib)
 

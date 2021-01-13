@@ -3,6 +3,7 @@
 #include <amqpcpp.h>
 #include <amqpcpp/libevent.h>
 #include <thread>
+#include <memory>
 #include "MessageObject.cpp"
 #include "ThreadSafeQueue.cpp"
 
@@ -12,10 +13,10 @@ public:
 	RabbitMQClient(const RabbitMQClient&&) = delete;
 	RabbitMQClient& operator = (const RabbitMQClient&) = delete;
 	RabbitMQClient& operator = (const RabbitMQClient&&) = delete;
-	RabbitMQClient() = default;
+	RabbitMQClient();
 	~RabbitMQClient();
 
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost);
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
 	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority);
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
 	bool deleteExchange(const std::string& name, bool ifunused);
@@ -51,15 +52,15 @@ private:
 	int priority = 0;
 
 	event_base* eventLoop = 0;
-	AMQP::TcpConnection* connection = 0;
-	AMQP::LibEventHandler* handler = 0;
-	AMQP::TcpChannel* channel = 0;
+	AMQP::LibEventHandler* handler;
+	AMQP::TcpConnection* connection;
+	std::unique_ptr<AMQP::TcpChannel> channel;
 	std::map<int, std::string> msgProps;
 	std::string lastError;
 
 	bool checkConnection();
 	AMQP::TcpChannel* openChannel();
-	bool checkChannel(AMQP::TcpChannel* _channel);
-	std::queue<std::thread*> threadPool;
-	ThreadSafeQueue<MessageObject*>* readQueue = new ThreadSafeQueue<MessageObject*>(1);
+	bool checkChannel();
+	std::queue<std::thread> threadPool;
+	ThreadSafeQueue<MessageObject*> readQueue;
 };

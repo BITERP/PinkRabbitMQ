@@ -146,6 +146,8 @@ AddInNative::~AddInNative()
 //---------------------------------------------------------------------------//
 bool AddInNative::Init(void* pConnection)
 {
+	OPENSSL_init_ssl(0, NULL);
+
 	m_iConnect = (IAddInDefBaseEx*)pConnection;
 	if (m_iConnect)
 	{
@@ -397,7 +399,7 @@ long AddInNative::GetNParams(const long lMethodNum)
 	case eMethGetLastError:
 		return 0;
 	case eMethConnect:
-		return 6;
+		return 7;
 	case eMethDeclareQueue:
 		return 6;
 	case eMethBasicPublish:
@@ -442,6 +444,11 @@ bool AddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,	
 			TV_I4(pvarParamDefValue) = 0;
 			return true;
 		}
+		if (lParamNum == 6) {
+			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
+			TV_BOOL(pvarParamDefValue) = false;
+			return true;
+		}
 		return false;
 	case eMethDeclareQueue:
 		if (lParamNum == 5) {
@@ -484,10 +491,12 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 		case eMethConnect:
 		{
 			std::string host = inputParamToStr(paParams, 0);
+			uint16_t port = (uint16_t) paParams[1].intVal;
 			std::string login = inputParamToStr(paParams, 2);
 			std::string pwd = inputParamToStr(paParams, 3);
 			std::string vhost = inputParamToStr(paParams, 4);
-			return client.connect(host, 5672, login, pwd, vhost);
+			bool ssl = paParams[6].bVal;
+			return client.connect(host, port, login, pwd, vhost, ssl);
 		}
 		case eMethBasicPublish:
 		{
@@ -829,7 +838,12 @@ bool AddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lon
 		{
 			typeCheck = VTYPE_I4;
 		}
-		else {
+		else if (i == 6) 
+		{
+			typeCheck = VTYPE_BOOL;
+		}
+		else 
+		{
 			typeCheck = VTYPE_PWSTR;
 			if (paParams[i].intVal == 0) {
 				return false;
@@ -863,17 +877,22 @@ bool AddInNative::validateBasicPublish(tVariant* paParams, long const lMethodNum
 
 bool AddInNative::checkInputParameter(tVariant* params, long const methodNum, long const parameterNum, ENUMVAR type) {
 
-	const wchar_t* methodName = WcharWrapper(GetMethodName(methodNum, 1));
-
 	if (debugMode) {
 		return true;
 	}
 
 	if (!(TV_VT(&params[parameterNum]) == type)) {
+		const WCHAR_T* methName = GetMethodName(methodNum, 1);
+		const wchar_t* methodName = WcharWrapper(methName);
+
 		std::string errDescr = "Error occured when calling method "
 			+ Utils::wsToString(methodName)
 			+ "() - wrong type for parameter number "
 			+ Utils::anyToString(parameterNum);
+		
+		if (methName && m_iMemory){
+			m_iMemory->FreeMemory((void**)&methName);
+		}
 
 		addError(ADDIN_E_FAIL, L"NativeRabbitMQ", Utils::stringToWs(errDescr).c_str(), 1);
 		client.updateLastError(errDescr.c_str());

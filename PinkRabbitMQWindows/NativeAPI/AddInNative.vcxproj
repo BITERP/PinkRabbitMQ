@@ -106,7 +106,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include;..\libs\;..\libs\AMQP-CPP-4.1.4\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\libs\;..\libs\AMQP-CPP-4.3.10\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\poco-poco-1.9.0-release\NetSSL_Win\include;..\libs\poco-poco-1.9.0-release\Crypto\include;..\libs\poco-poco-1.9.0-release\Util\include;..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;_USE_32BIT_TIME_T;ADDINCPP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -121,14 +121,14 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>..\libsPrecompiled\debugPrec\win32Prec;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>amqpcpp.lib;PocoFoundationd.lib;PocoNetd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;CRYPT32.LIB;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\include;..\libs\AMQP-CPP-4.1.4\include;..\libs\include;..\libs\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\libs\;..\libs\AMQP-CPP-4.3.10\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\poco-poco-1.9.0-release\NetSSL_Win\include;..\libs\poco-poco-1.9.0-release\Crypto\include;..\libs\poco-poco-1.9.0-release\Util\include;..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ADDINCPP_EXPORTS;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -144,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>PocoFoundationmt.lib;PocoNetmt.lib;amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;CRYPT32.LIB;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\libsPrecompiled\releasePrec\win32Prec;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -154,7 +154,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\OpenSSL\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\include;..\libs\AMQP-CPP-4.1.4\include;..\libs\;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\libs\;..\libs\AMQP-CPP-4.3.10\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\poco-poco-1.9.0-release\NetSSL_Win\include;..\libs\poco-poco-1.9.0-release\Crypto\include;..\libs\poco-poco-1.9.0-release\Util\include;..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;ADDINCPP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -169,7 +169,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalLibraryDirectories>..\libsPrecompiled\debugPrec\x64Prec;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>amqpcpp.lib;PocoFoundationd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;CRYPT32.LIB;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -179,7 +179,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\libs\;..\libs\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\include;..\libs\AMQP-CPP-4.1.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\libs\;..\libs\AMQP-CPP-4.3.10\include;..\libs\poco-poco-1.9.0-release\Net\include;..\libs\poco-poco-1.9.0-release\Foundation\include;..\libs\poco-poco-1.9.0-release\NetSSL_Win\include;..\libs\poco-poco-1.9.0-release\Crypto\include;..\libs\poco-poco-1.9.0-release\Util\include;..\libs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ADDINCPP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -197,7 +197,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalLibraryDirectories>..\libsPrecompiled\releasePrec\x64Prec;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>PocoNetmt.lib;PocoFoundationmt.lib;amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;CRYPT32.LIB;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

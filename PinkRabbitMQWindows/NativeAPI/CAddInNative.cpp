@@ -370,7 +370,7 @@ long CAddInNative::GetNParams(const long lMethodNum)
 	case eMethGetLastError:
 		return 0;
 	case eMethConnect:
-		return 6;
+		return 7;
 	case eMethDeclareQueue:
 		return 6;
 	case eMethBasicPublish:
@@ -413,6 +413,11 @@ bool CAddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_I4;
 			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		if (lParamNum == 6) {
+			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
+			TV_BOOL(pvarParamDefValue) = false;
 			return true;
 		}
 		return false;
@@ -460,7 +465,8 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 			paParams[1].uintVal, 
 			Utils::wsToString(paParams[2].pwstrVal),
 			Utils::wsToString(paParams[3].pwstrVal),
-			Utils::wsToString(paParams[4].pwstrVal)
+			Utils::wsToString(paParams[4].pwstrVal),
+			paParams[6].bVal
 		);
 	case eMethBasicPublish:
 		return client->basicPublish(
@@ -541,7 +547,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 }
 
 bool CAddInNative::getLastError(tVariant* pvarRetValue) {
-	wchar_t* error = client->getLastError();
+	const wchar_t* error = client->getLastError();
 	setWStringToTVariant(pvarRetValue, error);
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
@@ -762,6 +768,10 @@ bool CAddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lo
 		{
 			typeCheck = VTYPE_I4;
 		}
+		if (i == 6) 
+		{
+			typeCheck = VTYPE_BOOL;
+		}
 		if (!checkInputParameter(paParams, lMethodNum, i, typeCheck))
 		{
 			return false;
@@ -794,7 +804,7 @@ bool CAddInNative::checkInputParameter(tVariant* params, long const methodNum, l
 
 	if (!(TV_VT(&params[parameterNum]) == type)) {
 		std::string errDescr = "Error occured when calling method "
-		+ Utils::wsToString(GetMethodName(methodNum, 1))
+		+ Utils::wsToString(g_MethodNames[methodNum])
 		+ "() - wrong type for parameter number "
 		+ Utils::anyToString(parameterNum);
 

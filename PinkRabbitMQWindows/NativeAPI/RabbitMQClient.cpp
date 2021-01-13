@@ -8,16 +8,20 @@
 #include "AuthException.cpp"
 #include "ThreadLooper.cpp"
 
-bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost)
+RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) 
+{
+}
+
+bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl)
 {
 	updateLastError("");
 	bool connected = false;
 	try
 	{
-		handler = new SimplePocoHandler(host, port);
+		handler.reset(new SimplePocoHandler(host, port, ssl));
 		newConnection(login, pwd, vhost);
 
-		channel = new AMQP::Channel(connection);
+		channel.reset(new AMQP::Channel(connection));
 
 		connected = true;
 	}
@@ -31,14 +35,20 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	}
 	catch (const Poco::Net::NetException & ex)
 	{
-		updateLastError(ex.what());
+		updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
 	}
 	return connected;
 }
 
 void RabbitMQClient::newConnection(const std::string& login, const std::string& pwd, const std::string& vhost) {
 
-	connection = new AMQP::Connection(handler, AMQP::Login(login, pwd), vhost);
+	if (connection) {
+		connection->close();
+		delete connection;
+	}
+
+	connection = new AMQP::Connection(handler.get(), AMQP::Login(login, pwd), vhost);
+	handler->setConnection(connection);
 
 	const uint16_t timeout = 5000;
 	std::chrono::milliseconds timeoutMs{ timeout };
@@ -357,7 +367,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb->messageTag = deliveryTag;
 		msgOb->priority = message.priority();
 
-		readQueue->push(msgOb);
+		readQueue.push(msgOb);
 	})
 		.onError([this](const char* message)
 	{
@@ -365,7 +375,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	});
 
 	for (int i = 0; i < 1; i++) {
-		threadPool.push(new std::thread(SimplePocoHandler::loopThread, handler));
+		threadPool.push(std::thread(SimplePocoHandler::loopThread, handler.get()));
 	}
 	return "";
 }
@@ -377,10 +387,10 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 
 	std::chrono::milliseconds timeoutSec{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutSec;
-	while (!readQueue->empty() || (end - std::chrono::system_clock::now()).count() > 0) {
-		if (!readQueue->empty()) {
+	while (!readQueue.empty() || (end - std::chrono::system_clock::now()).count() > 0) {
+		if (!readQueue.empty()) {
 			MessageObject* read;
-			readQueue->pop(read);
+			readQueue.pop(read);
 
 			outdata = read->body;
 			outMessageTag = read->messageTag;
@@ -440,19 +450,19 @@ bool RabbitMQClient::basicCancel() {
 
 	handler->quitRead();
 
-	readQueue->close();
+	readQueue.close();
 
 	MessageObject* msgOb;
 	ThreadSafeQueue<MessageObject*>::QueueResult result;
-	while ((result = readQueue->pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
+	while ((result = readQueue.pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
 		delete msgOb;
 	};
 
-	for (int i = 0; i < threadPool.size(); i++) {
-		std::thread* curr = threadPool.front();
-		curr->join();
+	while (!threadPool.empty()) {
+		threadPool.front().join();
 		threadPool.pop();
 	}
+
 	return true;
 }
 
@@ -465,14 +475,14 @@ int RabbitMQClient::getPriority() {
 	return priority;
 }
 
-WCHAR_T* RabbitMQClient::getLastError() noexcept
+const WCHAR_T* RabbitMQClient::getLastError() noexcept
 {
-	return LAST_ERROR;
+	return LAST_ERROR.c_str();
 }
 
 void RabbitMQClient::updateLastError(const char* text) {
-	LAST_ERROR = new wchar_t[strlen(text) + 1];
-	Utils::convetToWChar(LAST_ERROR, text);
+	LAST_ERROR.resize(strlen(text)+1);
+	Utils::convetToWChar(&LAST_ERROR[0], text);
 }
 
 RabbitMQClient::~RabbitMQClient() {
@@ -480,28 +490,23 @@ RabbitMQClient::~RabbitMQClient() {
 	if (connection != nullptr) {
 		connection->close();
 	}
-	if (handler != nullptr) {
+	if (handler) {
 		handler->quitRead();
 	}
-	for (int i = 0; i < threadPool.size(); i++) {
-		std::thread* curr = threadPool.front();
-		curr->join();
+
+	while (!threadPool.empty()) {
+		threadPool.front().join();
 		threadPool.pop();
 	}
 
-	while (!readQueue->empty()) {
+	while (!readQueue.empty()) {
 		MessageObject* msgOb;
-		readQueue->pop(msgOb);
+		readQueue.pop(msgOb);
 		delete msgOb;
 	}
-	assert(readQueue->empty());
-	delete readQueue;
-	// 
+	assert(readQueue.empty());
 
 	if (connection != nullptr) {
 		delete connection;
-	}
-	if (handler != nullptr) {
-		delete handler;
 	}
 }
