@@ -146,7 +146,7 @@ void SimplePocoHandler::loopRead()
 		while (!m_impl->quitRead)
 		{
 			loopIteration();
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
 	catch (const Poco::Exception& exc)
@@ -162,7 +162,7 @@ void SimplePocoHandler::loop()
 		while (!m_impl->quit)
 		{
 			loopIteration();
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 
 		if (m_impl->quit && m_impl->outBuffer.available())
@@ -190,8 +190,14 @@ void SimplePocoHandler::loopIteration() {
 			m_impl->tmpBuff.resize(avail, 0);
 		}
 
-		m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), avail);
+		int recieved = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
+		if (recieved <= 0) {
+			std::cerr << "received " << recieved << " of " << avail << std::endl;
+		}
+		if (recieved < 0) {
+			break;
+		}
+		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), recieved);
 		avail = m_impl->socket->available();
 	}
 	if (m_impl->socket->available() < 0)

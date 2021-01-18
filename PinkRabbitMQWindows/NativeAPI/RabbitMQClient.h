@@ -59,6 +59,7 @@ private:
 	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;
 	std::unique_ptr<AMQP::Channel> channel;
+	std::unique_ptr<AMQP::Channel> publChannel;
 
 	std::queue<std::thread> threadPool;
 	std::string consQueue;
