@@ -161,6 +161,9 @@ void SimplePocoHandler::loop()
 		while (!m_impl->quit)
 		{
 			loopIteration();
+			if (!m_impl->connection->expected()) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			}
 		}
 
 		if (m_impl->quit && m_impl->outBuffer.available())
@@ -189,9 +192,6 @@ void SimplePocoHandler::loopIteration() {
 		}
 
 		int recieved = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-		if (recieved <= 0) {
-			std::cerr << "received " << recieved << " of " << avail << std::endl;
-		}
 		if (recieved < 0) {
 			break;
 		}
