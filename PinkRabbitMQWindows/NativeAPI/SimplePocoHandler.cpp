@@ -146,7 +146,6 @@ void SimplePocoHandler::loopRead()
 		while (!m_impl->quitRead)
 		{
 			loopIteration();
-			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
 	catch (const Poco::Exception& exc)
@@ -162,7 +161,6 @@ void SimplePocoHandler::loop()
 		while (!m_impl->quit)
 		{
 			loopIteration();
-			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 
 		if (m_impl->quit && m_impl->outBuffer.available())

@@ -87,8 +87,9 @@ public:
 				cvPush.wait(lock);
 
 			// Check that the queue is not closed and thus pushing is allowed.
-			if (state == State::CLOSED)
-				throw std::runtime_error("Trying to push to a closed queue.");
+			if (state == State::CLOSED) {
+				return;
+			}
 
 			// Push to queue.
 			currentSize += 1;
@@ -138,11 +139,19 @@ public:
 		state = State::CLOSED;
 
 		// Notify all consumers.
+		cvPush.notify_all();
 		cvPop.notify_all();
 	}
 
 	bool empty() {
 		return list.empty();
+	}
+
+	void resizeAndReopen(size_t newsize) {
+		if (maxSize < newsize) {
+			maxSize = newsize;
+		}
+		state = State::OPEN;
 	}
 
 private:

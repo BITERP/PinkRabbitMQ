@@ -42,6 +42,7 @@ public:
 private:
 	AMQP::Channel* openChannel();
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
+	void closeConnection();
 	std::wstring LAST_ERROR;
 	// Transiting properties
 	const int CORRELATION_ID = 1;
@@ -63,6 +64,6 @@ private:
 
 	std::queue<std::thread> threadPool;
 	std::string consQueue;
-	ThreadSafeQueue<MessageObject*> readQueue;
+	ThreadSafeQueue<MessageObject> readQueue;
 	std::map<int, std::string> msgProps;
 };

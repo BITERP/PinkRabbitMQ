@@ -19,14 +19,12 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	try
 	{
 		if (connection) {
-			connection->close();
-			delete connection;
-			connection = nullptr;
+			closeConnection();
 		}
 		handler.reset(new SimplePocoHandler(host, port, ssl));
 		newConnection(login, pwd, vhost);
 
-		channel.reset(new AMQP::Channel(connection));
+		channel.reset(openChannel());
 		publChannel.reset(openChannel());
 
 		connected = true;
@@ -317,13 +315,17 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 	if (persistent) { envelope.setDeliveryMode(2); }
 	publChannel->publish(exchange, routingKey, envelope);
 
-	publChannel->commitTransaction().onError([&result, this](const char* messageErr) {
-			updateLastError(messageErr);
-			handler->quit();
-			result = false;
-		}).onSuccess([this]() {
-			handler->quit();
-		});
+	publChannel->commitTransaction()
+		.onError([&result, this](const char* messageErr) 
+	{
+		updateLastError(messageErr);
+		handler->quit();
+		result = false;
+	})
+		.onSuccess([this]() 
+	{
+		handler->quit();
+	});
 	handler->loop();
 	return result;
 }
@@ -350,26 +352,28 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	channel->setQos(_selectSize, true);
 	updateLastError("");
 
+	readQueue.resizeAndReopen(1);
+
 	consQueue = queue;
 	channel->consume(consQueue)
 		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
-		MessageObject* msgOb = new MessageObject();
-		msgOb->body.assign(message.body(), message.bodySize());
-		msgOb->msgProps[CORRELATION_ID] = message.correlationID();
-		msgOb->msgProps[TYPE_NAME] = message.typeName();
-		msgOb->msgProps[MESSAGE_ID] = message.messageID();
-		msgOb->msgProps[APP_ID] = message.appID();
-		msgOb->msgProps[CONTENT_ENCODING] = message.contentEncoding();
-		msgOb->msgProps[CONTENT_TYPE] = message.contentType();
-		msgOb->msgProps[USER_ID] = message.userID();
-		msgOb->msgProps[CLUSTER_ID] = message.clusterID();
-		msgOb->msgProps[EXPIRATION] = message.expiration();
-		msgOb->msgProps[REPLY_TO] = message.replyTo();
-		msgOb->messageTag = deliveryTag;
-		msgOb->priority = message.priority();
+		MessageObject msgOb;
+		msgOb.body.assign(message.body(), message.bodySize());
+		msgOb.msgProps[CORRELATION_ID] = message.correlationID();
+		msgOb.msgProps[TYPE_NAME] = message.typeName();
+		msgOb.msgProps[MESSAGE_ID] = message.messageID();
+		msgOb.msgProps[APP_ID] = message.appID();
+		msgOb.msgProps[CONTENT_ENCODING] = message.contentEncoding();
+		msgOb.msgProps[CONTENT_TYPE] = message.contentType();
+		msgOb.msgProps[USER_ID] = message.userID();
+		msgOb.msgProps[CLUSTER_ID] = message.clusterID();
+		msgOb.msgProps[EXPIRATION] = message.expiration();
+		msgOb.msgProps[REPLY_TO] = message.replyTo();
+		msgOb.messageTag = deliveryTag;
+		msgOb.priority = message.priority();
 
-		readQueue.push(msgOb);
+		readQueue.push(std::move(msgOb));
 	})
 		.onError([this](const char* message)
 	{
@@ -391,25 +395,23 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 	auto end = std::chrono::system_clock::now() + timeoutSec;
 	while (!readQueue.empty() || (end - std::chrono::system_clock::now()).count() > 0) {
 		if (!readQueue.empty()) {
-			MessageObject* read;
+			MessageObject read;
 			readQueue.pop(read);
 
-			outdata = read->body;
-			outMessageTag = read->messageTag;
+			outdata = read.body;
+			outMessageTag = read.messageTag;
 
-			msgProps[CORRELATION_ID] = read->msgProps[CORRELATION_ID];
-			msgProps[TYPE_NAME] = read->msgProps[TYPE_NAME];
-			msgProps[MESSAGE_ID] = read->msgProps[MESSAGE_ID];
-			msgProps[APP_ID] = read->msgProps[APP_ID];
-			msgProps[CONTENT_ENCODING] = read->msgProps[CONTENT_ENCODING];
-			msgProps[CONTENT_TYPE] = read->msgProps[CONTENT_TYPE];
-			msgProps[USER_ID] = read->msgProps[USER_ID];
-			msgProps[CLUSTER_ID] = read->msgProps[CLUSTER_ID];
-			msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
-			msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
-			priority = read->priority;
-
-			delete read;
+			msgProps[CORRELATION_ID] = read.msgProps[CORRELATION_ID];
+			msgProps[TYPE_NAME] = read.msgProps[TYPE_NAME];
+			msgProps[MESSAGE_ID] = read.msgProps[MESSAGE_ID];
+			msgProps[APP_ID] = read.msgProps[APP_ID];
+			msgProps[CONTENT_ENCODING] = read.msgProps[CONTENT_ENCODING];
+			msgProps[CONTENT_TYPE] = read.msgProps[CONTENT_TYPE];
+			msgProps[USER_ID] = read.msgProps[USER_ID];
+			msgProps[CLUSTER_ID] = read.msgProps[CLUSTER_ID];
+			msgProps[EXPIRATION] = read.msgProps[EXPIRATION];
+			msgProps[REPLY_TO] = read.msgProps[REPLY_TO];
+			priority = read.priority;
 
 			return true;
 		}
@@ -447,18 +449,15 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
 bool RabbitMQClient::basicCancel() {
 
-
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 	handler->quitRead();
 
 	readQueue.close();
-
-	MessageObject* msgOb;
-	ThreadSafeQueue<MessageObject*>::QueueResult result;
-	while ((result = readQueue.pop(msgOb)) != ThreadSafeQueue<MessageObject*>::CLOSED) {
-		delete msgOb;
-	};
+	MessageObject msgOb;
+	while (!readQueue.empty()) {
+		readQueue.pop(msgOb);
+	}
 
 	while (!threadPool.empty()) {
 		threadPool.front().join();
@@ -487,7 +486,7 @@ void RabbitMQClient::updateLastError(const char* text) {
 	Utils::convetToWChar(&LAST_ERROR[0], text);
 }
 
-RabbitMQClient::~RabbitMQClient() {
+void RabbitMQClient::closeConnection() {
 	// Order below need to be kept
 	if (connection != nullptr) {
 		connection->close();
@@ -502,13 +501,17 @@ RabbitMQClient::~RabbitMQClient() {
 	}
 
 	while (!readQueue.empty()) {
-		MessageObject* msgOb;
+		MessageObject msgOb;
 		readQueue.pop(msgOb);
-		delete msgOb;
 	}
 	assert(readQueue.empty());
 
 	if (connection != nullptr) {
 		delete connection;
 	}
+	connection = nullptr;
+}
+
+RabbitMQClient::~RabbitMQClient() {
+	closeConnection();
 }
