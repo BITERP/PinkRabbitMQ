@@ -147,10 +147,7 @@ public:
 		return list.empty();
 	}
 
-	void resizeAndReopen(size_t newsize) {
-		if (maxSize < newsize) {
-			maxSize = newsize;
-		}
+	void reopen() {
 		state = State::OPEN;
 	}
 

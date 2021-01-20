@@ -352,7 +352,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	channel->setQos(_selectSize, true);
 	updateLastError("");
 
-	readQueue.resizeAndReopen(1);
+	readQueue.reopen();
 
 	consQueue = queue;
 	channel->consume(consQueue)
