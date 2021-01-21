@@ -116,7 +116,7 @@ SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, boo
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket->connect(address);
 	m_impl->socket->setBlocking(true);
-	m_impl->socket->setReceiveTimeout(Poco::Timespan(5, 0));
+	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 10000));
 	m_impl->socket->setSendBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setReceiveBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setKeepAlive(true);
@@ -141,16 +141,20 @@ void SimplePocoHandler::loopThread(SimplePocoHandler* clazz)
 void SimplePocoHandler::loopRead()
 {
 
-	try
+	while (!m_impl->quitRead)
 	{
-		while (!m_impl->quitRead)
+		try
 		{
 			loopIteration();
 		}
-	}
-	catch (const Poco::Exception& exc)
-	{
-		std::cerr << "Poco exception " << exc.displayText();
+		catch (const Poco::TimeoutException&) 
+		{
+			// Не логировать. Исключение периодически поднимается при ожидании ответа от сервера.
+		}
+		catch (const Poco::Exception& exc)
+		{
+			std::cerr << "Poco exception " << exc.displayText() << std::endl;
+		}
 	}
 }
 
@@ -161,9 +165,6 @@ void SimplePocoHandler::loop()
 		while (!m_impl->quit)
 		{
 			loopIteration();
-			if (!m_impl->connection->expected()) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			}
 		}
 
 		if (m_impl->quit && m_impl->outBuffer.available())
@@ -174,7 +175,7 @@ void SimplePocoHandler::loop()
 	}
 	catch (const Poco::Exception& exc)
 	{
-		std::cerr << "Poco exception " << exc.displayText();
+		std::cerr << "Poco exception " << exc.displayText() << std::endl;
 	}
 	m_impl->quit = false; // reset channel for repeatable using
 }
@@ -190,12 +191,11 @@ void SimplePocoHandler::loopIteration() {
 		{
 			m_impl->tmpBuff.resize(avail, 0);
 		}
-
-		int recieved = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-		if (recieved < 0) {
+		int received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
+		if (received < 0) {
 			break;
 		}
-		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), recieved);
+		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), received);
 		avail = m_impl->socket->available();
 	}
 	if (m_impl->socket->available() < 0)
