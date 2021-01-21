@@ -141,16 +141,20 @@ void SimplePocoHandler::loopThread(SimplePocoHandler* clazz)
 void SimplePocoHandler::loopRead()
 {
 
-	try
+	while (!m_impl->quitRead)
 	{
-		while (!m_impl->quitRead)
+		try
 		{
 			loopIteration();
 		}
-	}
-	catch (const Poco::Exception& exc)
-	{
-		std::cerr << "Poco exception " << exc.displayText();
+		catch (const Poco::TimeoutException&) 
+		{
+			// Не логируем. Исключение периодически поднимается при ожидании данных от сервера.
+		}
+		catch (const Poco::Exception& exc)
+		{
+			std::cerr << "Poco exception " << exc.displayText() << std::endl;
+		}
 	}
 }
 
@@ -171,7 +175,7 @@ void SimplePocoHandler::loop()
 	}
 	catch (const Poco::Exception& exc)
 	{
-		std::cerr << "Poco exception " << exc.displayText();
+		std::cerr << "Poco exception " << exc.displayText() << std::endl;
 	}
 	m_impl->quit = false; // reset channel for repeatable using
 }
@@ -187,14 +191,8 @@ void SimplePocoHandler::loopIteration() {
 		{
 			m_impl->tmpBuff.resize(avail, 0);
 		}
-		int received = -1;
-		try {
-			received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-			if (received < 0) {
-				break;
-			}
-		}
-		catch (Poco::TimeoutException) {
+		int received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
+		if (received < 0) {
 			break;
 		}
 		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), received);
