@@ -4,11 +4,12 @@
 
 int main(int argc, char** argv)
 {
-	std::string configFile;
-	if (argc > 1) {
-		configFile = argv[1];
-	}
+    std::string configFile;
+    if (argc > 1) {
+        configFile = argv[1];
+    }
     RabbitMQClientTest unit(configFile);
+    unit.testDefParams();
     unit.testPassEmptyParameters();
     unit.testSendMessage();
     unit.testDeclareSendReceive();

@@ -32,7 +32,7 @@ add_definitions(-DUNICODE -DWIN32 -DNOMINMAX)
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC} ${AddInDef_SRC})
 
-target_link_libraries(${PROJECT_NAME} -lssl -lamqpcpp -levent -lpthread -ldl)
+target_link_libraries(${PROJECT_NAME} -lssl -lamqpcpp -levent -lpthread -ldl -ljsoncpp)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES
    CLEAN_DIRECT_OUTPUT 1

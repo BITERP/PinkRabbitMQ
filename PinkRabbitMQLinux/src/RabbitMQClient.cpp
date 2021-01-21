@@ -2,6 +2,8 @@
 #include "RabbitMQClient.h"
 #include <unistd.h>
 #include <cassert>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/reader.h>
 
 RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) {
 
@@ -12,7 +14,7 @@ RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) {
 /*ESTABLISHING CONNECTION*/
 
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl) {
-	
+    
     if (connection) {
         connection->close();
         delete connection;
@@ -27,7 +29,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 
 /*PROCESSING EXCHANGES AND QUEUES*/
 
-bool RabbitMQClient::declareExchange(const std::string& name, const std::string& type, bool onlyCheckIfExists, bool durable, bool autodelete) {
+bool RabbitMQClient::declareExchange(const std::string& name, const std::string& type, bool onlyCheckIfExists, bool durable, bool autodelete, const std::string& propsJson) {
 
     lastError = "";
 
@@ -53,7 +55,16 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
 
     bool result = true;
 
-    channel->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0))
+    AMQP::Table args;
+    try {
+        fillHeadersFromJson(args, propsJson);
+    }
+    catch (std::exception& e) {
+        updateLastError(e.what());
+        return false;
+    }
+
+    channel->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
         .onSuccess([this]()
     {
         event_base_loopbreak(eventLoop);
@@ -96,7 +107,7 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
     return result;
 }
 
-std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority) {
+std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority, const std::string& propsJson) {
 
     lastError = "";
     bool result = true;
@@ -109,7 +120,13 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
     if (maxPriority != 0) {
         args.set("x-max-priority", maxPriority);
     }
-
+    try {
+        fillHeadersFromJson(args, propsJson);
+    }
+    catch (std::exception& e) {
+        updateLastError(e.what());
+        return "";
+    }
     channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
         .onSuccess([this]()
     {
@@ -151,7 +168,7 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
     return result;
 }
 
-bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey) {
+bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey, const std::string& propsJson) {
 
     lastError = "";
     bool result = true;
@@ -159,8 +176,15 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
     if (!checkChannel()) {
         return false;
     }
-
-    channel->bindQueue(exchange, queue, routingKey)
+    AMQP::Table args;
+    try {
+        fillHeadersFromJson(args, propsJson);
+    }
+    catch (std::exception& e) {
+        updateLastError(e.what());
+        return false;
+    }
+    channel->bindQueue(exchange, queue, routingKey, args)
         .onSuccess([this]()
     {
         event_base_loopbreak(eventLoop);
@@ -205,7 +229,7 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
 
 /*SENDING MESSAGES*/
 
-bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent) {
+bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent, const std::string& propsJson) {
 
     lastError = "";
     bool result = true;
@@ -213,10 +237,17 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
     if (!checkChannel()) {
         return false;
     }
-
+    AMQP::Table args;
+    try {
+        fillHeadersFromJson(args, propsJson);
+    }
+    catch (std::exception& e) {
+        updateLastError(e.what());
+        return false;
+    }
     AMQP::TcpChannel* channelLoc = openChannel();
     event_base_loopexit(eventLoop, NULL);
-    channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey]() {
+    channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey, &args]() {
         AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
         if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
         if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
@@ -230,6 +261,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
         if (priority != 0) envelope.setPriority(priority);
         if (persistent) { envelope.setDeliveryMode(2); }
+        envelope.setHeaders(args);
         channelLoc->publish(exchange, routingKey, envelope);
         event_base_loopbreak(eventLoop);
     });
@@ -452,6 +484,37 @@ AMQP::TcpChannel* RabbitMQClient::openChannel() {
 
 void RabbitMQClient::updateLastError(const char* text) {
     lastError = text;
+}
+
+void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson)
+{
+    if (!propsJson.length()) {
+        return;
+    }
+    Json::Value object;
+    Json::Reader reader;
+    if (!reader.parse(propsJson.c_str(), object)){
+        throw std::runtime_error("Failed to parse Json: " + reader.getFormattedErrorMessages());
+    }
+    for (auto &name: object.getMemberNames()) {
+        Json::Value value = object[name];
+        if (value.isBool())
+        {
+            headers.set(name, value.asBool());
+        } 
+        else if (value.isNumeric())
+        {
+            headers.set(name, (int64_t)value.asInt64());            
+        }
+        else if (value.isString())
+        {
+            headers.set(name, (std::string)value.asString());            
+        }
+        else
+        {
+            throw std::runtime_error("Unsupported json type for property " + name);
+        }
+    }
 }
 
 RabbitMQClient::~RabbitMQClient() {

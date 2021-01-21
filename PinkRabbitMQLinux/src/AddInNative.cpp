@@ -401,9 +401,9 @@ long AddInNative::GetNParams(const long lMethodNum)
 	case eMethConnect:
 		return 7;
 	case eMethDeclareQueue:
-		return 6;
+		return 7;
 	case eMethBasicPublish:
-		return 5;
+		return 6;
 	case eMethBasicConsume:
 		return 5;
 	case eMethBasicConsumeMessage:
@@ -417,9 +417,9 @@ long AddInNative::GetNParams(const long lMethodNum)
 	case eMethDeleteQueue:
 		return 3;
 	case eMethBindQueue:
-		return 3;
+		return 4;
 	case eMethDeclareExchange:
-		return 5;
+		return 6;
 	case eMethDeleteExchange:
 		return 2;
 	case eMethUnbindQueue:
@@ -454,6 +454,36 @@ bool AddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,	
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_I4;
 			TV_I4(pvarParamDefValue) = 0;
+			return true;
+		}
+		if (lParamNum == 6) {
+			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
+			TV_WSTR(pvarParamDefValue) = nullptr;
+			pvarParamDefValue->wstrLen = 0;
+			return true;
+		}
+		return false;
+	case eMethDeclareExchange:
+		if (lParamNum == 5) {
+			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
+			TV_WSTR(pvarParamDefValue) = nullptr;
+			pvarParamDefValue->wstrLen = 0;
+			return true;
+		}
+		return false;
+	case eMethBindQueue:
+		if (lParamNum == 3) {
+			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
+			TV_WSTR(pvarParamDefValue) = nullptr;
+			pvarParamDefValue->wstrLen = 0;
+			return true;
+		}
+		return false;
+	case eMethBasicPublish:
+		if (lParamNum == 5) {
+			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
+			TV_WSTR(pvarParamDefValue) = nullptr;
+			pvarParamDefValue->wstrLen = 0;
 			return true;
 		}
 		return false;
@@ -503,7 +533,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 			std::string exchange = inputParamToStr(paParams, 0);
 			std::string routingKey = inputParamToStr(paParams, 1);
 			std::string message = inputParamToStr(paParams, 2);
-			return client.basicPublish(exchange, routingKey, message, paParams[4].bVal);
+			std::string props = inputParamToStr(paParams, 5);
+			return client.basicPublish(exchange, routingKey, message, paParams[4].bVal, props);
 			return true;
 		}
 		case eMethBasicCancel:
@@ -529,7 +560,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 			std::string queue = inputParamToStr(paParams, 0);
 			std::string exchange = inputParamToStr(paParams, 1);
 			std::string routingKey = inputParamToStr(paParams, 2);
-			return client.bindQueue(queue, exchange, routingKey);
+			std::string props = inputParamToStr(paParams, 3);
+			return client.bindQueue(queue, exchange, routingKey, props);
 		}
 		case eMethUnbindQueue:
 		{
@@ -542,7 +574,8 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 		{
 			std::string name = inputParamToStr(paParams, 0);
 			std::string type = inputParamToStr(paParams, 1);
-			return client.declareExchange(name, type, paParams[2].bVal, paParams[3].bVal, paParams[4].bVal);
+			std::string props = inputParamToStr(paParams, 5);
+			return client.declareExchange(name, type, paParams[2].bVal, paParams[3].bVal, paParams[4].bVal, props);
 		}
 		case eMethDeleteExchange:
 		{
@@ -560,7 +593,7 @@ bool AddInNative::CallAsProc(const long lMethodNum, tVariant* paParams, const lo
 
 std::string AddInNative::inputParamToStr(tVariant* paParams, int parIndex) {
 	WcharWrapper wWrapper(paParams[parIndex].pwstrVal);
-	std::string res = Utils::wsToString(std::wstring(wWrapper));
+	std::string res = Utils::wsToString(wWrapper);
 	return res;
 }
 
@@ -614,12 +647,14 @@ bool AddInNative::basicConsume(tVariant* pvarRetValue, tVariant* paParams) {
 
 bool AddInNative::declareQueue(tVariant* pvarRetValue, tVariant* paParams) {
 	std::string name = inputParamToStr(paParams, 0);
+	std::string props = inputParamToStr(paParams, 6);
 	std::string queueName = client.declareQueue(
 		name,
 		paParams[1].bVal,
 		paParams[2].bVal,
 		paParams[4].bVal,
-		paParams[5].ushortVal
+		paParams[5].ushortVal,
+		props
 	);
 
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(queueName).c_str());
@@ -770,7 +805,7 @@ bool AddInNative::validateDeclDelQueue(tVariant* paParams, long const lMethodNum
 	for (int i = 0; i < lSizeArray; i++)
 	{
 		ENUMVAR typeCheck = VTYPE_BOOL;
-		if (i == 0)
+		if (i == 0 || i == 6)
 		{
 			typeCheck = VTYPE_PWSTR;
 		}
@@ -806,7 +841,7 @@ bool AddInNative::validateDeclareExchange(tVariant* paParams, long const lMethod
 	for (int i = 0; i < lSizeArray; i++)
 	{
 		ENUMVAR typeCheck = VTYPE_PWSTR;
-		if (i > 1)
+		if (i > 1 && i < 5)
 		{
 			typeCheck = VTYPE_BOOL;
 		}

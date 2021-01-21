@@ -100,8 +100,30 @@ public:
 	}
 
 
+	void testDefParams() {
+		native = new AddInNative();
+		native->enableDebugMode();
+		checkDefParam(AddInNative::Methods::eMethConnect, 5);
+		checkDefParam(AddInNative::Methods::eMethDeclareExchange, 5);
+		checkDefParam(AddInNative::Methods::eMethDeclareQueue, 5);
+		checkDefParam(AddInNative::Methods::eMethBindQueue, 3);
+		checkDefParam(AddInNative::Methods::eMethBasicPublish, 5);
+		delete native;
+	}
 
 private:
+
+	void checkDefParam(int methId, int nondefParams) {
+		int params = native->GetNParams(methId);
+		for (int i = 0; i < params; i++) {
+			tVariant p;
+			p.vt = VTYPE_ILLEGAL;
+			bool res = native->GetParamDefValue(methId, i, &p);
+			std::string methParam = "meth: " + Utils::anyToString(methId) + " param: " + Utils::anyToString(i);
+			assertTrue(res == (i >= nondefParams), "Default param wrong result in "+methParam);
+			assertTrue(!res || p.vt != VTYPE_EMPTY, "VT_EMPTY def param in "+methParam);
+		}
+	}
 
 	void testSendReceiveSingle() {
 		
@@ -151,7 +173,7 @@ private:
 
 	void testDeclareQueue() {
 		tVariant returnValue;
-		tVariant params[6];
+		tVariant params[7];
 
 		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
@@ -160,8 +182,10 @@ private:
 		params[3].bVal = false;
 		params[4].bVal = false;
 		params[5].uintVal = 0;
+		WcharWrapper props(L"");
+		params[6].pwstrVal = props;
 
-		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, &returnValue, params, 6);
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethDeclareQueue, &returnValue, params, 7);
 		assertTrue(result == true, "testDeclareQueue");
 	}
 
@@ -178,7 +202,7 @@ private:
 	}
 
 	void testDeclareExchange() {
-		tVariant params[5];
+		tVariant params[6];
 
 		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
@@ -187,8 +211,10 @@ private:
 		params[2].bVal = false;
 		params[3].bVal = true;
 		params[4].bVal = false;
+		WcharWrapper props(L"{\"x-message-ttl\":13000}");
+		params[5].pwstrVal = props;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 5);
+		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 6);
 
 
 		assertTrue(result == true, "testDeclareExchange");
@@ -206,20 +232,22 @@ private:
 	}
 
 	void testBindQueue() {
-		tVariant params[3];
+		tVariant params[4];
 
 		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
 		params[1].pwstrVal = wQueueExchange;
 		WcharWrapper wRoutingKey(L"#");
 		params[2].pwstrVal = wRoutingKey;
+		WcharWrapper props(L"{\"x-match\": \"all\"}");
+		params[3].pwstrVal = props;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBindQueue, params, 3);
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBindQueue, params, 4);
 		assertTrue(result == true, "testBindQueue");
 	}
 
 	void testBasicPublish(const wchar_t* message, int count) {
-		tVariant params[5];
+		tVariant params[6];
 
 		WcharWrapper wQueueExchange(config.queueExchange.c_str());
 		params[0].pwstrVal = wQueueExchange;
@@ -228,8 +256,10 @@ private:
 		params[2].pwstrVal = wMessage;
 		params[3].uintVal = 0;
 		params[4].bVal = false;
+		WcharWrapper props(L"{\"param\": true}");
+		params[5].pwstrVal = props;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 5);
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);
 	
 		assertTrue(result == true, "testBasicPublish " + Utils::anyToString(count));
 	}
