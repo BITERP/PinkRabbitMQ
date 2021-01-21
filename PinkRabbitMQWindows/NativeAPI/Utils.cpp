@@ -19,8 +19,12 @@ std::wstring Utils::stringToWs(const std::string& s)
 	return conv.from_bytes(s);
 }
 
-std::string Utils::wsToString(const std::wstring& ws)
+std::string Utils::wsToString(const wchar_t* wchars)
 {
+	if (!wchars) {
+		return "";
+	}
+	std::wstring ws(wchars);
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
 	return conv.to_bytes(ws);
 }

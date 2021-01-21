@@ -9,7 +9,7 @@ class Utils
 public:
 	static void convetToWChar(wchar_t* buffer, const char* text);
 	static std::wstring stringToWs(const std::string& s);
-	static std::string wsToString(const std::wstring& ws);
+	static std::string wsToString(const wchar_t* wchars);
 	static wchar_t* wstring2wchar(std::wstring source);
 	template<typename T> static std::string anyToString(const T& t);
 };
