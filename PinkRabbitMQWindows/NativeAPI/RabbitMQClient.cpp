@@ -522,6 +522,9 @@ void RabbitMQClient::updateLastError(const char* text) {
 
 void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson)
 {
+	if (!propsJson.length()) {
+		return;
+	}
 	Poco::JSON::Parser parser;
 	Poco::Dynamic::Var result = parser.parse(propsJson);
 	auto object = result.extract<Poco::JSON::Object::Ptr>();
@@ -530,15 +533,15 @@ void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string
 	for (auto &name : names) {
 		auto value = object->get(name);
 		if (value.isBoolean()) {
-			headers.set(name, (boolean)value);
+			headers.set(name, value.extract<bool>());
 		}
 		else if(value.isInteger()) 
 		{
-			headers.set(name, (int64_t)value);
+			headers.set(name, value.extract<int64_t>());
 		}
 		else if (value.isString())
 		{
-			headers.set(name, (std::string&)value);
+			headers.set(name, value.extract<std::string>());
 		}
 		else
 		{
