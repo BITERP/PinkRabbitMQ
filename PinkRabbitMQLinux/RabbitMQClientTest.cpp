@@ -111,6 +111,28 @@ public:
 		delete native;
 	}
 
+	void testPublishFail() {
+		native = new AddInNative();
+		native->enableDebugMode();
+		testConnect();
+
+		tVariant params[6];
+		WcharWrapper wQueueExchange(L"BadExchange");
+		params[0].pwstrVal = wQueueExchange;
+		params[1].pwstrVal = wQueueExchange;
+		WcharWrapper wMessage(L"OhNO");
+		params[2].pwstrVal = wMessage;
+		params[3].uintVal = 0;
+		params[4].bVal = false;
+		params[5].pwstrVal = nullptr;
+
+		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);
+		assertTrue(!result, "Publish failed test");
+		native->CallAsFunc(AddInNative::Methods::eMethGetLastError, params, nullptr, 0);
+
+		delete native;
+	}
+
 private:
 
 	void checkDefParam(int methId, int nondefParams) {

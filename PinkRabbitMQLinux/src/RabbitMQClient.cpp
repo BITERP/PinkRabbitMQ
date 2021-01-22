@@ -247,7 +247,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
     }
     AMQP::TcpChannel* channelLoc = openChannel();
     event_base_loopexit(eventLoop, NULL);
-    channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey, &args]() {
+    channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey, &args, &result]() {
         AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
         if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
         if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
@@ -262,8 +262,20 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         if (priority != 0) envelope.setPriority(priority);
         if (persistent) { envelope.setDeliveryMode(2); }
         envelope.setHeaders(args);
+
+        channelLoc->startTransaction();
         channelLoc->publish(exchange, routingKey, envelope);
-        event_base_loopbreak(eventLoop);
+        channelLoc->commitTransaction()
+        .onError([&result, this](const char* messageErr) 
+        {
+            updateLastError(messageErr);
+            event_base_loopbreak(eventLoop);
+            result = false;
+        })
+            .onSuccess([this]() 
+        {
+            event_base_loopbreak(eventLoop);
+        });
     });
 
     event_base_dispatch(eventLoop);

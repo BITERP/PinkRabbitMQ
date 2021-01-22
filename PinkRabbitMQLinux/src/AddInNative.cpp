@@ -624,6 +624,9 @@ bool AddInNative::CallAsFunc(const long lMethodNum, tVariant* pvarRetValue, tVar
 
 bool AddInNative::getLastError(tVariant* pvarRetValue) {
 	std::string error = client.getLastError();
+	if (debugMode) {
+		std::cerr << "LastError: " << error << std::endl;
+	}
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(error).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
