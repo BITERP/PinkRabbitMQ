@@ -17,13 +17,13 @@ public:
 	~RabbitMQClient();
 
 	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
-	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority);
-	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
+	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority, const std::string& propsJson);
+	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete, const std::string& propsJson);
 	bool deleteExchange(const std::string& name, bool ifunused);
 	bool deleteQueue(const std::string& name, bool onlyIfIdle, bool onlyIfEmpty);
-	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
+	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey, const std::string& propsJson);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
-	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
+	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent, const std::string& propsJson);
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
 	bool setPriority(int _priority);
@@ -61,6 +61,8 @@ private:
 	bool checkConnection();
 	AMQP::TcpChannel* openChannel();
 	bool checkChannel();
+	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
 	std::queue<std::thread> threadPool;
 	ThreadSafeQueue<MessageObject*> readQueue;
+
 };

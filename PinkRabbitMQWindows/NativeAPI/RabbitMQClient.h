@@ -9,8 +9,9 @@
 #include <thread>
 #include "ThreadSafeQueue.cpp"
 
+
 class SimplePocoHandler;
-namespace AMQP { class Connection; class Channel; }
+namespace AMQP { class Connection; class Channel; class Table; }
 
 class RabbitMQClient {
 public:
@@ -24,14 +25,14 @@ public:
 	std::string getMsgProp(int propIndex);
 	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
 	const WCHAR_T* getLastError() noexcept;
-	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent);
+	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent, const std::string& propsJson);
 	bool basicAck(const std::uint64_t& messageTag);
 	bool basicReject(const std::uint64_t& messageTag);
-	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete);
+	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete, const std::string& propsJson);
 	bool deleteExchange(const std::string& name, bool ifunused);
-	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete, uint16_t maxPriority);
+	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool save, bool autodelete, uint16_t maxPriority, const std::string& propsJson);
 	bool deleteQueue(const std::string& name, bool onlyIfIdle, bool onlyIfEmpty);
-	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
+	bool bindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey, const std::string& propsJson);
 	bool unbindQueue(const std::string& queue, const std::string& exchange, const std::string& routingKey);
 	std::string basicConsume(const std::string& queue, int selectSize);
 	bool basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout);
@@ -39,10 +40,13 @@ public:
 	bool setPriority(int _priority);
 	int getPriority();
 	void updateLastError(const char* text);
+
 private:
 	AMQP::Channel* openChannel();
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
 	void closeConnection();
+	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
+
 	std::wstring LAST_ERROR;
 	// Transiting properties
 	const int CORRELATION_ID = 1;

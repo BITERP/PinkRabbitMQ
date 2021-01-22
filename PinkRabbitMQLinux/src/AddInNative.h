@@ -61,7 +61,7 @@ public:
         eMethLast = 16      // Always last
     };
 
-		AddInNative(void);
+    AddInNative(void);
     virtual ~AddInNative();
     // IInitDoneBase
     virtual bool ADDIN_API Init(void*);
@@ -97,10 +97,10 @@ private:
     long findName(const wchar_t* names[], const wchar_t* name, const uint32_t size) const;
     void addError(uint32_t wcode, const wchar_t* source, const wchar_t* descriptor, long code);
 
-	bool isNumericParameter(tVariant*);
-	long numericValue(tVariant*);
+    bool isNumericParameter(tVariant*);
+    long numericValue(tVariant*);
 
-	void ToV8String(const wchar_t* wstr, tVariant*);
+    void ToV8String(const wchar_t* wstr, tVariant*);
 
     IAddInDefBaseEx    *m_iConnect;
     IMemoryManager     *m_iMemory;
