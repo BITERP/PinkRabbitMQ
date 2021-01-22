@@ -181,7 +181,7 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
 	}
 	catch (Poco::Exception& e) {
 		updateLastError(e.displayText().c_str());
-		return false;
+		return "";
 	}
 
 	channel->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)

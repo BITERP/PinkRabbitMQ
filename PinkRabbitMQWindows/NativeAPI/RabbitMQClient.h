@@ -40,11 +40,13 @@ public:
 	bool setPriority(int _priority);
 	int getPriority();
 	void updateLastError(const char* text);
-	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
+
 private:
 	AMQP::Channel* openChannel();
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
 	void closeConnection();
+	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
+
 	std::wstring LAST_ERROR;
 	// Transiting properties
 	const int CORRELATION_ID = 1;
