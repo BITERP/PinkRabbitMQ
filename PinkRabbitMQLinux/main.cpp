@@ -10,11 +10,11 @@ int main(int argc, char** argv)
     }
     RabbitMQClientTest unit(configFile);
     unit.testDefParams();
-    unit.testPublishFail();
-    //unit.testPassEmptyParameters();
-    //unit.testSendMessage();
-    //unit.testDeclareSendReceive();
+    unit.testPassEmptyParameters();
+    unit.testSendMessage();
+    unit.testDeclareSendReceive();
     unit.testSSL();
+    unit.testPublishFail();
     sleep(2);
     return 0;
 }
