@@ -116,7 +116,7 @@ SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, boo
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket->connect(address);
 	m_impl->socket->setBlocking(true);
-	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 10000));
+	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 100000));
 	m_impl->socket->setSendBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setReceiveBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setKeepAlive(true);
@@ -146,10 +146,6 @@ void SimplePocoHandler::loopRead()
 		try
 		{
 			loopIteration();
-		}
-		catch (const Poco::TimeoutException&) 
-		{
-			// Не логировать. Исключение периодически поднимается при ожидании ответа от сервера.
 		}
 		catch (const Poco::Exception& exc)
 		{
@@ -184,20 +180,27 @@ void SimplePocoHandler::loopIteration() {
 
 	sendDataFromBuffer();
 
-	int avail = m_impl->connection->expected();
-	while (avail > 0)
-	{
-		if (m_impl->tmpBuff.size() < avail)
+	try {
+		int avail = m_impl->connection->expected();
+		while (avail > 0)
 		{
-			m_impl->tmpBuff.resize(avail, 0);
+			if (m_impl->tmpBuff.size() < avail)
+			{
+				m_impl->tmpBuff.resize(avail, 0);
+			}
+			int received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
+			if (received < 0) {
+				break;
+			}
+			m_impl->inputBuffer.write(m_impl->tmpBuff.data(), received);
+			avail = m_impl->socket->available();
 		}
-		int received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-		if (received < 0) {
-			break;
-		}
-		m_impl->inputBuffer.write(m_impl->tmpBuff.data(), received);
-		avail = m_impl->socket->available();
 	}
+	catch (const Poco::TimeoutException&)
+	{
+		// Не логировать. Исключение периодически поднимается при ожидании ответа от сервера.
+	}
+
 	if (m_impl->socket->available() < 0)
 	{
 		std::cerr << "SOME socket error!!!" << std::endl;
