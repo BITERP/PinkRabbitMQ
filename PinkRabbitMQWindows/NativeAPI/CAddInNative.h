@@ -16,38 +16,38 @@ class CAddInNative : public IComponentBase
 public:
     enum Props
     {
-        ePropVersion,
-		ePropCorrelationId,
-		ePropType,
-		ePropMessageId,
-		ePropAppId,
-		ePropContentEncoding,
-		ePropContentType,
-		ePropUserId,
-		ePropClusterId,
-		ePropExpiration,
-		ePropReplyTo,
+        ePropVersion = 0,
+        ePropCorrelationId,
+        ePropType,
+        ePropMessageId,
+        ePropAppId,
+        ePropContentEncoding,
+        ePropContentType,
+        ePropUserId,
+        ePropClusterId,
+        ePropExpiration,
+        ePropReplyTo,
         ePropLast // Always last
     };
 
     enum Methods
     {
-        eMethGetLastError,
-		eMethConnect,
-		eMethDeclareQueue,
-		eMethBasicPublish,
-		eMethBasicConsume,
-		eMethBasicConsumeMessage,
-		eMethBasicCancel,
-		eMethBasicAck,
-		eMethDeleteQueue,
-		eMethBindQueue,
-		eMethBasicReject,
-		eMethDeclareExchange,
-		eMethDeleteExchange,
-		eMethUnbindQueue,
-		eMethSetPriority,
-		eMethGetPriority,
+        eMethGetLastError = 0,
+        eMethConnect,
+        eMethDeclareQueue,
+        eMethBasicPublish,
+        eMethBasicConsume,
+        eMethBasicConsumeMessage,
+        eMethBasicCancel,
+        eMethBasicAck,
+        eMethDeleteQueue,
+        eMethBindQueue,
+        eMethBasicReject,
+        eMethDeclareExchange,
+        eMethDeleteExchange,
+        eMethUnbindQueue,
+        eMethSetPriority,
+        eMethGetPriority,
         eMethGetRoutingKey,
         eMethLast     // Always last
     };
@@ -82,37 +82,37 @@ public:
                 tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray);
     // LocaleBase
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
-	void setWStringToTVariant(tVariant* dest, const wchar_t* source);
-	void setStringToTVariant(tVariant* dest, std::string source);
+    void setWStringToTVariant(tVariant* dest, const wchar_t* source);
+    void setStringToTVariant(tVariant* dest, std::string source);
     
 private:
 
-	RabbitMQClient* client;
+    RabbitMQClient* client;
 
     long findName(const wchar_t* names[], const wchar_t* name, const uint32_t size) const;
-	bool checkInputParameter(tVariant* params, const long methodNum, const long index, ENUMVAR type);
+    bool checkInputParameter(tVariant* params, const long methodNum, const long index, ENUMVAR type);
     void addError(uint32_t wcode, const wchar_t* source, const wchar_t* descriptor, long code);
-	bool validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool getLastError(tVariant* pvarRetValue);
-	bool basicConsume(tVariant* pvarRetValue, tVariant* paParams);
-	bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
-	bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
+    bool validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool getLastError(tVariant* pvarRetValue);
+    bool basicConsume(tVariant* pvarRetValue, tVariant* paParams);
+    bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
+    bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
     bool getRoutingKey(tVariant* pvarRetValue, tVariant* paParams);
-	bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
-	bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateDeclDelQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateBindUnbindQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateDeclareExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateDeleteExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateBasicConsumeMessage(tVariant* paParams, long const lMethodNum, long const lSizeArray);
-	bool validateBasicConsume(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
+    bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeclDelQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBindUnbindQueue(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeclareExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateDeleteExchange(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicConsumeMessage(tVariant* paParams, long const lMethodNum, long const lSizeArray);
+    bool validateBasicConsume(tVariant* paParams, long const lMethodNum, long const lSizeArray);
 
     // Attributes
     IAddInDefBase      *m_iConnect;
     IMemoryManager     *m_iMemory;
 
-	const wchar_t*      m_version = L"1.10";
+    const wchar_t*      m_version = L"1.10";
 };
 
 class WcharWrapper
@@ -122,17 +122,17 @@ public:
     WcharWrapper(const WCHAR_T* str);
 #endif
     explicit WcharWrapper(const wchar_t* str);
-	WcharWrapper(const WcharWrapper &) = delete;
-	WcharWrapper(const WcharWrapper &&) = delete;
+    WcharWrapper(const WcharWrapper &) = delete;
+    WcharWrapper(const WcharWrapper &&) = delete;
     ~WcharWrapper();
 #ifdef LINUX_OR_MACOS
     operator const WCHAR_T*(){ return m_str_WCHAR; }
     operator WCHAR_T*(){ return m_str_WCHAR; }
 #endif
     explicit operator const wchar_t*(){ return m_str_wchar; }
-	explicit operator wchar_t*(){ return m_str_wchar; }
-	WcharWrapper &operator==(const WcharWrapper &) = delete;
-	WcharWrapper &operator==(const WcharWrapper &&) = delete;
+    explicit operator wchar_t*(){ return m_str_wchar; }
+    WcharWrapper &operator==(const WcharWrapper &) = delete;
+    WcharWrapper &operator==(const WcharWrapper &&) = delete;
 
 #ifdef LINUX_OR_MACOS
     WCHAR_T* m_str_WCHAR;
