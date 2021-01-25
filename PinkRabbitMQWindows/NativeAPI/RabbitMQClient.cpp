@@ -393,6 +393,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 	{
 		MessageObject msgOb;
+		
 		msgOb.body.assign(message.body(), message.bodySize());
 		msgOb.msgProps[CORRELATION_ID] = message.correlationID();
 		msgOb.msgProps[TYPE_NAME] = message.typeName();
@@ -406,6 +407,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb.msgProps[REPLY_TO] = message.replyTo();
 		msgOb.messageTag = deliveryTag;
 		msgOb.priority = message.priority();
+		msgOb.routingKey = message.routingkey();
 
 		readQueue.push(std::move(msgOb));
 	})
@@ -446,6 +448,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 			msgProps[EXPIRATION] = read.msgProps[EXPIRATION];
 			msgProps[REPLY_TO] = read.msgProps[REPLY_TO];
 			priority = read.priority;
+			routingKey = read.routingKey;
 
 			return true;
 		}
@@ -508,6 +511,10 @@ bool RabbitMQClient::setPriority(int _priority) {
 
 int RabbitMQClient::getPriority() {
 	return priority;
+}
+
+std::string RabbitMQClient::getRoutingKey() {
+	return routingKey;
 }
 
 const WCHAR_T* RabbitMQClient::getLastError() noexcept

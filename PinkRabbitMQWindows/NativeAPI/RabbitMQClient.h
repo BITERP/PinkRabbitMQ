@@ -39,6 +39,7 @@ public:
 	bool basicCancel();
 	bool setPriority(int _priority);
 	int getPriority();
+	std::string getRoutingKey();
 	void updateLastError(const char* text);
 
 private:
@@ -60,6 +61,7 @@ private:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 	int priority = 0;
+	std::string routingKey = "";
 	//
 	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;
