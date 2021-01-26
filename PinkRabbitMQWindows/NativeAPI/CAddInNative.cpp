@@ -57,6 +57,7 @@ static const wchar_t *g_MethodNames[] = {
 	L"UnbindQueue",
 	L"SetPriority",
 	L"GetPriority",
+	L"GetRoutingKey",
 };
 
 static const wchar_t *g_PropNamesRu[] = {
@@ -89,6 +90,7 @@ static const wchar_t *g_MethodNamesRu[] = {
 	L"UnbindQueue",
 	L"SetPriority",
 	L"GetPriority",
+	L"GetRoutingKey",
 };
 
 static const wchar_t g_kClassNames[] = L"PinkRabbitMQ";
@@ -474,6 +476,7 @@ bool CAddInNative::HasRetVal(const long lMethodNum)
 	case eMethBasicConsumeMessage:
 	case eMethDeclareQueue:
 	case eMethGetPriority:
+	case eMethGetRoutingKey:
 		return true;
     default:
         return false;
@@ -574,6 +577,8 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 		return declareQueue(pvarRetValue, paParams);
 	case eMethGetPriority:
 		return getPriority(pvarRetValue, paParams);
+	case eMethGetRoutingKey:
+		return getRoutingKey(pvarRetValue, paParams);
 	default:
 		return false;
     }
@@ -653,6 +658,14 @@ bool CAddInNative::getPriority(tVariant* pvarRetValue, tVariant* paParams) {
 
 	TV_VT(pvarRetValue) = VTYPE_I4;
 	TV_INT(pvarRetValue) = priority;
+	return true;
+}
+
+bool CAddInNative::getRoutingKey(tVariant* pvarRetValue, tVariant* paParams) {
+	std::string routingKey = client->getRoutingKey();
+
+	setWStringToTVariant(pvarRetValue, Utils::stringToWs(routingKey).c_str());
+	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
 }
 
