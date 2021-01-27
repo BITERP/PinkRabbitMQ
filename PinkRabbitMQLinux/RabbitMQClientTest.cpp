@@ -128,7 +128,6 @@ public:
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);
 		assertTrue(!result, "Publish failed test");
-		native->CallAsFunc(AddInNative::Methods::eMethGetLastError, params, nullptr, 0);
 
 		delete native;
 	}
@@ -233,7 +232,7 @@ private:
 		params[2].bVal = false;
 		params[3].bVal = true;
 		params[4].bVal = false;
-		WcharWrapper props(L"{\"x-message-ttl\":13000}");
+		WcharWrapper props(L"");
 		params[5].pwstrVal = props;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 6);
@@ -261,7 +260,7 @@ private:
 		params[1].pwstrVal = wQueueExchange;
 		WcharWrapper wRoutingKey(L"#");
 		params[2].pwstrVal = wRoutingKey;
-		WcharWrapper props(L"{\"x-match\": \"all\"}");
+		WcharWrapper props(L"");
 		params[3].pwstrVal = props;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBindQueue, params, 4);
@@ -278,10 +277,14 @@ private:
 		params[2].pwstrVal = wMessage;
 		params[3].uintVal = 0;
 		params[4].bVal = false;
-		WcharWrapper props(L"{\"param\": true}");
+		WcharWrapper props(L"");
 		params[5].pwstrVal = props;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);
+
+		if (!result) {
+			native->CallAsFunc(AddInNative::Methods::eMethGetLastError, params, nullptr, 0);
+		}
 	
 		assertTrue(result == true, "testBasicPublish " + Utils::anyToString(count));
 	}
@@ -327,7 +330,12 @@ private:
 		if (params[1].pstrVal)
 			delete[] params[1].pstrVal;
 
-		assertTrue(result, "testBasicConsumeMessage " + Utils::anyToString(i));
+		assertTrue(result, "testBasicConsumeMessage " + Utils::anyToString(i));		
+		
+		tVariant rkey;
+		result = native->CallAsFunc(AddInNative::Methods::eMethGetRoutingKey, &rkey, nullptr, 0);
+		std::cerr << "routingkey length: " << rkey.wstrLen << std::endl;
+
 		return returnValue.bVal;
 	}
 

@@ -246,7 +246,6 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         return false;
     }
     AMQP::TcpChannel* channelLoc = openChannel();
-    event_base_loopexit(eventLoop, NULL);
     channelLoc->onReady([this, &channelLoc, &message, &persistent, &exchange, &routingKey, &args, &result]() {
         AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
         if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
@@ -269,8 +268,8 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         .onError([&result, this](const char* messageErr) 
         {
             updateLastError(messageErr);
-            event_base_loopbreak(eventLoop);
             result = false;
+            event_base_loopbreak(eventLoop);
         })
             .onSuccess([this]() 
         {
@@ -280,13 +279,8 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
     event_base_dispatch(eventLoop);
 
-    channelLoc->close().onSuccess([this]() {
-        event_base_loopbreak(eventLoop);
-    }).onFinalize([channelLoc]() {
-        delete channelLoc;
-    });
-
-    event_base_dispatch(eventLoop);
+    channelLoc->close();
+    delete channelLoc;
 
     return result;
 }
@@ -309,6 +303,10 @@ bool RabbitMQClient::setPriority(int _priority) {
 
 int RabbitMQClient::getPriority() {
     return priority;
+}
+
+std::string RabbitMQClient::getRoutingKey() {
+    return routingKey;
 }
 
 /*RECEIVING MESSAGES*/
@@ -341,6 +339,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         msgOb->msgProps[REPLY_TO] = message.replyTo();
         msgOb->messageTag = deliveryTag;
         msgOb->priority = message.priority();
+        msgOb->routingKey = message.routingkey();
 
         readQueue.push(msgOb);
     })
@@ -387,6 +386,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
             msgProps[EXPIRATION] = read->msgProps[EXPIRATION];
             msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
             priority = read->priority;
+            routingKey = read->routingKey;
 
             delete read;
 
