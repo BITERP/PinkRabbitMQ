@@ -128,7 +128,6 @@ public:
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);
 		assertTrue(!result, "Publish failed test");
-		//native->CallAsFunc(AddInNative::Methods::eMethGetLastError, params, nullptr, 0);
 
 		delete native;
 	}
