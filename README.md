@@ -290,6 +290,10 @@
 
 1. Скачать архив с релизом компоненты.
 2. Загрузить в конфигурацию в качестве общего макета с двоичными данными
+3. Для linux необходимо установить пакеты зависимостей:
+    ```sh
+    sudo apt install libssl1.1 libevent-2.1-7 libjsoncpp1
+    ```
 
 ## Разворачивание окружения разработки на Windows 10 (Рекомендуется)
 
@@ -358,6 +362,20 @@ cmake --build . --config Release
 2. Открыть свойства проекта и в меню  Confugartion properties -> General -> Configuration type выбрать Dynamic library (so)
 3. Скомпилировать проект через f5
 4. Либа будет скомпилирована в каталоге ~/projects/PinkRabbitMQLinux/bin/x64/debug/ удаленной машины
+
+
+## Сборка проекта через cmake для Linux
+```sh
+# Установить необходимые пакеты
+sudo apt install build-essential cmake libssl-dev libevent-dev libjsoncpp-dev
+
+# Собрать библиотеку
+cd PinkRabbitMQLinux
+mkdir build
+cd build
+cmake .. 
+cmake --build .
+```
 
 ## Лицензия
 

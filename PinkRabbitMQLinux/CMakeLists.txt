@@ -5,8 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
 PROJECT(PinkRabbitMQLinux)
 
 set (ROOT_DIR ${CMAKE_SOURCE_DIR})
-set (CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-set(CMAKE_BUILD_TYPE Debug)
+set (CMAKE_SOURCE_DIR ${ROOT_DIR}/src)
 
 SET(AddInNative_SRC 
     ${CMAKE_SOURCE_DIR}/Utils.cpp
@@ -21,13 +20,10 @@ SET(AddInNative_SRC
     )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(${CMAKE_SOURCE_DIR}/libevent/include)
 include_directories(${CMAKE_SOURCE_DIR}/amqp/include)
 
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR})
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 SET(AddInDef_SRC ${CMAKE_SOURCE_DIR}/AddInNative.def)
-# SET(CMAKE_LINK_DEF_FILE_FLAG AddInNative.def)
 add_definitions(-DUNICODE -DWIN32 -DNOMINMAX)
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC} ${AddInDef_SRC})
