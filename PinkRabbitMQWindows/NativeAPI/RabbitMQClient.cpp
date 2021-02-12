@@ -486,8 +486,6 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 
 bool RabbitMQClient::basicCancel() {
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
 	handler->quitRead();
 
 	readQueue.close();
@@ -566,17 +564,18 @@ void RabbitMQClient::closeConnection() {
 	if (handler) {
 		handler->quitRead();
 	}
+	readQueue.close();
+
+	MessageObject msgOb;
+	while (!readQueue.empty()) {
+		readQueue.pop(msgOb);
+	}
+	assert(readQueue.empty());
 
 	while (!threadPool.empty()) {
 		threadPool.front().join();
 		threadPool.pop();
 	}
-
-	while (!readQueue.empty()) {
-		MessageObject msgOb;
-		readQueue.pop(msgOb);
-	}
-	assert(readQueue.empty());
 
 	if (connection != nullptr) {
 		delete connection;
