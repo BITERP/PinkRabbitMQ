@@ -24,6 +24,7 @@ SET(AddInNative_SRC
 include_directories(${CMAKE_SOURCE_DIR}/libevent/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/amqp/include)
+include_directories(${CMAKE_SOURCE_DIR}/openssl/include)
 
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR})
 SET(AddInDef_SRC ${CMAKE_SOURCE_DIR}/AddInNative.def)
@@ -33,8 +34,10 @@ add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC} ${AddInDef_SRC})
 
 find_library(LIBEVENT ./libevent/libevent.a)
 find_library(LIBAMQP ./amqp/libamqpcpp.a)
+find_library(LIBSSL ./openssl/libssl.a)
+find_library(LIBCRYPTO ./openssl/libcrypto.a)
 
-target_link_libraries(${PROJECT_NAME} -lssl ${LIBAMQP} ${LIBEVENT} -lpthread -ldl -ljsoncpp)
+target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl -ljsoncpp)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES
    CLEAN_DIRECT_OUTPUT 1
