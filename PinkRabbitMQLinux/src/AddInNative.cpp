@@ -137,6 +137,11 @@ const WCHAR_T* GetClassNames()
 
 AddInNative::AddInNative() : m_iConnect(nullptr), m_iMemory(nullptr)
 {
+	static bool sslInited = false;
+	if (!sslInited){
+		SSL_library_init();
+		sslInited = true;
+	} 
 }
 
 AddInNative::~AddInNative()
@@ -148,8 +153,6 @@ AddInNative::~AddInNative()
 //---------------------------------------------------------------------------//
 bool AddInNative::Init(void* pConnection)
 {
-	OPENSSL_init_ssl(0, NULL);
-
 	m_iConnect = (IAddInDefBaseEx*)pConnection;
 	if (m_iConnect)
 	{

@@ -74,6 +74,9 @@ public:
 	// Push to queue with rvalue reference.
 	void push(T&& v)
 	{
+		if (state == State::CLOSED) {
+			return;
+		}
 		// Create temporary queue.
 		decltype(list) tmpList;
 		tmpList.push_back(v);

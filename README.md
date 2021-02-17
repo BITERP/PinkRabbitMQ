@@ -290,10 +290,12 @@
 
 1. Скачать архив с релизом компоненты.
 2. Загрузить в конфигурацию в качестве общего макета с двоичными данными
-3. Для linux необходимо установить пакеты зависимостей:
-    ```sh
-    sudo apt install libssl1.1 libevent-2.1-7 libjsoncpp1
-    ```
+
+## Поддержка TLS
+
+Компонента поддерживает соединение по протоколу TLS версии 1.2. Сертификаты сервера верифицируются при подключении, клиентские сертификаты не поддерживаются.
+На сервере RabbitMQ необходимо отключить проверку клиентских сертификатов опциями `ssl_options.verify` и `ssl_options.fail_if_no_peer_cert`.
+Подробнее про опции можно узнать из официальной документации: https://www.rabbitmq.com/ssl.html#peer-verification-configuration
 
 ## Разворачивание окружения разработки на Windows 10 (Рекомендуется)
 
@@ -365,9 +367,10 @@ cmake --build . --config Release
 
 
 ## Сборка проекта через cmake для Linux
+Сборку необходимо производить на Ubuntu 16 или Debian 8.
 ```sh
 # Установить необходимые пакеты
-sudo apt install build-essential cmake libssl-dev libevent-dev libjsoncpp-dev
+sudo apt install build-essential cmake
 
 # Собрать библиотеку
 cd PinkRabbitMQLinux
