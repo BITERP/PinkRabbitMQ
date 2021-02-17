@@ -2,8 +2,9 @@
 #include "RabbitMQClient.h"
 #include <unistd.h>
 #include <cassert>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/reader.h>
+#include "json/json.hpp"
+
+using json = nlohmann::json;
 
 RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) {
 
@@ -503,24 +504,22 @@ void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string
     if (!propsJson.length()) {
         return;
     }
-    Json::Value object;
-    Json::Reader reader;
-    if (!reader.parse(propsJson.c_str(), object)){
-        throw std::runtime_error("Failed to parse Json: " + reader.getFormattedErrorMessages());
-    }
-    for (auto &name: object.getMemberNames()) {
-        Json::Value value = object[name];
-        if (value.isBool())
+    auto object = json::parse(propsJson);
+
+    for (auto &it: object.items()) {
+        auto &value = it.value();
+        std::string name = it.key();
+        if (value.is_boolean())
         {
-            headers.set(name, value.asBool());
+            headers.set(name, value.get<bool>());
         } 
-        else if (value.isNumeric())
+        else if (value.is_number())
         {
-            headers.set(name, (int64_t)value.asInt64());            
+            headers.set(name, value.get<int64_t>());            
         }
-        else if (value.isString())
+        else if (value.is_string())
         {
-            headers.set(name, (std::string)value.asString());            
+            headers.set(name, value.get<std::string>());            
         }
         else
         {

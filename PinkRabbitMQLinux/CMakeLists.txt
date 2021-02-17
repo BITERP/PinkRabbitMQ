@@ -37,7 +37,7 @@ find_library(LIBAMQP ./amqp/libamqpcpp.a)
 find_library(LIBSSL ./openssl/libssl.a)
 find_library(LIBCRYPTO ./openssl/libcrypto.a)
 
-target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl -ljsoncpp)
+target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES
    CLEAN_DIRECT_OUTPUT 1

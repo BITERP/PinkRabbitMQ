@@ -232,7 +232,7 @@ private:
 		params[2].bVal = false;
 		params[3].bVal = true;
 		params[4].bVal = false;
-		WcharWrapper props(L"");
+		WcharWrapper props(L"{\"x-message-ttl\":1000}");
 		params[5].pwstrVal = props;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethDeclareExchange, params, 6);
