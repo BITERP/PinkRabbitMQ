@@ -290,10 +290,6 @@
 
 1. Скачать архив с релизом компоненты.
 2. Загрузить в конфигурацию в качестве общего макета с двоичными данными
-3. Для linux необходимо установить пакеты зависимостей:
-    ```sh
-    sudo apt install libssl1.1 libevent-2.1-7 libjsoncpp1
-    ```
 
 ## Поддержка TLS
 
@@ -371,9 +367,10 @@ cmake --build . --config Release
 
 
 ## Сборка проекта через cmake для Linux
+Сборку необходимо производить на Ubuntu 16 или Debian 8.
 ```sh
 # Установить необходимые пакеты
-sudo apt install build-essential cmake libssl-dev libevent-dev libjsoncpp-dev
+sudo apt install build-essential cmake
 
 # Собрать библиотеку
 cd PinkRabbitMQLinux
