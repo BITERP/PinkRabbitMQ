@@ -1,5 +1,6 @@
 #include <string>
 #include <map>
+#include <amqpcpp.h>
 
 struct MessageObject {
 	std::string body;
@@ -7,4 +8,5 @@ struct MessageObject {
 	int priority;
 	std::string routingKey;
 	std::map<int, std::string> msgProps;
+	AMQP::Table headers;
 };

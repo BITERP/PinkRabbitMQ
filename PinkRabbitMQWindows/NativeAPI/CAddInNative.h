@@ -49,6 +49,7 @@ public:
         eMethSetPriority,
         eMethGetPriority,
         eMethGetRoutingKey,
+        eMethGetHeaders,
         eMethLast     // Always last
     };
 
@@ -98,6 +99,7 @@ private:
     bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
     bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
     bool getRoutingKey(tVariant* pvarRetValue, tVariant* paParams);
+    bool getHeaders(tVariant* pvarRetValue, tVariant* paParams);
     bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
     bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
     bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);

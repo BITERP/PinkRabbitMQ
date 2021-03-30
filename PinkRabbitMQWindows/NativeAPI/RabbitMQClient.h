@@ -40,6 +40,7 @@ public:
 	bool setPriority(int _priority);
 	int getPriority();
 	std::string getRoutingKey();
+	std::string getHeaders();
 	void updateLastError(const char* text);
 
 private:
@@ -62,6 +63,7 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 	std::string routingKey = "";
+	AMQP::Table headers;
 	//
 	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;

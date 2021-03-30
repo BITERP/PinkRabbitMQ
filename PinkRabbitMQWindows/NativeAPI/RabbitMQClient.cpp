@@ -408,6 +408,9 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb.messageTag = deliveryTag;
 		msgOb.priority = message.priority();
 		msgOb.routingKey = message.routingkey();
+		if (message.hasHeaders()) {
+			msgOb.headers = message.headers();
+		}
 
 		readQueue.push(std::move(msgOb));
 	})
@@ -449,6 +452,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
 			msgProps[REPLY_TO] = read.msgProps[REPLY_TO];
 			priority = read.priority;
 			routingKey = read.routingKey;
+			headers = read.headers;
 
 			return true;
 		}
@@ -513,6 +517,38 @@ int RabbitMQClient::getPriority() {
 
 std::string RabbitMQClient::getRoutingKey() {
 	return routingKey;
+}
+
+std::string RabbitMQClient::getHeaders() {
+	std::string result;
+	try {
+		Poco::JSON::Object json;
+		for (const std::string& key : headers.keys()) {
+			const AMQP::Field& field = headers.get(key);
+			if (field.isBoolean()) {
+				json[key] = (bool)(int)field;
+			}
+			else if (field.isDecimal()) {
+				if (field.isInteger()) {
+					json[key] = (int64_t)field;
+				}
+				else {
+					json[key] = (double)field;
+				}
+			}
+			else if (field.isString()) {
+				json[key] = (std::string)field;
+			}
+			
+		}
+		std::ostringstream oss;
+		json.stringify(oss);
+		result = oss.str();
+	}
+	catch (Poco::Exception& e) {
+		updateLastError(e.message());
+	}
+	return result;
 }
 
 const WCHAR_T* RabbitMQClient::getLastError() noexcept
