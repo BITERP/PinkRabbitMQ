@@ -409,7 +409,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 		msgOb.priority = message.priority();
 		msgOb.routingKey = message.routingkey();
 		if (message.hasHeaders()) {
-			msgOb.headers = message.headers();
+			msgOb.headers = dumpHeaders(message.headers());
 		}
 
 		readQueue.push(std::move(msgOb));
@@ -520,35 +520,7 @@ std::string RabbitMQClient::getRoutingKey() {
 }
 
 std::string RabbitMQClient::getHeaders() {
-	std::string result;
-	try {
-		Poco::JSON::Object json;
-		for (const std::string& key : headers.keys()) {
-			const AMQP::Field& field = headers.get(key);
-			if (field.isBoolean()) {
-				json[key] = (bool)(int)field;
-			}
-			else if (field.isDecimal()) {
-				if (field.isInteger()) {
-					json[key] = (int64_t)field;
-				}
-				else {
-					json[key] = (double)field;
-				}
-			}
-			else if (field.isString()) {
-				json[key] = (std::string)field;
-			}
-			
-		}
-		std::ostringstream oss;
-		json.stringify(oss);
-		result = oss.str();
-	}
-	catch (Poco::Exception& e) {
-		updateLastError(e.message());
-	}
-	return result;
+	return headers;
 }
 
 const WCHAR_T* RabbitMQClient::getLastError() noexcept
@@ -590,6 +562,35 @@ void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string
 		}
 	}
 
+}
+
+std::string RabbitMQClient::dumpHeaders(const AMQP::Table& headersTbl) {
+	std::string result;
+	try {
+		Poco::JSON::Object json;
+		for (const std::string& key : headersTbl.keys()) {
+			const AMQP::Field& field = headersTbl.get(key);
+			if (field.isBoolean()) {
+				json.set(key, (bool)(int)field);
+			}
+			else if (field.isInteger()) {
+				json.set(key, (int64_t)field);
+			}
+			else if (field.isDecimal()) {
+				json.set(key, (double)field);
+			}
+			else if (field.isString()) {
+				json.set(key, (std::string)field);
+			}
+		}
+		std::ostringstream oss;
+		json.stringify(oss);
+		result = oss.str();
+	}
+	catch (Poco::Exception& e) {
+		updateLastError(e.message().c_str());
+	}
+	return result;
 }
 
 void RabbitMQClient::closeConnection() {
