@@ -345,7 +345,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         msgOb->messageTag = deliveryTag;
         msgOb->priority = message.priority();
         msgOb->routingKey = message.routingkey();
-        if(message.hasHeaders()){
+        if(message.hasHeaders()) {
             msgOb->headers = dumpHeaders(message.headers());
         }
 
