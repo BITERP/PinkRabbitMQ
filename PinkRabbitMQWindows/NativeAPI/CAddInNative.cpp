@@ -680,7 +680,6 @@ bool CAddInNative::getHeaders(tVariant* pvarRetValue, tVariant* paParams) {
 	setWStringToTVariant(pvarRetValue, Utils::stringToWs(headers).c_str());
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
-
 }
 
 bool CAddInNative::validateInputParameters(tVariant* paParams, long const lMethodNum, long const lSizeArray) {

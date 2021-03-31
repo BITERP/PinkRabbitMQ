@@ -310,6 +310,10 @@ std::string RabbitMQClient::getRoutingKey() {
     return routingKey;
 }
 
+std::string RabbitMQClient::getHeaders() {
+    return headers;
+}
+
 /*RECEIVING MESSAGES*/
 
 std::string RabbitMQClient::basicConsume(const std::string& queue, const int _selectSize) {
@@ -341,6 +345,9 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
         msgOb->messageTag = deliveryTag;
         msgOb->priority = message.priority();
         msgOb->routingKey = message.routingkey();
+        if(message.hasHeaders()){
+            msgOb->headers = dumpHeaders(message.headers());
+        }
 
         readQueue.push(msgOb);
     })
@@ -388,6 +395,7 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
             msgProps[REPLY_TO] = read->msgProps[REPLY_TO];
             priority = read->priority;
             routingKey = read->routingKey;
+            headers = read->headers;
 
             delete read;
 
@@ -527,6 +535,34 @@ void RabbitMQClient::fillHeadersFromJson(AMQP::Table& headers, const std::string
         }
     }
 }
+
+std::string RabbitMQClient::dumpHeaders(const AMQP::Table& headersTbl) {
+    std::string result;
+    try {
+        json hdr = json::object();
+        for (const std::string& key : headersTbl.keys()) {
+            const AMQP::Field& field = headersTbl.get(key);
+            if (field.isBoolean()) {
+                hdr[key] = (bool)(int)field;
+            }
+            else if (field.isInteger()) {
+                hdr[key] = (int64_t)field;
+            }
+            else if (field.isDecimal()) {
+                hdr[key] = (double)field;
+            }
+            else if (field.isString()) {
+                hdr[key] = (const std::string&)field;
+            }
+        }
+        result = hdr.dump();
+    }
+    catch (std::exception& e) {
+        updateLastError(e.what());
+    }
+    return result;
+}
+
 
 RabbitMQClient::~RabbitMQClient() {
 

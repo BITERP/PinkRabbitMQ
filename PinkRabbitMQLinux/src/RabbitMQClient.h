@@ -29,6 +29,7 @@ public:
 	bool setPriority(int _priority);
 	int getPriority();
 	std::string getRoutingKey();
+	std::string getHeaders();
 	std::string basicConsume(const std::string& queue, const int _selectSize);
 	bool basicConsumeMessage(std::string& outdata, std::uint64_t& outMessageTag, uint16_t timeout);
 	bool basicAck(const std::uint64_t& messageTag);
@@ -52,6 +53,7 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 	std::string routingKey;
+	std::string headers;
 
 	event_base* eventLoop = 0;
 	AMQP::LibEventHandler* handler;
@@ -64,6 +66,8 @@ private:
 	AMQP::TcpChannel* openChannel();
 	bool checkChannel();
 	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
+	std::string dumpHeaders(const AMQP::Table& headers);
+
 	std::queue<std::thread> threadPool;
 	ThreadSafeQueue<MessageObject*> readQueue;
 

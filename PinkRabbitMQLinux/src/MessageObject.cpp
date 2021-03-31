@@ -7,4 +7,5 @@ struct MessageObject {
 	int priority;
 	std::string routingKey;
 	std::map<int, std::string> msgProps;
+	std::string headers;
 };
