@@ -132,6 +132,31 @@ public:
 		delete native;
 	}
 
+	void testHeaders() {
+		native = new AddInNative();
+		native->enableDebugMode();
+		testConnect();
+		testConnect();
+		testDeleteQueue();
+		testDeleteExchange();
+		testDeclareExchange();
+		testDeclareQueue();
+		testBindQueue();
+		testBasicPublish(L"Hello", 5, L"{\"ihdr\":10, \"shdr\":\"str\", \"bhdr\":true}");
+		testBasicConsume();
+		std::string msg;
+		uint64_t tag;
+		testBasicConsumeMessage(msg, tag, 0);
+		tVariant ret;
+		bool result = native->CallAsFunc(AddInNative::Methods::eMethGetHeaders, &ret, nullptr, 0);
+		assertTrue(result, "Headers failed test");
+		testBasicCancel();
+
+		std::cerr << "headers length: " << ret.wstrLen << std::endl; 
+
+		delete native;
+	}
+
 private:
 
 	void checkDefParam(int methId, int nondefParams) {
@@ -267,7 +292,7 @@ private:
 		assertTrue(result == true, "testBindQueue");
 	}
 
-	void testBasicPublish(const wchar_t* message, int count) {
+	void testBasicPublish(const wchar_t* message, int count, const wchar_t* headers = nullptr) {
 		tVariant params[6];
 
 		WcharWrapper wQueueExchange(config.queueExchange.c_str());
@@ -277,7 +302,7 @@ private:
 		params[2].pwstrVal = wMessage;
 		params[3].uintVal = 0;
 		params[4].bVal = false;
-		WcharWrapper props(L"");
+		WcharWrapper props(headers ? headers : L"");
 		params[5].pwstrVal = props;
 
 		bool result = native->CallAsProc(AddInNative::Methods::eMethBasicPublish, params, 6);

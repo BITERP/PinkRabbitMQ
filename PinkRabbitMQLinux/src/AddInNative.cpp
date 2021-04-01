@@ -70,6 +70,7 @@ static const wchar_t *g_MethodNames[] =
 	L"SetPriority",
 	L"GetPriority",
 	L"GetRoutingKey",
+	L"GetHeaders",
 };
 
 
@@ -92,6 +93,7 @@ static const wchar_t *g_MethodNamesRu[] =
 	L"SetPriority",
 	L"GetPriority",
 	L"GetRoutingKey",
+	L"GetHeaders",
 };
 
 static const wchar_t g_ComponentNameAddIn[] = L"PinkRabbitMQ";
@@ -510,6 +512,7 @@ bool AddInNative::HasRetVal(const long lMethodNum)
 	case eMethDeclareQueue:
 	case eMethGetPriority:
 	case eMethGetRoutingKey:
+	case eMethGetHeaders:
 		return true;
 	default:
 		return false;
@@ -623,6 +626,8 @@ bool AddInNative::CallAsFunc(const long lMethodNum, tVariant* pvarRetValue, tVar
 		return getPriority(pvarRetValue, paParams);
 	case eMethGetRoutingKey:
 		return getRoutingKey(pvarRetValue, paParams);
+	case eMethGetHeaders:
+		return getHeaders(pvarRetValue, paParams);
 	default:
 		return false;
 	}
@@ -728,6 +733,15 @@ bool AddInNative::getRoutingKey(tVariant* pvarRetValue, tVariant* paParams) {
 	TV_VT(pvarRetValue) = VTYPE_PWSTR;
 	return true;
 }
+
+bool AddInNative::getHeaders(tVariant* pvarRetValue, tVariant* paParams) {
+	std::string headers = client.getHeaders();
+
+	setWStringToTVariant(pvarRetValue, Utils::stringToWs(headers).c_str());
+	TV_VT(pvarRetValue) = VTYPE_PWSTR;
+	return true;
+}
+
 
 void AddInNative::setWStringToTVariant(tVariant* dest, const wchar_t* source) {
 

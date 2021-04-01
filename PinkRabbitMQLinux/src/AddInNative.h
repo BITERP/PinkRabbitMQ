@@ -59,6 +59,7 @@ public:
         eMethSetPriority,
         eMethGetPriority,
         eMethGetRoutingKey,
+        eMethGetHeaders,
         eMethLast      // Always last
     };
 
@@ -107,7 +108,7 @@ private:
     IMemoryManager     *m_iMemory;
 
     RabbitMQClient client;
-    const wchar_t* m_version = L"1.10";
+    const wchar_t* m_version = L"1.11";
     bool debugMode = false;
 
     void setWStringToTVariant(tVariant* dest, const wchar_t* source);
@@ -118,6 +119,7 @@ private:
     bool basicConsumeMessage(tVariant* pvarRetValue, tVariant* paParams);
     bool getPriority(tVariant* pvarRetValue, tVariant* paParams);
     bool getRoutingKey(tVariant* pvarRetValue, tVariant* paParams);
+    bool getHeaders(tVariant* pvarRetValue, tVariant* paParams);
     bool declareQueue(tVariant* pvarRetValue, tVariant* paParams);
     bool validateConnect(tVariant* paParams, long const lMethodNum, long const lSizeArray);
     bool validateBasicPublish(tVariant* paParams, long const lMethodNum, long const lSizeArray);

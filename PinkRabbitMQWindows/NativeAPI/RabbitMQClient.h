@@ -40,6 +40,7 @@ public:
 	bool setPriority(int _priority);
 	int getPriority();
 	std::string getRoutingKey();
+	std::string getHeaders();
 	void updateLastError(const char* text);
 
 private:
@@ -47,6 +48,8 @@ private:
 	void newConnection(const std::string& login, const std::string& pwd, const std::string& vhost);
 	void closeConnection();
 	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
+	std::string dumpHeaders(const AMQP::Table& headers);
+
 
 	std::wstring LAST_ERROR;
 	// Transiting properties
@@ -62,6 +65,7 @@ private:
 	const int REPLY_TO = 10;
 	int priority = 0;
 	std::string routingKey = "";
+	std::string headers;
 	//
 	std::unique_ptr<SimplePocoHandler> handler;
 	AMQP::Connection* connection;

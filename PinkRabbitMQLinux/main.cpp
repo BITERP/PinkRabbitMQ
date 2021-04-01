@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     unit.testDeclareSendReceive();
     unit.testSSL();
     unit.testPublishFail();
+    unit.testHeaders();
     sleep(2);
     return 0;
 }
