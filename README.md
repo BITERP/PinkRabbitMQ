@@ -1,3 +1,4 @@
+⚡ **В БИТ:ERP открыты вакансии разработчиков 1С, [присоединяйся к нашей команде!](https://hh.ru/search/vacancy?text=%D0%91%D0%98%D0%A2%3AERP&area=1&fromSearchLine=false&st=searchVacancy)**
 # PinkRabbitMQ library
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BITERP/PinkRabbitMQ/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/BITERP/PinkRabbitMQ.svg)](https://github.com/BITERP/PinkRabbitMQ/releases)
