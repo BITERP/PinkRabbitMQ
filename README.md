@@ -11,7 +11,7 @@
 [![Sonar vulnerables](https://code.bit-erp.ru/sonar/api/project_badges/measure?project=PinkRabbitMQ&metric=vulnerabilities)](https://code.bit-erp.ru/sonar/dashboard?id=PinkRabbitMQ)
 
 # Введение
-Внешняя Native API компонента для 1C 8.3, которая реализует методы для работы с сервером Rabbit MQ через TCP IP протокол. Компонента поддерживается командой разработки [БИТ.Адаптер](https://bit-erp.ru/adapter) и используется в БИТ.Адаптере. Ид компоненты - PinkRabbitMQ. Компонента поставляется для 32 и 64 битной платформы 1С.
+Внешняя Native API компонента для 1C 8.3, которая реализует методы для работы с сервером Rabbit MQ через TCP IP протокол. Компонента поддерживается командой разработки [БИТ.MDT (Мобильный терминал данных)](https://bit-erp.ru/mdt), [БИТ.Адаптер](https://bit-erp.ru/adapter), БИТ.IIoT (Промышленный интернет вещей) и используется в наших продуктах. Ид компоненты - PinkRabbitMQ. Компонента поставляется для 32 и 64 битной платформы 1С.
 
 ## Поддерживаемые системы
 
