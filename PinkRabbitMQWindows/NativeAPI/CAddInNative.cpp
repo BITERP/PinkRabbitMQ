@@ -374,7 +374,7 @@ long CAddInNative::GetNParams(const long lMethodNum)
 	case eMethGetLastError:
 		return 0;
 	case eMethConnect:
-		return 7;
+		return 8;
 	case eMethDeclareQueue:
 		return 7;
 	case eMethBasicPublish:
@@ -422,6 +422,11 @@ bool CAddInNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
 		if (lParamNum == 6) {
 			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
 			TV_BOOL(pvarParamDefValue) = false;
+			return true;
+		}
+		if (lParamNum == 7) {
+			TV_VT(pvarParamDefValue) = VTYPE_I4;
+			TV_I4(pvarParamDefValue) = 5;
 			return true;
 		}
 		return false;
@@ -502,7 +507,8 @@ bool CAddInNative::CallAsProc(const long lMethodNum,
 			Utils::wsToString(paParams[2].pwstrVal),
 			Utils::wsToString(paParams[3].pwstrVal),
 			Utils::wsToString(paParams[4].pwstrVal),
-			paParams[6].bVal
+			paParams[6].bVal,
+			paParams[7].uintVal
 		);
 	case eMethBasicPublish:
 		return client->basicPublish(
@@ -825,7 +831,7 @@ bool CAddInNative::validateConnect(tVariant* paParams, long const lMethodNum, lo
 	for (int i = 0; i < lSizeArray; i++)
 	{
 		ENUMVAR typeCheck = VTYPE_PWSTR;
-		if (i == 1 || i == 5)
+		if (i == 1 || i == 5 || i == 7)
 		{
 			typeCheck = VTYPE_I4;
 		}

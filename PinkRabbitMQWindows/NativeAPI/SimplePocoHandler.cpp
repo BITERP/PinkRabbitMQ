@@ -75,6 +75,7 @@ struct SimplePocoHandlerImpl
 		connection(nullptr),
 		quit(false),
 		quitRead(false),
+		timeout(5000),
 		inputBuffer(SimplePocoHandler::BUFFER_SIZE),
 		outBuffer(SimplePocoHandler::BUFFER_SIZE),
 		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE)
@@ -109,11 +110,13 @@ struct SimplePocoHandlerImpl
 	Buffer inputBuffer;
 	Buffer outBuffer;
 	std::vector<char> tmpBuff;
+	uint16_t timeout;
 };
-SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl) :
+SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl, uint16_t timeout) :
 	m_impl(new SimplePocoHandlerImpl(ssl, host))
 {
 	const Poco::Net::SocketAddress address(host, port);
+	m_impl->timeout = timeout;
 	m_impl->socket->connect(address);
 	m_impl->socket->setBlocking(true);
 	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 100000));
@@ -158,9 +161,14 @@ void SimplePocoHandler::loop()
 {
 	try
 	{
+		auto end = std::chrono::system_clock::now() + std::chrono::seconds(m_impl->timeout);
 		while (!m_impl->quit)
 		{
 			loopIteration();
+			if ((end - std::chrono::system_clock::now()).count() < 0) {
+				// exit by timeout
+				quit();
+			}
 		}
 
 		if (m_impl->quit && m_impl->outBuffer.available())
