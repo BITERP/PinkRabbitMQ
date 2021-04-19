@@ -275,7 +275,6 @@ void SimplePocoHandler::onError(
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)
 {
-	std::cout << "AMQP closed connection" << std::endl;
 	m_impl->quit = true;
 }
 

@@ -69,8 +69,10 @@ AMQP::Channel* RabbitMQClient::openChannel() {
 		return nullptr;
 	}
 	AMQP::Channel* channelLoc = new AMQP::Channel(connection);
-	channelLoc->onReady([this]()
+	bool result = false;
+	channelLoc->onReady([this, &result]()
 	{
+		result = true;
 		handler->quit();
 	});
 
@@ -80,6 +82,11 @@ AMQP::Channel* RabbitMQClient::openChannel() {
 		handler->quit();
 	});
 	handler->loop();
+	if (!result) {
+		delete channelLoc;
+		channelLoc = nullptr;
+		updateLastError(TIMEOUT_ERROR);
+	}
 	return channelLoc;
 }
 
@@ -319,7 +326,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
 	updateLastError(TIMEOUT_ERROR);
 
-	if (connection == nullptr) {
+	if (connection == nullptr || publChannel == nullptr) {
 		updateLastError("Connection is not established! Use the method Connect() first");
 		return false;
 	}
@@ -359,12 +366,12 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 	publChannel->startTransaction();
 	publChannel->publish(exchange, routingKey, envelope);
 	publChannel->commitTransaction()
-		.onError([this](const char* messageErr) 
+		.onError([this](const char* messageErr)
 	{
 		updateLastError(messageErr);
 		handler->quit();
 	})
-		.onSuccess([&result, this]() 
+		.onSuccess([&result, this]()
 	{
 		result = true;
 		updateLastError("");
@@ -381,17 +388,15 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
 
 std::string RabbitMQClient::basicConsume(const std::string& queue, const int _selectSize) {
 
-	if (connection == nullptr || !connection->usable()) {
+	if (connection == nullptr || !connection->usable() || channel == nullptr) {
 		updateLastError("Connection is not ready. Use connect() method to initialize new connection.");
 		return "";
 	}
-	updateLastError(TIMEOUT_ERROR);
 	bool result = false;
 
 	channel->onReady([this, &result]()
 	{
 		result = true;
-		updateLastError("");
 		handler->quit();
 	});
 	channel->onError([this](const char* message)
@@ -402,6 +407,7 @@ std::string RabbitMQClient::basicConsume(const std::string& queue, const int _se
 	});
 	handler->loop();
 	if (!result) {
+		updateLastError(TIMEOUT_ERROR);
 		return "";
 	}
 
