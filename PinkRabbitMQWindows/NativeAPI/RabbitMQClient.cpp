@@ -597,6 +597,7 @@ void RabbitMQClient::closeConnection() {
 	// Order below need to be kept
 	if (connection != nullptr) {
 		connection->close();
+		handler->loopIteration();
 	}
 	if (handler) {
 		handler->quitRead();
