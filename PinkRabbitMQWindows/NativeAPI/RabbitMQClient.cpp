@@ -18,7 +18,6 @@ RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr)
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl, uint16_t timeout)
 {
 	updateLastError("");
-	bool connected = false;
 	try
 	{
 		if (connection) {
@@ -30,7 +29,7 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 		channel.reset(openChannel());
 		publChannel.reset(openChannel());
 
-		connected = true;
+		return true;
 	}
 	catch (const Poco::TimeoutException & ex)
 	{
@@ -44,7 +43,11 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
 	{
 		updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
 	}
-	return connected;
+	if (connection) {
+		delete connection;
+		connection = nullptr;
+	}
+	return false;
 }
 
 void RabbitMQClient::newConnection(const std::string& login, const std::string& pwd, const std::string& vhost) {
@@ -623,7 +626,7 @@ std::string RabbitMQClient::dumpHeaders(const AMQP::Table& headersTbl) {
 
 void RabbitMQClient::closeConnection() {
 	// Order below need to be kept
-	if (connection != nullptr) {
+	if (connection && connection->usable()) {
 		connection->close();
 		handler->loopIteration();
 	}
