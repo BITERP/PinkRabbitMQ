@@ -212,8 +212,9 @@ private:
 		WcharWrapper wVhost(config.vhost.c_str());
 		params[4].pwstrVal = wVhost;
 		params[6].bVal = ssl;
+		params[7].intVal = 5;
 
-		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 7);
+		bool result = native->CallAsProc(AddInNative::Methods::eMethConnect, params, 8);
 		assertTrue(result == true, "testConnect");		
 	}
 
