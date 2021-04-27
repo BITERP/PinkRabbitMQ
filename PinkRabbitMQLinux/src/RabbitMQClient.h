@@ -16,7 +16,7 @@ public:
 	RabbitMQClient();
 	~RabbitMQClient();
 
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl, uint16_t timeout);
 	std::string declareQueue(const std::string& name, bool onlyCheckIfExists, bool durable, bool autodelete, uint16_t maxPriority, const std::string& propsJson);
 	bool declareExchange(const std::string& name, const std::string& type, bool mustExists, bool durable, bool autodelete, const std::string& propsJson);
 	bool deleteExchange(const std::string& name, bool ifunused);
@@ -52,6 +52,7 @@ private:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 	int priority = 0;
+	int timeout;
 	std::string routingKey;
 	std::string headers;
 
@@ -67,6 +68,7 @@ private:
 	bool checkChannel();
 	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
 	std::string dumpHeaders(const AMQP::Table& headers);
+	void waitEvent(bool &result);
 
 	std::queue<std::thread> threadPool;
 	ThreadSafeQueue<MessageObject*> readQueue;
