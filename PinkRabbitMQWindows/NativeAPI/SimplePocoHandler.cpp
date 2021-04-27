@@ -119,7 +119,8 @@ SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, boo
 	m_impl->timeout = timeout;
 	m_impl->socket->connect(address);
 	m_impl->socket->setBlocking(true);
-	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 100000));
+	m_impl->socket->setReceiveTimeout(Poco::Timespan(5, 0));
+	m_impl->socket->setSendTimeout(Poco::Timespan(5, 0));
 	m_impl->socket->setSendBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setReceiveBufferSize(TEMP_BUFFER_SIZE);
 	m_impl->socket->setKeepAlive(true);
@@ -133,6 +134,10 @@ SimplePocoHandler::~SimplePocoHandler()
 void SimplePocoHandler::setConnection(AMQP::Connection* connection)
 {
 	m_impl->connection = connection;
+}
+
+void SimplePocoHandler::setReceiveTimeout() {
+	m_impl->socket->setReceiveTimeout(Poco::Timespan(0, 100000));
 }
 
 void SimplePocoHandler::loopThread(SimplePocoHandler* clazz)

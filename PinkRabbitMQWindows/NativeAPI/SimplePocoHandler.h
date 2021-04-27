@@ -17,6 +17,7 @@ public:
     virtual ~SimplePocoHandler();
 
     void setConnection(AMQP::Connection* connection);
+    void setReceiveTimeout();
     void loop();
 	void quitRead();
 	void resetQuitRead();
@@ -24,7 +25,6 @@ public:
 	static void loopThread(SimplePocoHandler* clazz);
     void quit();
 	void loopIteration();
-
     bool connected() const;
 
 private:

@@ -18,30 +18,35 @@ RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr)
 bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl, uint16_t timeout)
 {
 	updateLastError("");
-	try
-	{
-		if (connection) {
-			closeConnection();
+	int tries = 5;
+	while (tries-- > 0) {
+		try
+		{
+			if (connection) {
+				closeConnection();
+			}
+			handler.reset(new SimplePocoHandler(host, port, ssl, timeout));
+			newConnection(login, pwd, vhost);
+
+			channel.reset(openChannel());
+			publChannel.reset(openChannel());
+
+			return true;
 		}
-		handler.reset(new SimplePocoHandler(host, port, ssl, timeout));
-		newConnection(login, pwd, vhost);
-
-		channel.reset(openChannel());
-		publChannel.reset(openChannel());
-
-		return true;
-	}
-	catch (const Poco::TimeoutException & ex)
-	{
-		updateLastError(ex.what());
-	}
-	catch (const AuthException & ex)
-	{
-		updateLastError(ex.what());
-	}
-	catch (const Poco::Net::NetException & ex)
-	{
-		updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
+		catch (const Poco::TimeoutException& ex)
+		{
+			updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
+		}
+		catch (const AuthException& ex)
+		{
+			updateLastError(ex.what());
+			return false;
+		}
+		catch (const Poco::Net::NetException& ex)
+		{
+			updateLastError(ex.message().length() ? ex.message().c_str() : ex.what());
+			return false;
+		}
 	}
 	if (connection) {
 		delete connection;
@@ -64,6 +69,7 @@ void RabbitMQClient::newConnection(const std::string& login, const std::string& 
 	if (!connection->ready()) {
 		throw AuthException();
 	}
+	handler->setReceiveTimeout();
 }
 
 AMQP::Channel* RabbitMQClient::openChannel() {
