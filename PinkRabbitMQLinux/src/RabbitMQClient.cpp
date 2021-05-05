@@ -14,7 +14,7 @@ RabbitMQClient::RabbitMQClient(): readQueue(1), connection(nullptr) {
 
 /*ESTABLISHING CONNECTION*/
 
-bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl) {
+bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl, uint16_t timeout) {
     
     if (connection) {
         connection->close();
@@ -24,8 +24,25 @@ bool RabbitMQClient::connect(const std::string& host, const uint16_t port, const
     connection = new AMQP::TcpConnection(handler, AMQP::Address(host, port, AMQP::Login(login, pwd), vhost, ssl));
 
     channel.reset(openChannel());
+    this->timeout = timeout;
 
     return checkChannel();
+}
+
+void RabbitMQClient::waitEvent(bool &result) {
+    int res = 1;
+    auto end = std::chrono::system_clock::now() + std::chrono::seconds(timeout);
+    while(res == 1) {
+        res = event_base_loop(eventLoop, EVLOOP_NONBLOCK);
+        if ((end - std::chrono::system_clock::now()).count() < 0) {
+            lastError = "Timeout waiting server response.";
+            channel->close();
+            channel.reset(openChannel());
+            result = false;
+            return;
+        }
+    }
+    event_base_dispatch(eventLoop);
 }
 
 /*PROCESSING EXCHANGES AND QUEUES*/
@@ -73,11 +90,11 @@ bool RabbitMQClient::declareExchange(const std::string& name, const std::string&
         .onError([&result, this](const char* message)
     {
         lastError = message;
-        event_base_loopbreak(eventLoop);
         result = false;
+        event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     return result;
 }
@@ -99,11 +116,11 @@ bool RabbitMQClient::deleteExchange(const std::string& name, bool ifunused) {
         .onError([&result, this](const char* message)
     {
         lastError = message;
-        event_base_loopbreak(eventLoop);
         result = false;
+        event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     return result;
 }
@@ -139,7 +156,11 @@ std::string RabbitMQClient::declareQueue(const std::string& name, bool onlyCheck
         event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
+    if (!result){
+        return "";
+    }
+
     return name;
 }
 
@@ -160,11 +181,11 @@ bool RabbitMQClient::deleteQueue(const std::string& name, bool ifunused, bool if
         .onError([&result, this](const char* message)
     {
         lastError = message;
-        event_base_loopbreak(eventLoop);
         result = false;
+        event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     return result;
 }
@@ -193,11 +214,11 @@ bool RabbitMQClient::bindQueue(const std::string& queue, const std::string& exch
         .onError([&result, this](const char* message)
     {
         lastError = message;
-        event_base_loopbreak(eventLoop);
         result = false;
+        event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     return result;
 }
@@ -219,11 +240,11 @@ bool RabbitMQClient::unbindQueue(const std::string& queue, const std::string& ex
         .onError([&result, this](const char* message)
     {
         lastError = message; 
-        event_base_loopbreak(eventLoop);
         result = false;
+        event_base_loopbreak(eventLoop);
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     return result;
 }
@@ -278,7 +299,7 @@ bool RabbitMQClient::basicPublish(std::string& exchange, std::string& routingKey
         });
     });
 
-    event_base_dispatch(eventLoop);
+    waitEvent(result);
 
     channelLoc->close();
     delete channelLoc;
@@ -403,8 +424,6 @@ bool RabbitMQClient::basicConsumeMessage(std::string& outdata, std::uint64_t& ou
         }
     }
 
-    event_base_loopbreak(eventLoop);
-
     return false;
 }
 
@@ -445,6 +464,8 @@ bool RabbitMQClient::basicReject(const std::uint64_t& messageTag) {
 }
 
 bool RabbitMQClient::basicCancel() {
+
+    event_base_loopbreak(eventLoop);
 
     MessageObject* msgOb;
     ThreadSafeQueue<MessageObject*>::QueueResult result;

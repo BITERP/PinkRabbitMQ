@@ -13,10 +13,11 @@ public:
     static constexpr size_t BUFFER_SIZE = 8 * 1024 * 1024; //8Mb
     static constexpr size_t TEMP_BUFFER_SIZE = 1 * 1024 * 1024; //1Mb
 
-    SimplePocoHandler(const std::string& host, uint16_t port, bool ssl);
+    SimplePocoHandler(const std::string& host, uint16_t port, bool ssl, uint16_t timeout);
     virtual ~SimplePocoHandler();
 
     void setConnection(AMQP::Connection* connection);
+    void setReceiveTimeout();
     void loop();
 	void quitRead();
 	void resetQuitRead();
@@ -24,7 +25,6 @@ public:
 	static void loopThread(SimplePocoHandler* clazz);
     void quit();
 	void loopIteration();
-
     bool connected() const;
 
 private:

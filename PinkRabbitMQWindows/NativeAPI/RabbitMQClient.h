@@ -23,7 +23,7 @@ public:
 	~RabbitMQClient();
 	void setMsgProp(int prop, const std::string& val);
 	std::string getMsgProp(int propIndex);
-	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl);
+	bool connect(const std::string& host, const uint16_t port, const std::string& login, const std::string& pwd, const std::string& vhost, bool ssl, uint16_t timeout);
 	const WCHAR_T* getLastError() noexcept;
 	bool basicPublish(std::string& exchange, std::string& routingKey, std::string& message, bool persistent, const std::string& propsJson);
 	bool basicAck(const std::uint64_t& messageTag);
@@ -49,7 +49,6 @@ private:
 	void closeConnection();
 	void fillHeadersFromJson(AMQP::Table& headers, const std::string& propsJson);
 	std::string dumpHeaders(const AMQP::Table& headers);
-
 
 	std::wstring LAST_ERROR;
 	// Transiting properties
