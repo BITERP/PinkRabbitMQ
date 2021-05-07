@@ -13,19 +13,13 @@ public:
     static constexpr size_t BUFFER_SIZE = 8 * 1024 * 1024; //8Mb
     static constexpr size_t TEMP_BUFFER_SIZE = 1 * 1024 * 1024; //1Mb
 
-    SimplePocoHandler(const std::string& host, uint16_t port, bool ssl, uint16_t timeout);
+    SimplePocoHandler(const std::string& host, uint16_t port, bool ssl);
     virtual ~SimplePocoHandler();
 
     void setConnection(AMQP::Connection* connection);
-    void setReceiveTimeout();
-    void loop();
-	void quitRead();
-	void resetQuitRead();
-	void loopRead();
+ 	void loopRead();
 	static void loopThread(SimplePocoHandler* clazz);
-    void quit();
 	void loopIteration();
-    bool connected() const;
 
 private:
 
@@ -36,13 +30,13 @@ private:
     void close();
 
     virtual void onData(
-            AMQP::Connection *connection, const char *data, size_t size);
+            AMQP::Connection *connection, const char *data, size_t size) override;
 
-    virtual void onConnected(AMQP::Connection *connection);
+    virtual void onReady(AMQP::Connection *connection) override;
 
-    virtual void onError(AMQP::Connection *connection, const char *message);
+    virtual void onError(AMQP::Connection *connection, const char *message) override;
 
-    virtual void onClosed(AMQP::Connection *connection);
+    virtual void onClosed(AMQP::Connection *connection) override;
 
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
 

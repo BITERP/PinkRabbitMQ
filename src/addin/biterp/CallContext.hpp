@@ -59,6 +59,7 @@ namespace Biterp {
                 return u16string((char16_t *) param->pwstrVal, param->wstrLen);
             }
             if (nullable && (param->vt == VTYPE_EMPTY || param->vt == VTYPE_NULL)) {
+                index++;
                 return u"";
             }
             throw TypeError(index, "string", param->vt);

@@ -3,6 +3,10 @@
 #include "Connection.h"
 #include <addin/biterp/Component.hpp>
 #include <map>
+#include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 
 using namespace std;
@@ -23,7 +27,7 @@ public:
 public:
 	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
 
-	virtual ~RabbitMQClient() {};
+	virtual ~RabbitMQClient() { clear(); };
 
 	inline bool connect(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::connectImpl, paParams, lSizeArray);
@@ -117,13 +121,15 @@ private:
 	void checkConnection();
 	string lastMessageHeaders();
 
+	void clear();
+
 private:
 	struct MessageObject {
-		std::string body;
+		string body;
 		uint64_t messageTag = 0;
 		int priority = 0;
-		std::string routingKey;
-		std::map<int, std::string> msgProps;
+		string routingKey;
+		map<int, std::string> msgProps;
 		AMQP::Table headers;
 	};
 
@@ -132,6 +138,10 @@ private:
 	unique_ptr<Connection> connection;
 	int priority;
 	MessageObject lastMessage;
+	vector<string> consumers;
+	queue<MessageObject> messageQueue;
+	mutex _mutex;
+	condition_variable cvDataArrived;
 
 private:
 

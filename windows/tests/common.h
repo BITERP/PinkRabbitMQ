@@ -8,7 +8,7 @@
 using namespace std;
 using namespace Biterp::Test;
 
-bool connect(Connection& conn, bool ssl = false);
+bool connect(Connection& conn, bool ssl = false, u16string password = u"");
 
 u16string qname();
 

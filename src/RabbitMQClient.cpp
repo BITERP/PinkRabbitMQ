@@ -13,6 +13,8 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	bool ssl = ctx.boolParam();
 	int timeout = ctx.intParam();
 	AMQP::Address address(host, port, AMQP::Login(user, pwd), vhost, ssl);
+
+	clear();
 	connection.reset(new Connection(address, timeout));
 	try {
 		connection->connect();
@@ -58,7 +60,7 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -79,7 +81,7 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -109,7 +111,7 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -132,7 +134,7 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -156,7 +158,7 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -177,7 +179,7 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -211,7 +213,6 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	if (priority != 0) envelope.setPriority(priority);
 	if (persistent) { envelope.setDeliveryMode(2); }
 	envelope.setHeaders(headersFromJson(propsJson));
-
 	{
 		AMQP::Channel* ch = connection->channel();
 		ch->startTransaction();
@@ -223,7 +224,7 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 				})
 			.onError([this](const char* message)
 				{
-					throw Biterp::Error(message);
+					connection->loopbreak(message);
 				});
 	}
 	connection->loop();
@@ -232,24 +233,110 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 
 void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	checkConnection();
-
+	string queue = ctx.stringParamUtf8();
+	string consumerId = ctx.stringParamUtf8(true);
+	bool noconfirm = ctx.boolParam();
+	bool exclusive = ctx.boolParam();
+	int selectSize = ctx.intParam();
+	string result;
+	{
+		AMQP::Channel* channel = connection->readChannel();
+		channel->setQos(selectSize);
+		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0))
+			.onSuccess([this, &result](const string& tag)
+				{
+					result = tag;
+					consumers.push_back(tag);
+					connection->loopbreak();
+				})
+			.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
+				{
+					MessageObject msgOb;
+					msgOb.body.assign(message.body(), message.bodySize());
+					msgOb.msgProps[CORRELATION_ID] = message.correlationID();
+					msgOb.msgProps[TYPE_NAME] = message.typeName();
+					msgOb.msgProps[MESSAGE_ID] = message.messageID();
+					msgOb.msgProps[APP_ID] = message.appID();
+					msgOb.msgProps[CONTENT_ENCODING] = message.contentEncoding();
+					msgOb.msgProps[CONTENT_TYPE] = message.contentType();
+					msgOb.msgProps[USER_ID] = message.userID();
+					msgOb.msgProps[CLUSTER_ID] = message.clusterID();
+					msgOb.msgProps[EXPIRATION] = message.expiration();
+					msgOb.msgProps[REPLY_TO] = message.replyTo();
+					msgOb.messageTag = deliveryTag;
+					msgOb.priority = message.priority();
+					msgOb.routingKey = message.routingkey();
+					msgOb.headers = message.headers();
+					{
+						unique_lock<mutex> lock(_mutex);
+						messageQueue.push(msgOb);
+						cvDataArrived.notify_all();
+					}
+				})
+			.onError([this](const char* message)
+				{
+					connection->loopbreak(message);
+				});
+	}
+	connection->loop();
+	ctx.setStringResult(u16Converter.from_bytes(result));
 }
 
 
-void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {}
+void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
+	ctx.skipParam();
+	tVariant* outdata = ctx.skipParam();
+	tVariant* outMessageTag = ctx.skipParam();
+	int timeout = ctx.intParam();
+
+	ctx.setEmptyResult(outdata);
+	ctx.setLongResult(0, outMessageTag);
+	{
+		unique_lock<mutex> lock(_mutex);
+		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
+			ctx.setBoolResult(false);
+			return;
+		}
+		lastMessage = messageQueue.front();
+		messageQueue.pop();
+	}
+	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
+	ctx.setLongResult(lastMessage.messageTag, outMessageTag);
+	ctx.setBoolResult(true);
+}
+
+void RabbitMQClient::clear() {
+	unique_lock<mutex> lock(_mutex);
+	consumers.clear();
+	messageQueue = queue<MessageObject>();
+}
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
 	checkConnection();
-
+	AMQP::Channel* ch = connection->readChannel();
+	ch->startTransaction();
+	for (auto& tag : consumers) {
+		ch->cancel(tag);
+	}
+	ch->commitTransaction().onFinalize([&] {clear();});
 }
 
 void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
 	checkConnection();
-
+	uint64_t tag = ctx.longParam();
+	if (tag == 0) {
+		throw Biterp::Error("Message tag cannot be empty!");
+	}
+	connection->readChannel()->ack(tag);
 }
 
 void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
 	checkConnection();
+	uint64_t tag = ctx.longParam();
+	if (tag == 0) {
+		throw Biterp::Error("Message tag cannot be empty!");
+	}
+	connection->readChannel()->reject(tag);
 }
 
 void RabbitMQClient::checkConnection() {

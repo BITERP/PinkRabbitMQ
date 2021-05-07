@@ -20,10 +20,6 @@ Connection::~Connection() {
 	delete pimpl;
 }
 
-AMQP::Channel* Connection::channel() {
-	return pimpl->channel();
-}
-
 void Connection::connect() {
 	pimpl->connect();
 }
@@ -32,6 +28,14 @@ void Connection::loop() {
 	pimpl->loop();
 }
 
-void Connection::loopbreak() {
-	pimpl->loopbreak();
+AMQP::Channel* Connection::channel() {
+	return pimpl->channel();
+}
+
+void Connection::loopbreak(std::string error) {
+	pimpl->loopbreak(error);
+}
+
+AMQP::Channel* Connection::readChannel() {
+	return pimpl->readChannel();
 }

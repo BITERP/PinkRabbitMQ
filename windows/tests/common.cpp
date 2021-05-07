@@ -47,14 +47,14 @@ u16string qname() {
 }
 
 
-bool connect(Connection& conn, bool ssl) {
+bool connect(Connection& conn, bool ssl, u16string password) {
     tVariant paParams[8];
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
     json conf = loadConfig(ssl);
     _qname = conv.from_bytes(conf["queue"]);
     u16string host = conv.from_bytes(conf["host"]);
     u16string user = conv.from_bytes(conf["user"]);
-    u16string pswd = conv.from_bytes(conf["pwd"]);
+    u16string pswd = password.empty() ?  conv.from_bytes(conf["pwd"]) : password;
     u16string vhost = conv.from_bytes(conf["vhost"]);
     conn.stringParam(&paParams[0], host);
     conn.intParam(&paParams[1], conf["port"]);
@@ -79,9 +79,10 @@ bool makeQueue(Connection& conn, u16string name, u16string props) {
     props.length() ? conn.stringParam(&paParams[6], props) : conn.nullParam(&paParams[6]);
     tVariant ret;
     bool res =  conn.callAsFunc(u"DeclareQueue", &ret, paParams, 7);
-    ASSERT(res);
-    ASSERT(ret.vt == VTYPE_PWSTR);
-    conn.retString(&ret);
+    if (res) {
+        ASSERT(ret.vt == VTYPE_PWSTR);
+        conn.retString(&ret);
+    }
     return res;
 }
 

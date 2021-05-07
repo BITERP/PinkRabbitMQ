@@ -111,7 +111,9 @@ namespace Biterp {
             if (!source.length()) {
                 source = className;
             }
-            addin->AddError(wcode, source.c_str(), descr.c_str(), scode);
+            if (addin) {
+                addin->AddError(wcode, source.c_str(), descr.c_str(), scode);
+            }
         }
 
         /**

@@ -4,9 +4,11 @@
 #include <addin/test/Connection.hpp>
 #include <chrono>
 #include "common.h"
+#include <nlohmann/json.hpp>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Biterp::Test;
+using json = nlohmann::json;
 
 namespace tests
 {
@@ -20,6 +22,15 @@ namespace tests
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con));
 		}
+
+        TEST_METHOD(FailConnect)
+        {
+            Connection con;
+            con.raiseErrors = false;
+            Assert::IsFalse(connect(con ,false, u"password"));
+            con.hasError("Wrong login, password or vhost");
+        }
+
 
 		TEST_METHOD(ConnectSsl)
 		{
@@ -112,7 +123,7 @@ namespace tests
             Assert::IsTrue(got == msg);
             tVariant paParams[1];
             conn.longParam(paParams, 1);
-            Assert::IsTrue(conn.callAsProc(u"BasicNack", paParams, 1));
+            Assert::IsTrue(conn.callAsProc(u"BasicReject", paParams, 1));
         }
 
         TEST_METHOD(BasicConsume) {
@@ -134,6 +145,9 @@ namespace tests
             conn.stringParam(args, tag);
             conn.intParam(&args[3], 100);
             bool res = conn.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
+            while (ret.bVal) {
+                res = conn.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
+            }
             Assert::IsTrue(res);
             Assert::IsTrue(ret.vt == VTYPE_BOOL);
             Assert::IsTrue(!ret.bVal);
@@ -221,5 +235,43 @@ namespace tests
             Assert::IsTrue(ret.lVal == 13);
         }
 
+
+        TEST_METHOD(ExtBadjson) {
+            Connection con;
+            con.raiseErrors = false;
+            Assert::IsTrue(connect(con));
+            Assert::IsTrue(!makeQueue(con, qname(), u"Not Json Object Param"));
+            con.hasError("syntax error");
+        }
+
+        TEST_METHOD(ExtGoodParam) {
+            Connection con;
+            Assert::IsTrue(connect(con));
+            Assert::IsTrue(makeQueue(con, qname(), u"{\"x-message-ttl\":60000}"));
+        }
+
+        TEST_METHOD(ExtExchange) {
+            Connection con;
+            Assert::IsTrue(connect(con));
+            Assert::IsTrue(makeExchange(con, qname(), u"{\"alternate-exchange\":\"myae\"}"));
+        }
+
+        TEST_METHOD(ExtBind) {
+            Connection con;
+            Assert::IsTrue(connect(con));
+            Assert::IsTrue(bindQueue(con, qname(), u"{\"x-message-ttl\":60000}"));
+        }
+
+        TEST_METHOD(ExtPublish) {
+            Connection con;
+            Assert::IsTrue(connect(con));
+            Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13}"));
+            u16string text = receiveUntil(con, qname(), u"args message");
+            tVariant ret;
+            Assert::IsTrue(con.callAsFunc(u"GetHeaders", &ret, nullptr, 0));
+            Assert::IsTrue(ret.vt == VTYPE_PWSTR);
+            json obj = json::parse(con.retStringUtf8(&ret));
+            Assert::AreEqual(13, (int)obj["some-header"]);
+        }
 	};
 }

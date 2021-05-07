@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <string>
 #include <amqpcpp.h>
 
 
@@ -10,10 +10,11 @@ class Connection {
 public:
 	Connection(const AMQP::Address& address, int timeout);
 	virtual ~Connection();
-	AMQP::Channel* channel();
 	void connect();
+	AMQP::Channel* channel();
 	void loop();
-	void loopbreak();
+	void loopbreak(std::string error = "");
+	AMQP::Channel* readChannel();
 
 private:
 	ConnectionImpl* pimpl;
