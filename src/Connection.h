@@ -5,7 +5,6 @@
 #include <condition_variable>
 #include <amqpcpp.h>
 
-
 class ConnectionImpl;
 
 class Connection {

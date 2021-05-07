@@ -1,4 +1,7 @@
 #include "Connection.h"
+#include <thread>
+#include <addin/biterp/Error.hpp>
+#include <chrono>
 
 #if defined(__linux__)
 
@@ -11,6 +14,8 @@
 #else
 #error "Unsupported platform"
 #endif
+
+
 
 Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeout), broken(false) {
 	pimpl = new ConnectionImpl(address);
@@ -34,8 +39,8 @@ AMQP::Channel* Connection::readChannel() {
 
 
 void Connection::loop() {
-	unique_lock<mutex> lock(_mutex);
-	if (!cvBroken.wait_for(lock, chrono::seconds(timeout), [&] { return broken; })) {
+	std::unique_lock<std::mutex> lock(_mutex);
+	if (!cvBroken.wait_for(lock, std::chrono::seconds(timeout), [&] { return broken; })) {
 		broken = false;
 		channel()->close();
 		throw Biterp::Error("AMQP server timeout error");
@@ -46,20 +51,9 @@ void Connection::loop() {
 	}
 }
 
-void Connection::loopbreak(string error) {
-	unique_lock<mutex> lock(_mutex);
+void Connection::loopbreak(std::string error) {
+	std::unique_lock<std::mutex> lock(_mutex);
 	this->error = error;
 	broken = true;
 	cvBroken.notify_all();
 }
-
-/*
-void Connection::loop() {
-	pimpl->loop();
-}
-
-void Connection::loopbreak(std::string error) {
-	pimpl->loopbreak(error);
-}
-
-*/
