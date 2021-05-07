@@ -214,9 +214,9 @@
     </ItemGroup>
     <MSBuild Projects="WindowsAddin.vcxproj" Targets="Clean;Build" Properties="Configuration=%(ConfigAndPlatform.Identity);Platform=%(ConfigAndPlatform.Platform);VersionDef=$(VERSION)" />
     <Message Text="Copy release builds to package" />
-    <Copy SourceFiles="..\WindowsAddin\Release\$(ProjectName).dll" DestinationFiles="..\..\package_desktop\$(ProjectName)32.dll" />
-    <Copy SourceFiles="..\WindowsAddin\x64\Release\$(ProjectName).dll" DestinationFiles="..\..\package_desktop\$(ProjectName)64.dll" />
-    <WriteLinesToFile File="..\..\package_desktop\version.txt" Lines="version=$(VERSION)" Overwrite="true" />
-    <ZipDirectory SourceDirectory="..\..\package_desktop" DestinationFile="..\..\$(ProjectName)_v$(VERSION).zip" Overwrite="true" />
+    <Copy SourceFiles="..\WindowsAddin\Release\$(ProjectName).dll" DestinationFiles="..\..\package\$(ProjectName)32.dll" />
+    <Copy SourceFiles="..\WindowsAddin\x64\Release\$(ProjectName).dll" DestinationFiles="..\..\package\$(ProjectName)64.dll" />
+    <WriteLinesToFile File="..\..\package\version.txt" Lines="version=$(VERSION)" Overwrite="true" />
+    <ZipDirectory SourceDirectory="..\..\package" DestinationFile="..\..\$(ProjectName)_v$(VERSION).zip" Overwrite="true" />
   </Target>
 </Project>
