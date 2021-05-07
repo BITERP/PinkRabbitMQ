@@ -134,7 +134,7 @@ namespace tests
             Assert::IsTrue(tag.length() > 0);
         }
 
-        TEST_METHOD(BasicConsumeMessage) {
+        TEST_METHOD(BasicConsumeNoMessage) {
             Connection conn;
             connect(conn);
             u16string qn = qname();
@@ -272,6 +272,36 @@ namespace tests
             Assert::IsTrue(ret.vt == VTYPE_PWSTR);
             json obj = json::parse(con.retStringUtf8(&ret));
             Assert::AreEqual(13, (int)obj["some-header"]);
+        }
+
+        TEST_METHOD(MultiConnectSsl) {
+            Connection con;
+            con.raiseErrors = true;
+            for (int i = 0; i < 10; i++) {
+                Assert::IsTrue(connect(con, true));
+            }
+        }
+
+        TEST_METHOD(NoCancel) {
+            Connection con;
+            con.raiseErrors = true;
+            for (int i = 0; i < 5; i++) {
+                Assert::IsTrue(connect(con));
+                for (int j = 0; j < i; j++) {
+                    Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13}"));
+                }
+                u16string tag = basicConsume(con, qname());
+                tVariant args[4];
+                tVariant status;
+                con.stringParam(args, tag);
+                con.intParam(&args[3], 10000);
+                tVariant ret;
+                bool res = con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
+                Assert::IsTrue(res);
+                if (ret.bVal) {
+                    con.callAsProc(u"BasicAck", &args[2], 1);
+                }
+            }
         }
 	};
 }

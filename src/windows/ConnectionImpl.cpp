@@ -1,10 +1,8 @@
 #include "ConnectionImpl.h"
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address, int timeout) : 
+ConnectionImpl::ConnectionImpl(const AMQP::Address& address) : 
 	handler(address.hostname(), address.port(), address.secure()),
-	trChannel(nullptr),
-	timeout(timeout),
-	broken(false)
+	trChannel(nullptr)
 {
 	connection = new AMQP::Connection(&handler, address.login(), address.vhost());
 	handler.setConnection(connection);
@@ -27,16 +25,21 @@ void ConnectionImpl::openChannel(unique_ptr<AMQP::Channel>& channel) {
 	if (!connection->usable()) {
 		throw Biterp::Error("Connection lost");
 	}
+	mutex m;
+	condition_variable cv;
+	bool ready = false;
 	channel.reset(new AMQP::Channel(connection));
-	channel->onReady([this]() {
-		loopbreak();
+	channel->onReady([&]() {
+		unique_lock<mutex> lock(m);
+		ready = true;
+		cv.notify_all();
 		});
 	channel->onError([this, &channel](const char* message) {
 		LOGW("Channel closed with reason: " + string(message));
 		channel.reset(nullptr);
-		loopbreak(message);
 		});
-	loop();
+	unique_lock<mutex> lock(m);
+	cv.wait(lock, [&] { return ready; });
 	if (!channel) {
 		throw Biterp::Error("Channel not opened");
 	}
@@ -70,25 +73,6 @@ AMQP::Channel* ConnectionImpl::channel() {
 	return trChannel.get();
 }
 
-void ConnectionImpl::loop() {
-	unique_lock<mutex> lock(_mutex);
-	if (!cvBroken.wait_for(lock, chrono::seconds(timeout), [&] { return broken; })) {
-		broken = false;
-		channel()->close();
-		throw Biterp::Error("AMQP server timeout error");
-	}
-	broken = false;
-	if (!error.empty()) {
-		throw Biterp::Error(error);
-	}
-}
-
-void ConnectionImpl::loopbreak(string error) {
-	unique_lock<mutex> lock(_mutex);
-	this->error = error;
-	broken = true;
-	cvBroken.notify_all();
-}
 
 AMQP::Channel* ConnectionImpl::readChannel() {
 	return channel();

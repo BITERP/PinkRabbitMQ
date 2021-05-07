@@ -108,7 +108,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
@@ -133,7 +133,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -153,7 +153,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
@@ -178,7 +178,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>amqpcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amqpcpp.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
