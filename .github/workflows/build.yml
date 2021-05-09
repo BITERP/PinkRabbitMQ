@@ -87,7 +87,7 @@ jobs:
         # Artifact name
         name: PinkRabbitMQLinuxLin64.so
         # Destination path
-        path: ${{env.PACK_DIR}}/PinkRabbitMQLinuxLin64.so
+        path: ${{env.PACK_DIR}}/
 
     - name: Build
       working-directory: ${{env.WIN_DIR}}
