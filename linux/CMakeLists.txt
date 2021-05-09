@@ -10,7 +10,6 @@ set (ROOT_DIR ${CMAKE_SOURCE_DIR}/..)
 set (CMAKE_SOURCE_DIR ${ROOT_DIR}/src)
 set (LIB_DIR ${ROOT_DIR}/lib/linux)
 
-message(LIB DIR ${LIB_DIR})
 
 SET(AddInNative_SRC 
     ${CMAKE_SOURCE_DIR}/linux/ConnectionImpl.cpp
@@ -23,6 +22,8 @@ SET(AddInNative_SRC
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/linux/libevent)
 include_directories(${CMAKE_SOURCE_DIR}/linux/openssl)
+
+add_definitions(-DVERSION=${VERSION})
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC})
 

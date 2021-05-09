@@ -181,7 +181,8 @@ CTEST(Version) {
     tVariant ver;
     ASSERT(conn.getPropVal(u"Version", &ver));
     ASSERT(ver.vt == VTYPE_PWSTR);
-    conn.retString(&ver);
+    string v = conn.retStringUtf8(&ver);
+    cout << " " << v << " ";
 }
 
 CTEST(SetMessageProp) {
