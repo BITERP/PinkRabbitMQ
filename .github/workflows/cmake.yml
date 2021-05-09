@@ -36,7 +36,7 @@ jobs:
       
     - name: Get Test Config
       working-directory: ${{github.workspace}}/linux
-      run: cat ${{secrets.TEST_CONFIG}} | base64 -d > ./test.conf
+      run: echo ${{secrets.TEST_CONFIG}} | base64 -d > ./test.conf
 
     - name: Test
       working-directory: ${{env.BUILD_DIR}}
