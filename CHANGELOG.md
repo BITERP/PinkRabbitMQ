@@ -1,3 +1,8 @@
+# Новое в версии 2.0
+* Проект компоненты переписан под кроссплатформенный шаблон
+* Реализованы флаги exclusive и noConfirm в методах BasicConsume и DeclareQueue
+* Добавлены тесты
+
 # Новое в версии 1.11
 * Добавлен новый метод GetHeaders()
 * Исправлена ошибка "client unexpectedly closed TCP connection" при закрытии соединения

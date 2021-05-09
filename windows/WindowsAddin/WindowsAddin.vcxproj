@@ -74,22 +74,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(ProjectDir)..\..\lib\win_$(Platform)\cfg_$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)..\..\src\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\src\;$(ProjectDir)..\..\src\windows\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(ProjectDir)..\..\lib\win_$(Platform)\cfg_$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)..\..\src\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\src\;$(ProjectDir)..\..\src\windows\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(ProjectDir)..\..\lib\win_$(Platform)\cfg_$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)..\..\src\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\src\;$(ProjectDir)..\..\src\windows\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(ProjectDir)..\..\lib\win_$(Platform)\cfg_$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)..\..\src\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\src\;$(ProjectDir)..\..\src\windows\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
