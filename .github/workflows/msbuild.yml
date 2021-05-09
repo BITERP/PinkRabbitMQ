@@ -24,10 +24,10 @@ jobs:
     - name: base64-to-file
       # You may pin to the exact commit or the version.
       # uses: timheuer/base64-to-file@1df9daf94edbc3076264fd619b483878640078cb
-      uses: timheuer/base64-to-file@v1.0.4
+      uses: narcodico/base64-to-path@v1
       with:
         # Name of the file when written to temp location
-        fileName: ${{env.BUILD_DIR}}/tests/test.conf
+        filePath: ${{env.BUILD_DIR}}/tests/test.conf
         # The base64 encoded string
         encodedString: ${{secrets.TEST_CONFIG}}
       
