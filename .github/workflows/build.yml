@@ -1,0 +1,76 @@
+name: Build
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  LIN_DIR: ${{github.workspace}}/linux/build
+  WIN_DIR: ${{github.workspace}}/windows
+  VERSION: "2.0"
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-16.04
+    environment: actions
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Make Build Directory
+      run: mkdir ${{env.LIN_DIR}}
+    
+    - name: Configure CMake
+      working-directory: ${{env.LIN_DIR}}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVERSION=${{env.VERSION}} ..
+
+    - name: Build
+      working-directory: ${{env.LIN_DIR}}
+      # Build your program with the given configuration
+      run: cmake --build .
+      
+    - name: Get Test Config
+      working-directory: ${{github.workspace}}/linux
+      run: echo ${{secrets.TEST_CONFIG}} | base64 -d > ./test.conf
+
+    - name: Test
+      working-directory: ${{env.LIN_DIR}}
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest .
+      
+  build_windows:
+    needs: build_linux
+    runs-on: windows-latest
+    environment: actions
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1
+    
+    - name: base64-to-file
+      # You may pin to the exact commit or the version.
+      # uses: timheuer/base64-to-file@1df9daf94edbc3076264fd619b483878640078cb
+      uses: narcodico/base64-to-path@v1
+      with:
+        # Name of the file when written to temp location
+        filePath: ${{env.WIN_DIR}}/tests/test.conf
+        # The base64 encoded string
+        encodedString: ${{secrets.TEST_CONFIG}}
+      
+    - name: Test
+      working-directory: ${{env.WIN_DIR}}
+      run: msbuild .\msbuild.xml -t:runTests
+
+    - name: Build
+      working-directory: ${{env.WIN_DIR}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
