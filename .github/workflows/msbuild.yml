@@ -26,7 +26,7 @@ jobs:
       uses: timheuer/base64-to-file@v1.0.4
       with:
         # Name of the file when written to temp location
-        fileName: ${{BUILD_DIR}}/tests/test.conf
+        fileName: ${{env.BUILD_DIR}}/tests/test.conf
         # The base64 encoded string
         encodedString: ${{secrets.TEST_CONFIG}}
       
