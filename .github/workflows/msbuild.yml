@@ -20,10 +20,6 @@ jobs:
     - name: Setup VSTest Path
       uses: darenm/Setup-VSTest@v1
       
-    - name: Test Check
-      working-directory: ${{env.BUILD_DIR}}
-      run: vstest.console
-
     - name: Test
       working-directory: ${{env.BUILD_DIR}}
       run: msbuild .\msbuild.xml -t:runTests
