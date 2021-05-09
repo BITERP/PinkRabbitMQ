@@ -3,7 +3,7 @@ name: MSBuild
 on: [push]
 
 env:
-  VERSION: 2.0
+  VERSION: "2.0"
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: .
 
@@ -11,6 +11,7 @@ env:
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: Release
+  BUILD_DIR: ${{env.GITHUB_WORKSPACE}}/windows
 
 jobs:
   build:
@@ -27,11 +28,11 @@ jobs:
     #  run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Test
-      working-directory: ${{env.GITHUB_WORKSPACE}}/windows
-      run: msbuild msbuild.xml -t:runTests
+      working-directory: ${{env.BUILD_DIR}}
+      run: msbuild .\msbuild.xml -t:runTests
 
     - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}/windows
+      working-directory: ${{env.BUILD_DIR}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
+      run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}

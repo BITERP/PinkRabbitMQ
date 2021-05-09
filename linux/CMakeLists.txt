@@ -27,7 +27,7 @@ add_definitions(-DVERSION=${VERSION})
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC})
 
-find_library(LIBRARIES NAMES event PATHS ${LIB_DIR} NO_DEFAULT_PATH)
+find_library(LIBEVENT NAMES event PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 find_library(LIBAMQP NAMES amqpcpp PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 find_library(LIBSSL NAMES ssl PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 find_library(LIBCRYPTO NAMES crypto PATHS ${LIB_DIR} NO_DEFAULT_PATH)
