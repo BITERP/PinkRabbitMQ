@@ -17,6 +17,8 @@ private:
 	void openChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
 	void closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
 
+	static void loopThread(ConnectionImpl* thiz);
+
 private:
 	event_base* eventLoop;
 	AMQP::LibEventHandler* handler;

@@ -10,6 +10,8 @@ set (ROOT_DIR ${CMAKE_SOURCE_DIR}/..)
 set (CMAKE_SOURCE_DIR ${ROOT_DIR}/src)
 set (LIB_DIR ${ROOT_DIR}/lib/linux)
 
+message(LIB DIR ${LIB_DIR})
+
 SET(AddInNative_SRC 
     ${CMAKE_SOURCE_DIR}/linux/ConnectionImpl.cpp
     ${CMAKE_SOURCE_DIR}/Connection.cpp
@@ -24,13 +26,13 @@ include_directories(${CMAKE_SOURCE_DIR}/linux/openssl)
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC})
 
-find_library(LIBEVENT ${LIB_DIR}/libevent.a)
-find_library(LIBAMQP ${LIB_DIR}/libamqpcpp.a)
-find_library(LIBSSL ${LIB_DIR}/libssl.a)
-find_library(LIBCRYPTO ${LIB_DIR}/libcrypto.a)
+find_library(LIBRARIES NAMES event PATHS ${LIB_DIR} NO_DEFAULT_PATH)
+find_library(LIBAMQP NAMES amqpcpp PATHS ${LIB_DIR} NO_DEFAULT_PATH)
+find_library(LIBSSL NAMES ssl PATHS ${LIB_DIR} NO_DEFAULT_PATH)
+find_library(LIBCRYPTO NAMES crypto PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 
 
-target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread)
+target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl)
 
 #tests
 

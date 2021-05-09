@@ -306,19 +306,23 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 }
 
 void RabbitMQClient::clear() {
-	unique_lock<mutex> lock(_mutex);
+	if (!consumers.empty()){
+		AMQP::Channel* ch = connection->readChannel();
+		ch->startTransaction();
+		for (auto& tag : consumers) {
+			ch->cancel(tag);
+		}
+		ch->commitTransaction();		
+	}
 	consumers.clear();
-	messageQueue = queue<MessageObject>();
+	unique_lock<mutex> lock(_mutex);
+	queue<MessageObject> empty;
+	messageQueue.swap(empty);
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
 	checkConnection();
-	AMQP::Channel* ch = connection->readChannel();
-	ch->startTransaction();
-	for (auto& tag : consumers) {
-		ch->cancel(tag);
-	}
-	ch->commitTransaction().onFinalize([&] {clear();});
+	clear();
 }
 
 void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
