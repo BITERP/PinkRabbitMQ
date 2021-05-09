@@ -42,17 +42,22 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest .
       
+    - name: Rename Library
+      working-directory: ${{env.LIN_DIR}}
+      run: mv ./libPinkRabbitMQLinux.so ./PinkRabbitMQLinuxLin64.so  
+      
     - name: Upload Linux Library
       uses: actions/upload-artifact@v2.2.3
       with:
         # Artifact name
         name: PinkRabbitMQLinuxLin64.so
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{env.LIN_DIR}}/libPinkRabbitMQLinux.so
+        path: ${{env.LIN_DIR}}/PinkRabbitMQLinuxLin64.so
         # The desired behavior if no files are found using the provided path.
         if-no-files-found: error
         retention-days: 1
-      
+  
+  
   build_windows:
     needs: build_linux
     runs-on: windows-latest
@@ -99,6 +104,6 @@ jobs:
       uses: actions/upload-artifact@v2.2.3
       with:
         # Artifact name
-        name: PinkRabbitMQ_v${{env.VERSION}}.zip
+        name: PinkRabbitMQ_v${{env.VERSION}}
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{github.workspace}}/PinkRabbitMQWin_v${{env.VERSION}}.zip
+        path: ${{env.PACK_DIR}}/
