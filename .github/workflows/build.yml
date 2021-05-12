@@ -8,6 +8,7 @@ env:
   LIN_DIR: ${{github.workspace}}/linux/build
   WIN_DIR: ${{github.workspace}}/windows
   PACK_DIR: ${{github.workspace}}/package
+  BID: ${{github.run_number}}
 
 jobs:
   build_linux:
@@ -31,7 +32,7 @@ jobs:
       working-directory: ${{env.LIN_DIR}}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVERSION=${{env.CURRENT_VERSION}}.${{github.run_id}} ..
+      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVERSION=${{env.CURRENT_VERSION}}.${{env.BID}} ..
 
     - name: Build
       working-directory: ${{env.LIN_DIR}}
@@ -115,14 +116,15 @@ jobs:
       working-directory: ${{env.WIN_DIR}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{github.run_id}}
+      run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{env.CURRENT_VERSION}}.${{github.run_id}}
-        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{github.run_id}}
+        tag_name: v${{env.CURRENT_VERSION}}.${{env.BID}}
+        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
         draft: true
-        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{github.run_id}}.zip
+        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
+        fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
