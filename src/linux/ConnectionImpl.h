@@ -7,24 +7,24 @@
 
 class ConnectionImpl{
 public:
-	ConnectionImpl(const AMQP::Address& address);
-	virtual ~ConnectionImpl();
-	void connect();
-	AMQP::Channel* channel();
-	AMQP::Channel* readChannel();
+    ConnectionImpl(const AMQP::Address& address);
+    virtual ~ConnectionImpl();
+    void connect();
+    AMQP::Channel* channel();
+    AMQP::Channel* readChannel();
 
 private:
-	void openChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
-	void closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
+    void openChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
+    void closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
 
-	static void loopThread(ConnectionImpl* thiz);
+    static void loopThread(ConnectionImpl* thiz);
 
 private:
-	event_base* eventLoop;
-	AMQP::LibEventHandler* handler;
-	AMQP::TcpConnection* connection;
+    event_base* eventLoop;
+    AMQP::LibEventHandler* handler;
+    AMQP::TcpConnection* connection;
 
-	std::unique_ptr<AMQP::TcpChannel> trChannel;
-	std::thread thread;
+    std::unique_ptr<AMQP::TcpChannel> trChannel;
+    std::thread thread;
 };
 

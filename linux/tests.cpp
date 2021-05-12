@@ -298,4 +298,57 @@ CTEST(NoCancel) {
 }
 
 
+CTEST(Select1) {
+    Connection con;
+    con.raiseErrors = true;
+    ASSERT(connect(con));
+    u16string q = qname();
+    publish(con, q, u"select1");
+    for (int i = 0; i < 2; i++) {
+        u16string tag = basicConsume(con, q, 1);
+        tVariant args[4];
+        tVariant status;
+        con.stringParam(args, tag);
+        con.intParam(&args[3], 1000);
+        tVariant ret;
+        bool res = con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
+        ASSERT_EQ(i == 0, ret.bVal);
+        while (res && ret.bVal) {
+            string data = con.retStringUtf8(&args[1]);
+            std::cout << "recv " << data << endl;
+            con.callAsProc(u"BasicAck", &args[2], 1);
+            res = con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
+        }               
+        ASSERT(con.callAsProc(u"BasicCancel", args, 1));
+    }
+}
+
+CTEST(MultiAck) {
+   Connection con;
+   con.raiseErrors = true;
+   ASSERT(connect(con));
+   u16string q = qname();
+   for (int i = 0; i < 100; i++) {
+       publish(con, q, u"multiack", u"", i != 0);
+   }
+   for (int i = 0; i < 2; i++) {
+       u16string tag = basicConsume(con, q, 100);
+       tVariant args[4];
+       tVariant status;
+       con.stringParam(args, tag);
+       con.intParam(&args[3], 1000);
+       tVariant ret;
+       for (int j = 0; j < 100; j++) {
+           ASSERT(con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4));
+           ASSERT_EQ(i == 0, ret.bVal);
+           if (i != 0) {
+               break;
+           }
+           string data = con.retStringUtf8(&args[1]);
+           ASSERT(con.callAsProc(u"BasicAck", &args[2], 1));
+       }
+       ASSERT(con.callAsProc(u"BasicCancel", args, 1));
+   }
+}
+
 CTEST_RUN();

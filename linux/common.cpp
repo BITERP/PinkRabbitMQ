@@ -132,8 +132,10 @@ bool bindQueue(Connection& conn, u16string name, u16string props) {
     return conn.callAsProc(u"BindQueue", paParams, 4);
 }
 
-bool publish(Connection& conn, u16string qname, u16string msg, u16string props) {
-    ASSERT(bindQueue(conn, qname));
+bool publish(Connection& conn, u16string qname, u16string msg, u16string props, bool noBind) {
+    if (!noBind){
+        ASSERT(bindQueue(conn, qname));
+    }
     tVariant paParams[6];
     conn.stringParam(&paParams[0], qname);
     conn.stringParam(&paParams[1], qname);
@@ -144,14 +146,14 @@ bool publish(Connection& conn, u16string qname, u16string msg, u16string props) 
     return conn.callAsProc(u"BasicPublish", paParams, 6);
 }
 
-u16string basicConsume(Connection& conn, u16string queue) {
+u16string basicConsume(Connection& conn, u16string queue, int size) {
     tVariant paParams[5];
     conn.stringParam(paParams, queue);
     u16string tag;
     conn.stringParam(&paParams[1], tag);
     conn.boolParam(&paParams[2], false);
     conn.boolParam(&paParams[3], false);
-    conn.intParam(&paParams[4], 10);
+    conn.intParam(&paParams[4], size);
     tVariant ret;
     bool res = conn.callAsFunc(u"BasicConsume", &ret, paParams, 5);
     if (!res) {
