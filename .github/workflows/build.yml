@@ -118,11 +118,11 @@ jobs:
       run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{github.run_id}}
 
     - name: Release
-        uses: softprops/action-gh-release@v1
-        tag_name: v${{env.CURRENT_VERSION}}.${{github.run_id}}
-        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{github.run_id}}
-        draft: true
-        with:
-          files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{github.run_id}}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
+      tag_name: v${{env.CURRENT_VERSION}}.${{github.run_id}}
+      name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{github.run_id}}
+      draft: true
+      with:
+        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{github.run_id}}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
