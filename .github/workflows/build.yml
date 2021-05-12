@@ -119,10 +119,10 @@ jobs:
 
     - name: Release
       uses: softprops/action-gh-release@v1
-      tag_name: v${{env.CURRENT_VERSION}}.${{github.run_id}}
-      name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{github.run_id}}
-      draft: true
       with:
+        tag_name: v${{env.CURRENT_VERSION}}.${{github.run_id}}
+        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{github.run_id}}
+        draft: true
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{github.run_id}}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
