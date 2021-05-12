@@ -75,5 +75,8 @@ AMQP::Channel* ConnectionImpl::channel() {
 
 
 AMQP::Channel* ConnectionImpl::readChannel() {
-	return channel();
+	if (!rcChannel || !rcChannel->usable()) {
+		openChannel(rcChannel);
+	}
+	return rcChannel.get();
 }

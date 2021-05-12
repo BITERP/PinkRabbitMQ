@@ -20,6 +20,7 @@ private:
 	SimplePocoHandler handler;
 	AMQP::Connection* connection;
 	unique_ptr<AMQP::Channel> trChannel;
+	unique_ptr<AMQP::Channel> rcChannel;
 	std::thread thread;
 };
 

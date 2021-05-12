@@ -157,8 +157,6 @@ void SimplePocoHandler::loopRead()
 
 void SimplePocoHandler::loopIteration() {
 
-	sendDataFromBuffer();
-
 	if (m_impl->socket->poll(m_impl->pollTimeout, 1)) {
 		int avail = m_impl->connection->expected();
 		if (!avail) { avail = 4; }
@@ -210,7 +208,6 @@ void SimplePocoHandler::onData(
 	const size_t writen = m_impl->outBuffer.write(data, size);
 	if (writen != size)
 	{
-		sendDataFromBuffer();
 		m_impl->outBuffer.write(data + writen, size - writen);
 	}
 }

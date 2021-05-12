@@ -306,13 +306,18 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 }
 
 void RabbitMQClient::clear() {
-	if (!consumers.empty()){
+	if (!consumers.empty() && connection) {
 		AMQP::Channel* ch = connection->readChannel();
 		ch->startTransaction();
 		for (auto& tag : consumers) {
 			ch->cancel(tag);
-		}
-		ch->commitTransaction();		
+		}	
+		ch->commitTransaction()
+			.onFinalize([&]() {
+				ch->close();
+				connection->loopbreak();
+			});
+		connection->loop();
 	}
 	consumers.clear();
 	unique_lock<mutex> lock(_mutex);
@@ -332,6 +337,7 @@ void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
 	connection->readChannel()->ack(tag);
+	this_thread::sleep_for(chrono::microseconds(10));
 }
 
 void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
@@ -341,6 +347,7 @@ void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
 	connection->readChannel()->reject(tag);
+	this_thread::sleep_for(chrono::microseconds(10));
 }
 
 void RabbitMQClient::checkConnection() {
