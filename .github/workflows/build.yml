@@ -49,17 +49,13 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest .
       
-    - name: Rename Library
-      working-directory: ${{env.LIN_DIR}}
-      run: mv ./libPinkRabbitMQLinux.so ./PinkRabbitMQLinuxLin64.so  
-      
     - name: Upload Linux Library
       uses: actions/upload-artifact@v2.2.3
       with:
         # Artifact name
-        name: PinkRabbitMQLinuxLin64.so
+        name: libPinkRabbitMQ64.so
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{env.LIN_DIR}}/PinkRabbitMQLinuxLin64.so
+        path: ${{env.LIN_DIR}}/libPinkRabbitMQ64.so
         # The desired behavior if no files are found using the provided path.
         if-no-files-found: error
         retention-days: 1
@@ -104,13 +100,13 @@ jobs:
       uses: actions/download-artifact@v2.0.9
       with:
         # Artifact name
-        name: PinkRabbitMQLinuxLin64.so
+        name: libPinkRabbitMQ64.so
         # Destination path
         path: ${{env.PACK_DIR}}/
 
     - uses: geekyeggo/delete-artifact@v1
       with:
-        name: PinkRabbitMQLinuxLin64.so
+        name: libPinkRabbitMQ64.so
 
     - name: Build
       working-directory: ${{env.WIN_DIR}}
@@ -125,6 +121,5 @@ jobs:
         name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
         draft: true
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
-        fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
