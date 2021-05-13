@@ -1,0 +1,130 @@
+name: Build
+
+on: 
+  push:
+    branches: 
+      - '*'
+      - !master
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  LIN_DIR: ${{github.workspace}}/linux/build
+  WIN_DIR: ${{github.workspace}}/windows
+  PACK_DIR: ${{github.workspace}}/package
+  BID: ${{github.run_number}}
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-16.04
+    environment: actions
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Make Build Directory
+      run: mkdir ${{env.LIN_DIR}}
+
+    - name: Generate versions
+      uses: HardNorth/github-version-generate@v1.1.0
+      with:
+        version-source: file
+        version-file: ${{github.workspace}}/BuildConfig
+        version-file-extraction-pattern: '(?<=version=).+'
+    
+    - name: Configure CMake.
+      working-directory: ${{env.LIN_DIR}}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVERSION=${{env.CURRENT_VERSION}}.${{env.BID}} ..
+
+    - name: Build
+      working-directory: ${{env.LIN_DIR}}
+      # Build your program with the given configuration
+      run: cmake --build .
+      
+    - name: Get Test Config
+      working-directory: ${{github.workspace}}/linux
+      run: echo ${{secrets.TEST_CONFIG}} | base64 -d > ./test.conf
+
+    - name: Test
+      working-directory: ${{env.LIN_DIR}}
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest .
+      
+    - name: Upload Linux Library
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        # Artifact name
+        name: libPinkRabbitMQ64.so
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ${{env.LIN_DIR}}/libPinkRabbitMQ64.so
+        # The desired behavior if no files are found using the provided path.
+        if-no-files-found: error
+        retention-days: 1
+  
+  
+  build_windows:
+    needs: build_linux
+    runs-on: windows-latest
+    environment: actions
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1
+
+    - name: Generate versions
+      uses: HardNorth/github-version-generate@v1.1.0
+      with:
+        version-source: file
+        version-file: ${{github.workspace}}/BuildConfig
+        version-file-extraction-pattern: '(?<=version=).+'
+    
+    - name: base64-to-file
+      # You may pin to the exact commit or the version.
+      # uses: timheuer/base64-to-file@1df9daf94edbc3076264fd619b483878640078cb
+      uses: narcodico/base64-to-path@v1
+      with:
+        # Name of the file when written to temp location
+        filePath: ${{env.WIN_DIR}}/tests/test.conf
+        # The base64 encoded string
+        encodedString: ${{secrets.TEST_CONFIG}}
+      
+    - name: Test
+      working-directory: ${{env.WIN_DIR}}
+      run: msbuild .\msbuild.xml -t:runTests
+      
+    - name: Download Linux Library
+      uses: actions/download-artifact@v2.0.9
+      with:
+        # Artifact name
+        name: libPinkRabbitMQ64.so
+        # Destination path
+        path: ${{env.PACK_DIR}}/
+
+    - name: Remove Linux Artifact
+      uses: geekyeggo/delete-artifact@v1
+      with:
+        name: libPinkRabbitMQ64.so
+
+    - name: Build
+      working-directory: ${{env.WIN_DIR}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: dev${{env.CURRENT_VERSION}}.${{env.BID}}
+        name: PinkRabbitMQ Dev v${{env.CURRENT_VERSION}}.${{env.BID}}
+        draft: true
+        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
