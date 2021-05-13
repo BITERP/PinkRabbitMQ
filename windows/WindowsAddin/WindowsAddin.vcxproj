@@ -24,7 +24,7 @@
     <ProjectGuid>{4247389d-d3e1-4093-b618-0ff763fdbc46}</ProjectGuid>
     <RootNamespace>WindowsAddin</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>PinkRabbitMQWin</ProjectName>
+    <ProjectName>PinkRabbitMQ</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
