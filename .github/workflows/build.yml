@@ -1,6 +1,11 @@
 name: Build
 
-on: [push]
+on: 
+  push:
+    branches: 
+      - master
+    paths: 
+      - 'src/**'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -104,7 +109,8 @@ jobs:
         # Destination path
         path: ${{env.PACK_DIR}}/
 
-    - uses: geekyeggo/delete-artifact@v1
+    - name: Remove Linux Artifact
+      uses: geekyeggo/delete-artifact@v1
       with:
         name: libPinkRabbitMQ64.so
 
@@ -119,7 +125,7 @@ jobs:
       with:
         tag_name: v${{env.CURRENT_VERSION}}.${{env.BID}}
         name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
-        draft: true
+        draft: false
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
