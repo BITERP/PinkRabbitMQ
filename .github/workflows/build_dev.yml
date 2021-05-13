@@ -1,10 +1,10 @@
-name: Build
+name: BuildDev
 
 on: 
   push:
     branches: 
       - '*'
-      - !master
+      - '!master'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
