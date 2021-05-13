@@ -12,6 +12,11 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	ctx.skipParam();
 	bool ssl = ctx.boolParam();
 	int timeout = ctx.intParam();
+
+	if (host.empty()) {
+		throw Biterp::Error("Empty hostname not allowed");
+	}
+
 	AMQP::Address address(host, port, AMQP::Login(user, pwd), vhost, ssl);
 
 	clear();

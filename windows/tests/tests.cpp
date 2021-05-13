@@ -356,5 +356,22 @@ namespace tests
                Assert::IsTrue(con.callAsProc(u"BasicCancel", args, 1));
            }
         }
+
+       TEST_METHOD(EmptyHost) {
+           Connection con;
+           tVariant paParams[8];
+           u16string host = u"";
+           u16string user = u"user";
+           con.stringParam(&paParams[0], host);
+           con.intParam(&paParams[1], 1234);
+           con.stringParam(&paParams[2], user);
+           con.stringParam(&paParams[3], user);
+           con.stringParam(&paParams[4], user);
+           con.intParam(&paParams[5], 0);
+           con.boolParam(&paParams[6], false);
+           con.intParam(&paParams[7], 5);
+           Assert::IsFalse(con.callAsProc(u"Connect", paParams, 8));
+           con.hasError("Empty hostname not allowed");
+       }
 	};
 }
