@@ -441,8 +441,7 @@ bool RabbitMQClientNative::setMemManager(void* mem) {
 }
 
 //---------------------------------------------------------------------------//
-long
-RabbitMQClientNative::findName(const char16_t* names[], u16string name, const uint32_t size) const {
+long RabbitMQClientNative::findName(const char16_t* names[], u16string name, const uint32_t size) const {
 	long ret = -1;
 	for (uint32_t i = 0; i < size; i++) {
 		if (name == names[i]) {
