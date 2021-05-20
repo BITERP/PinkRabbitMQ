@@ -4,34 +4,12 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 ## RabbitMQ project specific====
-PinkRabbitMQLinux/build
-
-!PinkRabbitMQWindows/libs/
-
-PinkRabbitMQWindows/libs/*
-!PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/
-
-PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/*
-!PinkRabbitMQWindows/libs/AMQP-CPP-4.3.10/include
-
-PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/*
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Net
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/NetSSL_Win
-
-PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation/*
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Foundation/include
-
-PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Net/*
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/Net/include
-
-PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/NetSSL_Win/*
-!PinkRabbitMQWindows/libs/poco-poco-1.9.0-release/NetSSL_Win/include
 
 !package/
 package/*
 !package/MANIFEST.XML
+test.conf
+*.zip
 
 ##==============================
 

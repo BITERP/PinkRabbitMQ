@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project  xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="makeRelease">
+  <Target Name="makeRelease">
+    <MSBuild Projects="WindowsAddin\WindowsAddin.vcxproj" Targets="makeRelease" Properties="VERSION=$(VERSION)"/>
+  </Target>
+  <Target Name="runTests">
+    <MSBuild Projects="WindowsAddin.sln" Targets="Build" Properties="Configuration=Release;Platform=x64;VersionDef=test" 
+		/>
+	<Exec Command="vstest.console x64\Release\tests.dll"/>
+  </Target>
+</Project>
