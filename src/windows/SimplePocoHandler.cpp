@@ -229,6 +229,11 @@ void SimplePocoHandler::onClosed(AMQP::Connection* connection)
 {
 }
 
+uint16_t SimplePocoHandler::onNegotiate(AMQP::Connection* connection, uint16_t interval) {
+	return interval;
+}
+
+
 void SimplePocoHandler::sendDataFromBuffer()
 {
 	if (m_impl->outBuffer.available())
