@@ -1,9 +1,9 @@
 name: Build
 
-on: 
-  push:
-    paths: 
-      - 'src/**'
+on: push
+#  push:
+#    paths: 
+#      - 'src/**'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
