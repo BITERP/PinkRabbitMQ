@@ -136,7 +136,7 @@ jobs:
       with:
         tag_name: ${{env.TAG_PREFIX}}${{env.CURRENT_VERSION}}.${{env.BID}}
         name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
-        prerelease: ${{env.PRERESEALE}}
+        prerelease: ${{env.PRERELEASE}}
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
