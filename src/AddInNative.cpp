@@ -51,7 +51,6 @@ const WCHAR_T *GetClassNames() {
 }
 
 #if defined(__ANDROID__)
-JavaVM *JNI::sJavaVM = nullptr;
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *aJavaVM, void *aReserved) {
     JNI::setVM(aJavaVM);
