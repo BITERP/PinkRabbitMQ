@@ -2,8 +2,6 @@ name: Build
 
 on: 
   push:
-    branches: 
-      - master
     paths: 
       - 'src/**'
 
@@ -22,6 +20,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Prepare environment
+      uses: iamtheyammer/branch-env-vars@v1.0.3
+      with:
+        BUILD_PREFIX: |
+          master:
+          !default:[DEV] 
+        PRERELEASE: |
+          master:false
+          !default:true
 
     - name: Make Build Directory
       run: mkdir ${{env.LIN_DIR}}
@@ -124,8 +132,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{env.CURRENT_VERSION}}.${{env.BID}}
-        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
-        draft: false
+        name: ${{env.BUILD_PREFIX}} PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
+        prerelease: ${{env.PRERESEALE}}
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
