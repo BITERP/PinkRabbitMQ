@@ -85,8 +85,8 @@ jobs:
           master:false
           !default:true
         RELEASE_BODY: |
-          master:[Новое в версии ](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
-          !default:${{ github.event.head_commit.message }}
+          master:[Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
+          !default:${{ github.event.head_commit.message }} [Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
@@ -134,11 +134,6 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
       
-    - name: Release message
-      run: echo "(Лог сборки)[https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}}]" > .\release.md
-    - run: echo "" >> .\release.md
-    - run: echo "${{ env.RELEASE_BODY }}" >> .\release.md
-      
     - name: Release
       uses: ncipollo/release-action@v1
       with:
@@ -149,4 +144,7 @@ jobs:
         commit: ${{github.ref}}
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true
-        bodyFile: .\release.md
+        body: |
+          [Лог сборки](https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}})
+          
+          ${{ env.RELEASE_BODY }}
