@@ -138,6 +138,6 @@ jobs:
         name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
         prerelease: ${{env.PRERELEASE}}
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
-        commitish: ${{github.ref}}
+        commitish: ${GITHUB_REF##*/}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
