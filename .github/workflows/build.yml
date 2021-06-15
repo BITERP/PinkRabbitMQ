@@ -1,9 +1,9 @@
 name: Build
 
-on:
-  push:
-    paths: 
-      - 'src/**'
+on: push
+#  push:
+#    paths: 
+#      - 'src/**'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -138,5 +138,6 @@ jobs:
         name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
         prerelease: ${{env.PRERELEASE}}
         files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
+        commitish: ${{github.ref}}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
