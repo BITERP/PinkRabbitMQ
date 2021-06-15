@@ -132,12 +132,11 @@ jobs:
       run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
 
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
         tag_name: ${{env.TAG_PREFIX}}${{env.CURRENT_VERSION}}.${{env.BID}}
         name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
         prerelease: ${{env.PRERELEASE}}
-        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
-        commitish: ${GITHUB_REF##*/}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        artifact: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
+        commit: ${{ env.GITHUB_REF##*/ }}
+        token: ${{ secrets.GITHUB_TOKEN }}
