@@ -84,6 +84,9 @@ jobs:
         PRERELEASE: |
           master:false
           !default:true
+        RELEASE_BODY: |
+          master:[Новое в версии ](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
+          !default:${{ github.event.head_commit.message }}
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
@@ -131,8 +134,6 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
       
-    - uses: nelonoel/branch-name@v1.0.1
-
     - name: Release
       uses: ncipollo/release-action@v1
       with:
@@ -142,3 +143,7 @@ jobs:
         artifact: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
         commit: ${{github.ref}}
         token: ${{ secrets.GITHUB_TOKEN }}
+        body: |
+          (Лог сборки)[https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}}]
+          
+          ${{ env.RELEASE_BODY }}
