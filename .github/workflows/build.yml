@@ -86,7 +86,7 @@ jobs:
           !default:true
         RELEASE_BODY: |
           master:[Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
-          !default:${{ github.event.head_commit.message }} [Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
+          !default:${{ github.event.head_commit.message }}
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
@@ -143,8 +143,8 @@ jobs:
         artifact: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
         commit: ${{github.ref}}
         token: ${{ secrets.GITHUB_TOKEN }}
-        draft: true
         body: |
+          ${{ env.RELEASE_BODY }}
+
           [Лог сборки](https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}})
           
-          ${{ env.RELEASE_BODY }}
