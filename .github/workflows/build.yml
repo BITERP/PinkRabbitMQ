@@ -1,9 +1,7 @@
 name: Build
 
-on: 
+on:
   push:
-    branches: 
-      - master
     paths: 
       - 'src/**'
 
@@ -22,7 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
+    
     - name: Make Build Directory
       run: mkdir ${{env.LIN_DIR}}
 
@@ -74,6 +72,22 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Prepare environment
+      uses: iamtheyammer/branch-env-vars@v1.0.3
+      with:
+        NAME_PREFIX: |
+          master:
+          !default:[DEV] 
+        TAG_PREFIX: |
+          master:v
+          !default:dev
+        PRERELEASE: |
+          master:false
+          !default:true
+        RELEASE_BODY: |
+          master:[Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
+          !default:${{ github.event.head_commit.message }}
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     
@@ -119,13 +133,18 @@ jobs:
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild .\msbuild.xml -t:makeRelease -p:VERSION=${{env.CURRENT_VERSION}}.${{env.BID}}
-
+      
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        tag_name: v${{env.CURRENT_VERSION}}.${{env.BID}}
-        name: PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
-        draft: false
-        files: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{env.TAG_PREFIX}}${{env.CURRENT_VERSION}}.${{env.BID}}
+        name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
+        prerelease: ${{env.PRERELEASE}}
+        artifact: ${{github.workspace}}/PinkRabbitMQ_v${{env.CURRENT_VERSION}}.${{env.BID}}.zip
+        commit: ${{github.ref}}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        body: |
+          ${{ env.RELEASE_BODY }}
+
+          [Лог сборки](https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}})
+          

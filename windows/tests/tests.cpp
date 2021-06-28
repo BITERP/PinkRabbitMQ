@@ -313,7 +313,6 @@ namespace tests
             for (int i = 0; i < 2; i++) {
                 u16string tag = basicConsume(con, q, 1);
                 tVariant args[4];
-                tVariant status;
                 con.stringParam(args, tag);
                 con.intParam(&args[3], 1000);
                 tVariant ret;

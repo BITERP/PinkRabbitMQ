@@ -38,6 +38,8 @@ private:
 
     virtual void onClosed(AMQP::Connection *connection) override;
 
+    virtual uint16_t onNegotiate(AMQP::Connection* connection, uint16_t interval) override;
+
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
 
 };
