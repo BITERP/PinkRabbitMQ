@@ -1,0 +1,22 @@
+{
+	"amqps": {
+		"host": "host.rmq.cloudamqp.com",
+		"port": 5671,
+		"user": "user",
+		"pwd": "password",
+		"vhost": "user",
+		"secure": true,
+		"exchange": "pinkrmq_test",
+		"queue": "pinkrmq_test"
+	},
+	"amqp": {
+		"host": "host.rmq.cloudamqp.com",
+		"port": 5672,
+		"user": "user",
+		"pwd": "password",
+		"vhost": "user",
+		"secure": false,
+		"exchange": "pinkrmq_test",
+		"queue": "pinkrmq_test"
+	}
+}
