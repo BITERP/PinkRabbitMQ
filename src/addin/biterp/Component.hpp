@@ -126,9 +126,14 @@ namespace Biterp {
         void addError(const string &descr, const string &source = "",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
-            u16string wdescr = u16Converter.from_bytes(descr);
-            u16string wsource = u16Converter.from_bytes(source);
-            addError(move(wdescr), move(wsource), wcode, scode);
+            try {
+                u16string wdescr = u16Converter.from_bytes(descr);
+                u16string wsource = u16Converter.from_bytes(source);
+                addError(move(wdescr), move(wsource), wcode, scode);
+            }
+            catch (std::exception e) {
+                addError(u"NativeLibrary", u"Invalid error message");
+            }
         }
 
         /**
