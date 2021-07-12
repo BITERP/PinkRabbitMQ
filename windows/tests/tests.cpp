@@ -266,13 +266,15 @@ namespace tests
         TEST_METHOD(ExtPublish) {
             Connection con;
             Assert::IsTrue(connect(con));
-            Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13}"));
+            Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13,\"yes\":true,\"no\":false}"));
             u16string text = receiveUntil(con, qname(), u"args message");
             tVariant ret;
             Assert::IsTrue(con.callAsFunc(u"GetHeaders", &ret, nullptr, 0));
             Assert::IsTrue(ret.vt == VTYPE_PWSTR);
             json obj = json::parse(con.retStringUtf8(&ret));
             Assert::AreEqual(13, (int)obj["some-header"]);
+            Assert::AreEqual(true, (bool)obj["yes"]);
+            Assert::AreEqual(false, (bool)obj["no"]);
         }
 
         TEST_METHOD(MultiConnectSsl) {

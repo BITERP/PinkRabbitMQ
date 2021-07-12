@@ -256,6 +256,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 				})
 			.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 				{
+					LOGI("Consume new message arrived");
 					MessageObject msgOb;
 					msgOb.body.assign(message.body(), message.bodySize());
 					msgOb.msgProps[CORRELATION_ID] = message.correlationID();
@@ -274,6 +275,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					msgOb.headers = message.headers();
 					{
 						unique_lock<mutex> lock(_mutex);
+						LOGI("Consume push message");
 						messageQueue.push(msgOb);
 						cvDataArrived.notify_all();
 					}
@@ -293,21 +295,27 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	tVariant* outdata = ctx.skipParam();
 	tVariant* outMessageTag = ctx.skipParam();
 	int timeout = ctx.intParam();
+	LOGI("ConsumeMessage start");
 
 	ctx.setEmptyResult(outdata);
 	ctx.setLongResult(0, outMessageTag);
 	{
+		LOGI("ConsumeMessage waitlock");
 		unique_lock<mutex> lock(_mutex);
 		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
+			LOGI("ConsumeMessage empty");
 			ctx.setBoolResult(false);
 			return;
 		}
+		LOGI("ConsumeMessage got message");
 		lastMessage = messageQueue.front();
 		messageQueue.pop();
 	}
+	LOGI("ConsumeMessage set result");
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
 	ctx.setLongResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
+	LOGI("ConsumeMessage end");
 }
 
 void RabbitMQClient::clear() {
@@ -398,7 +406,8 @@ string RabbitMQClient::lastMessageHeaders() {
 	for (const std::string& key : headersTbl.keys()) {
 		const AMQP::Field& field = headersTbl.get(key);
 		if (field.isBoolean()) {
-			hdr[key] = (bool)(int)field;
+			const AMQP::BooleanSet& boolField = dynamic_cast<const AMQP::BooleanSet&>(field);
+			hdr[key] = (bool)boolField.get(0);
 		}
 		else if (field.isInteger()) {
 			hdr[key] = (int64_t)field;

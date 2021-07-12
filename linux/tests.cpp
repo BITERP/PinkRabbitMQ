@@ -258,13 +258,15 @@ CTEST(ExtBind) {
 CTEST(ExtPublish) {
     Connection con;
     ASSERT(connect(con));
-    ASSERT(publish(con, qname(), u"args message", u"{\"some-header\":13}"));
+    ASSERT(publish(con, qname(), u"args message", u"{\"some-header\":13,\"yes\":true,\"no\":false}"));
     u16string text = receiveUntil(con, qname(), u"args message");
     tVariant ret;
     ASSERT(con.callAsFunc(u"GetHeaders", &ret, nullptr, 0));
     ASSERT(ret.vt == VTYPE_PWSTR);
     json obj = json::parse(con.retStringUtf8(&ret));
     ASSERT_EQ(13, (int)obj["some-header"]);
+    ASSERT_EQ(true, (bool)obj["yes"]);
+    ASSERT_EQ(false, (bool)obj["no"]);
 }
 
 CTEST(MultiConnectSsl) {
