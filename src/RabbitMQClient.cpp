@@ -291,31 +291,34 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 
 
 void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
+	if (consumers.empty()) {
+		throw Biterp::Error("No active consumers");
+	}
+	inConsume = true;
 	ctx.skipParam();
 	tVariant* outdata = ctx.skipParam();
 	tVariant* outMessageTag = ctx.skipParam();
 	int timeout = ctx.intParam();
-	LOGI("ConsumeMessage start");
-
 	ctx.setEmptyResult(outdata);
 	ctx.setLongResult(0, outMessageTag);
 	{
-		LOGI("ConsumeMessage waitlock");
 		unique_lock<mutex> lock(_mutex);
 		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
-			LOGI("ConsumeMessage empty");
 			ctx.setBoolResult(false);
+			inConsume = false;
 			return;
 		}
-		LOGI("ConsumeMessage got message");
+		if (messageQueue.empty()) {
+			inConsume = false;
+			throw Biterp::Error("Empty consume message");
+		}
 		lastMessage = messageQueue.front();
 		messageQueue.pop();
 	}
-	LOGI("ConsumeMessage set result");
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
 	ctx.setLongResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
-	LOGI("ConsumeMessage end");
+	inConsume = false;
 }
 
 void RabbitMQClient::clear() {
@@ -336,6 +339,10 @@ void RabbitMQClient::clear() {
 	unique_lock<mutex> lock(_mutex);
 	queue<MessageObject> empty;
 	messageQueue.swap(empty);
+	if (inConsume) {
+		cvDataArrived.notify_all();
+		this_thread::sleep_for(chrono::seconds(1));
+	}
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
