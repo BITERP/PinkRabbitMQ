@@ -59,11 +59,11 @@ namespace Biterp {
 
     public:
         inline static void init(const u16string &name, IAddInDefBase *addin) {
-            instance()._init(name, addin);
+            //instance()._init(name, addin);
         }
 
         inline static void log(int level, const string &text) {
-            instance()._log(level, text);
+            //instance()._log(level, text);
         }
 
         inline static void debug(const string &text) { log(Level::LDEBUG, text); }
