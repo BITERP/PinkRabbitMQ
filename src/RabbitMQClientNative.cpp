@@ -90,15 +90,20 @@ const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ";
 // CAddInNative
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::RabbitMQClientNative() {
+	LOGD("construct");
 }
 
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::~RabbitMQClientNative() {
+	LOGD("destruct");
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::Init(VOID_PTR pConnection) {
-	return impl.init(static_cast<IAddInDefBase*>(pConnection));
+	LOGD("init start");
+	bool ret = impl.init(static_cast<IAddInDefBase*>(pConnection));
+	LOGD("init end");
+	return ret;
 }
 
 //---------------------------------------------------------------------------//
@@ -110,7 +115,9 @@ long RabbitMQClientNative::GetInfo() {
 
 //---------------------------------------------------------------------------//
 void RabbitMQClientNative::Done() {
+	LOGD("done start");
 	impl.done();
+	LOGD("done end");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -163,10 +170,12 @@ const WCHAR_T* RabbitMQClientNative::GetPropName(long lPropNum, long lPropAlias)
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal) {
-	LOGD("1C get prop " + to_string(lPropNum));
+	LOGD("1C get prop start " + to_string(lPropNum));
+	bool ret = false;
 	switch (lPropNum) {
 	case ePropVersion:
-		return impl.getVersion(pvarPropVal);
+		ret = impl.getVersion(pvarPropVal);
+		break;
 	case ePropCorrelationId:
 	case ePropType:
 	case ePropMessageId:
@@ -177,15 +186,20 @@ bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal
 	case ePropClusterId:
 	case ePropExpiration:
 	case ePropReplyTo:
-		return impl.getMsgProp(pvarPropVal, lPropNum);
+		ret = impl.getMsgProp(pvarPropVal, lPropNum);
+		break;
 	default:
-		return false;
+		ret = false;
+		break;
 	}
+	LOGD("1C get prop end " + to_string(lPropNum));
+	return ret;
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal) {
-	LOGD("1C set prop " + to_string(lPropNum));
+	LOGD("1C set prop start " + to_string(lPropNum));
+	bool ret = false;
 	switch (lPropNum) {
 	case ePropCorrelationId:
 	case ePropType:
@@ -197,10 +211,14 @@ bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal)
 	case ePropClusterId:
 	case ePropExpiration:
 	case ePropReplyTo:
-		return impl.setMsgProp(varPropVal, lPropNum);
+		ret = impl.setMsgProp(varPropVal, lPropNum);
+		break;
 	default:
-		return false;
+		ret = false;
+		break;
 	}
+	LOGD("1C set prop end " + to_string(lPropNum));
+	return ret;
 }
 
 //---------------------------------------------------------------------------//
@@ -366,58 +384,84 @@ bool RabbitMQClientNative::HasRetVal(const long lMethodNum) {
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 	tVariant* paParams, const long lSizeArray) {
-	LOGD("1C call proc " + to_string(lMethodNum));
+	LOGD("1C call proc start " + to_string(lMethodNum));
+	bool ret = false;
 	switch (lMethodNum) {
 	case eMethConnect:
-		return impl.connect(paParams, lSizeArray);
+		ret = impl.connect(paParams, lSizeArray);
+		break;
 	case eMethBasicPublish:
-		return impl.basicPublish(paParams, lSizeArray);
+		ret = impl.basicPublish(paParams, lSizeArray);
+		break;
 	case eMethBasicCancel:
-		return impl.basicCancel(paParams, lSizeArray);
+		ret = impl.basicCancel(paParams, lSizeArray);
+		break;
 	case eMethBasicAck:
-		return impl.basicAck(paParams, lSizeArray);
+		ret = impl.basicAck(paParams, lSizeArray);
+		break;
 	case eMethBasicReject:
-		return impl.basicReject(paParams, lSizeArray);
+		ret = impl.basicReject(paParams, lSizeArray);
+		break;
 	case eMethDeleteQueue:
-		return impl.deleteQueue(paParams, lSizeArray);
+		ret = impl.deleteQueue(paParams, lSizeArray);
+		break;
 	case eMethBindQueue:
-		return impl.bindQueue(paParams, lSizeArray);
+		ret = impl.bindQueue(paParams, lSizeArray);
+		break;
 	case eMethUnbindQueue:
-		return impl.unbindQueue(paParams, lSizeArray);
+		ret = impl.unbindQueue(paParams, lSizeArray);
+		break;
 	case eMethDeclareExchange:
-		return impl.declareExchange(paParams, lSizeArray);
+		ret = impl.declareExchange(paParams, lSizeArray);
+		break;
 	case eMethDeleteExchange:
-		return impl.deleteExchange(paParams, lSizeArray);
+		ret = impl.deleteExchange(paParams, lSizeArray);
+		break;
 	case eMethSetPriority:
-		return impl.setPriority(paParams, lSizeArray);
+		ret = impl.setPriority(paParams, lSizeArray);
+		break;
 	default:
-		return false;
+		ret = false;
+		break;
 	}
+	LOGD("1C call proc end " + to_string(lMethodNum));
+	return ret;
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 	tVariant* pvarRetValue, tVariant* paParams,
 	const long lSizeArray) {
-	LOGD("1C call func " + to_string(lMethodNum));
+	LOGD("1C call func start " + to_string(lMethodNum));
+	bool ret = false;
 	switch (lMethodNum) {
 	case eMethGetLastError:
-		return impl.getLastError(pvarRetValue, paParams, lSizeArray);
+		ret = impl.getLastError(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethBasicConsume:
-		return impl.basicConsume(pvarRetValue, paParams, lSizeArray);
+		ret = impl.basicConsume(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethBasicConsumeMessage:
-		return impl.basicConsumeMessage(pvarRetValue, paParams, lSizeArray);
+		ret = impl.basicConsumeMessage(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethDeclareQueue:
-		return impl.declareQueue(pvarRetValue, paParams, lSizeArray);
+		ret = impl.declareQueue(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethGetPriority:
-		return impl.getPriority(pvarRetValue, paParams, lSizeArray);
+		ret = impl.getPriority(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethGetRoutingKey:
-		return impl.getRoutingKey(pvarRetValue, paParams, lSizeArray);
+		ret = impl.getRoutingKey(pvarRetValue, paParams, lSizeArray);
+		break;
 	case eMethGetHeaders:
-		return impl.getHeaders(pvarRetValue, paParams, lSizeArray);
+		ret = impl.getHeaders(pvarRetValue, paParams, lSizeArray);
+		break;
 	default:
-		return false;
+		ret = false;
+		break;
 	}
+	LOGD("1C call func end " + to_string(lMethodNum));
+	return ret;
 }
 
 

@@ -143,7 +143,6 @@ private:
 	mutex _mutex;
 	volatile bool inConsume;
 	condition_variable cvDataArrived;
-	//condition_variable cvConsumeEnd;
 
 private:
 

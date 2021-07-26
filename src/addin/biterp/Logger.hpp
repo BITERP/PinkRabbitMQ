@@ -59,11 +59,11 @@ namespace Biterp {
 
     public:
         inline static void init(const u16string &name, IAddInDefBase *addin) {
-            //instance()._init(name, addin);
+            instance()._init(name, addin);
         }
 
         inline static void log(int level, const string &text) {
-            //instance()._log(level, text);
+            instance()._log(level, text);
         }
 
         inline static void debug(const string &text) { log(Level::LDEBUG, text); }
@@ -111,8 +111,9 @@ namespace Biterp {
             }
             time_t t = time(nullptr);
             LOCALTIME(tm, &t);
-            file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S] ") << text
-                 << endl;
+            file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S ") 
+                << std::time(nullptr) << " " << std::this_thread::get_id() << "]"
+                << text << endl;
             file.flush();
             if (file.tellp() > ROTATE_SIZE) {
                 rotate();
