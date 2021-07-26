@@ -9,7 +9,8 @@ set (CMAKE_CXX_STANDARD 11)
 set (ROOT_DIR ${CMAKE_SOURCE_DIR}/..)
 set (CMAKE_SOURCE_DIR ${ROOT_DIR}/src)
 set (LIB_DIR ${ROOT_DIR}/lib/linux)
-
+set (CMAKE_VISIBILITY_INLINES_HIDDEN true)
+set (CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 SET(AddInNative_SRC 
     ${CMAKE_SOURCE_DIR}/linux/ConnectionImpl.cpp

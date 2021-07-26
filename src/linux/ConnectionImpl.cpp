@@ -28,7 +28,6 @@ ConnectionImpl::~ConnectionImpl() {
     delete handler;
 
     event_base_free(eventLoop);
-    libevent_global_shutdown();
 }
 
 void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
