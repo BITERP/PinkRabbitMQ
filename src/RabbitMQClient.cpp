@@ -1,5 +1,16 @@
 #include "RabbitMQClient.h"
 #include <nlohmann/json.hpp>
+#if defined(__linux__)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+typedef struct addrinfo AINFO;
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+typedef ADDRINFOA AINFO;
+#endif
 
 using json = nlohmann::json;
 
@@ -16,6 +27,13 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	if (host.empty()) {
 		throw Biterp::Error("Empty hostname not allowed");
 	}
+
+	AINFO* _info = nullptr;
+	auto code = getaddrinfo(host.c_str(), nullptr, nullptr, &_info);
+	if (code) {
+		throw Biterp::Error("Wrong hostname: ") << host;
+	}
+	freeaddrinfo(_info);
 
 	AMQP::Address address(host, port, AMQP::Login(user, pwd), vhost, ssl);
 

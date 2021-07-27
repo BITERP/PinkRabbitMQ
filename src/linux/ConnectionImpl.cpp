@@ -78,7 +78,7 @@ void ConnectionImpl::connect() {
     const uint16_t timeout = 5000;
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
-    while (!connection->ready() && (end - std::chrono::system_clock::now()).count() > 0) {
+    while (!connection->ready() &&  !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
         this_thread::sleep_for(chrono::milliseconds(100));
     }
     if (!connection->ready()) {
