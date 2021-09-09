@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include "common.h"
+#include <thread>
 #include <nlohmann/json.hpp>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -266,13 +267,15 @@ namespace tests
         TEST_METHOD(ExtPublish) {
             Connection con;
             Assert::IsTrue(connect(con));
-            Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13}"));
+            Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13,\"yes\":true,\"no\":false}"));
             u16string text = receiveUntil(con, qname(), u"args message");
             tVariant ret;
             Assert::IsTrue(con.callAsFunc(u"GetHeaders", &ret, nullptr, 0));
             Assert::IsTrue(ret.vt == VTYPE_PWSTR);
             json obj = json::parse(con.retStringUtf8(&ret));
             Assert::AreEqual(13, (int)obj["some-header"]);
+            Assert::AreEqual(true, (bool)obj["yes"]);
+            Assert::AreEqual(false, (bool)obj["no"]);
         }
 
         TEST_METHOD(MultiConnectSsl) {
@@ -294,7 +297,7 @@ namespace tests
                 u16string tag = basicConsume(con, qname());
                 tVariant args[4];
                 con.stringParam(args, tag);
-                con.intParam(&args[3], 10000);
+                con.intParam(&args[3], 500);
                 tVariant ret;
                 bool res = con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
                 Assert::IsTrue(res);
@@ -314,7 +317,7 @@ namespace tests
                 u16string tag = basicConsume(con, q, 1);
                 tVariant args[4];
                 con.stringParam(args, tag);
-                con.intParam(&args[3], 1000);
+                con.intParam(&args[3], 500);
                 tVariant ret;
                 bool res = con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4);
                 Assert::AreEqual(i == 0, ret.bVal);
@@ -339,7 +342,6 @@ namespace tests
            for (int i = 0; i < 2; i++) {
                u16string tag = basicConsume(con, q, 100);
                tVariant args[4];
-               tVariant status;
                con.stringParam(args, tag);
                con.intParam(&args[3], 1000);
                tVariant ret;
@@ -371,6 +373,32 @@ namespace tests
            con.intParam(&paParams[7], 5);
            Assert::IsFalse(con.callAsProc(u"Connect", paParams, 8));
            con.hasError("Empty hostname not allowed");
+       }
+
+       static void thread_proc(Connection& con) {
+           u16string tag = basicConsume(con, qname(), 100);
+           tVariant args[4];
+           tVariant status;
+           con.stringParam(args, tag);
+           con.intParam(&args[3], 500);
+           tVariant ret;
+           while (con.callAsFunc(u"BasicConsumeMessage", &ret, args, 4)) {
+               if (ret.bVal) {
+                   string data = con.retStringUtf8(&args[1]);
+               }
+           }
+       }
+
+       TEST_METHOD(KillWhileConsume) {
+           std::thread t;
+           {
+               Connection con;
+               Assert::IsTrue(connect(con));
+               t = std::thread(thread_proc, std::ref(con));
+               this_thread::sleep_for(chrono::seconds(1));
+           }           
+           this_thread::sleep_for(chrono::seconds(1));
+           t.join();
        }
 	};
 }

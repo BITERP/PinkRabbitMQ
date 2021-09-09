@@ -11,6 +11,13 @@
 
 #endif //__ANDROID__
 
+#if defined(__linux__)
+#define EXPORT __attribute__ ((visibility ("default")))
+#else
+#define EXPORT
+#endif
+
+
 #if defined(__APPLE__) && !defined(BUILD_DYNAMIC_LIBRARY)
 
 namespace ADD_IN_NATIVE
@@ -21,7 +28,7 @@ namespace ADD_IN_NATIVE
 static AppCapabilities g_capabilities = eAppCapabilitiesInvalid;
 
 //---------------------------------------------------------------------------//
-long GetClassObject(const WCHAR_T *wsName, IComponentBase **pInterface) {
+EXPORT long GetClassObject(const WCHAR_T *wsName, IComponentBase **pInterface) {
     if (!*pInterface) {
         *pInterface = new RabbitMQClientNative();
         return (long) (*pInterface);
@@ -30,13 +37,13 @@ long GetClassObject(const WCHAR_T *wsName, IComponentBase **pInterface) {
 }
 
 //---------------------------------------------------------------------------//
-AppCapabilities SetPlatformCapabilities(const AppCapabilities capabilities) {
+EXPORT AppCapabilities SetPlatformCapabilities(const AppCapabilities capabilities) {
     g_capabilities = capabilities;
     return eAppCapabilitiesLast;
 }
 
 //---------------------------------------------------------------------------//
-long DestroyObject(IComponentBase **pInterface) {
+EXPORT long DestroyObject(IComponentBase **pInterface) {
     if (!*pInterface)
         return -1;
 
@@ -46,7 +53,7 @@ long DestroyObject(IComponentBase **pInterface) {
 }
 
 //---------------------------------------------------------------------------//
-const WCHAR_T *GetClassNames() {
+EXPORT const WCHAR_T *GetClassNames() {
     return RabbitMQClientNative::componentName;
 }
 

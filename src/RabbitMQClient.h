@@ -25,7 +25,7 @@ public:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 public:
-	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
+	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0), inConsume(false) {};
 
 	virtual ~RabbitMQClient() { clear(); };
 
@@ -141,6 +141,7 @@ private:
 	vector<string> consumers;
 	queue<MessageObject> messageQueue;
 	mutex _mutex;
+	volatile bool inConsume;
 	condition_variable cvDataArrived;
 
 private:

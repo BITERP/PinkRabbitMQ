@@ -1,5 +1,16 @@
 #include "RabbitMQClient.h"
 #include <nlohmann/json.hpp>
+#if defined(__linux__)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+typedef struct addrinfo AINFO;
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+typedef ADDRINFOA AINFO;
+#endif
 
 using json = nlohmann::json;
 
@@ -16,6 +27,13 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	if (host.empty()) {
 		throw Biterp::Error("Empty hostname not allowed");
 	}
+
+	AINFO* _info = nullptr;
+	auto code = getaddrinfo(host.c_str(), nullptr, nullptr, &_info);
+	if (code) {
+		throw Biterp::Error("Wrong hostname: ") << host;
+	}
+	freeaddrinfo(_info);
 
 	AMQP::Address address(host, port, AMQP::Login(user, pwd), vhost, ssl);
 
@@ -256,6 +274,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 				})
 			.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 				{
+					LOGI("Consume new message arrived");
 					MessageObject msgOb;
 					msgOb.body.assign(message.body(), message.bodySize());
 					msgOb.msgProps[CORRELATION_ID] = message.correlationID();
@@ -274,6 +293,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					msgOb.headers = message.headers();
 					{
 						unique_lock<mutex> lock(_mutex);
+						LOGI("Consume push message");
 						messageQueue.push(msgOb);
 						cvDataArrived.notify_all();
 					}
@@ -289,18 +309,26 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 
 
 void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
+	if (consumers.empty()) {
+		throw Biterp::Error("No active consumers");
+	}
+	inConsume = true;
 	ctx.skipParam();
 	tVariant* outdata = ctx.skipParam();
 	tVariant* outMessageTag = ctx.skipParam();
 	int timeout = ctx.intParam();
-
 	ctx.setEmptyResult(outdata);
 	ctx.setLongResult(0, outMessageTag);
 	{
 		unique_lock<mutex> lock(_mutex);
 		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 			ctx.setBoolResult(false);
+			inConsume = false;
 			return;
+		}
+		if (messageQueue.empty()) {
+			inConsume = false;
+			throw Biterp::Error("Empty consume message");
 		}
 		lastMessage = messageQueue.front();
 		messageQueue.pop();
@@ -308,6 +336,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
 	ctx.setLongResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
+	inConsume = false;
 }
 
 void RabbitMQClient::clear() {
@@ -328,6 +357,10 @@ void RabbitMQClient::clear() {
 	unique_lock<mutex> lock(_mutex);
 	queue<MessageObject> empty;
 	messageQueue.swap(empty);
+	if (inConsume) {
+		cvDataArrived.notify_all();
+		this_thread::sleep_for(chrono::seconds(1));
+	}
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
@@ -398,7 +431,8 @@ string RabbitMQClient::lastMessageHeaders() {
 	for (const std::string& key : headersTbl.keys()) {
 		const AMQP::Field& field = headersTbl.get(key);
 		if (field.isBoolean()) {
-			hdr[key] = (bool)(int)field;
+			const AMQP::BooleanSet& boolField = dynamic_cast<const AMQP::BooleanSet&>(field);
+			hdr[key] = (bool)boolField.get(0);
 		}
 		else if (field.isInteger()) {
 			hdr[key] = (int64_t)field;

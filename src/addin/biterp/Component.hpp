@@ -131,7 +131,7 @@ namespace Biterp {
                 u16string wsource = u16Converter.from_bytes(source);
                 addError(move(wdescr), move(wsource), wcode, scode);
             }
-            catch (std::exception e) {
+            catch (const std::exception&) {
                 addError(u"NativeLibrary", u"Invalid error message");
             }
         }

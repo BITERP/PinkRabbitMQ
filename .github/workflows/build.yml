@@ -44,7 +44,9 @@ jobs:
       
     - name: Get Test Config
       working-directory: ${{github.workspace}}/linux
-      run: echo ${{secrets.TEST_CONFIG}} | base64 -d > ./test.conf
+      env:
+        TEST_CONFIG: ${{secrets.TEST_CONFIG}}
+      run: echo  $TEST_CONFIG | base64 -d > ./test.conf
 
     - name: Test
       working-directory: ${{env.LIN_DIR}}
@@ -86,8 +88,7 @@ jobs:
           !default:true
         RELEASE_BODY: |
           master:[Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
-          !default:${{ github.event.head_commit.message }}
-
+          !default:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     
@@ -145,6 +146,8 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         body: |
           ${{ env.RELEASE_BODY }}
+
+          ${{ github.event.head_commit.message }}
 
           [Лог сборки](https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}})
           

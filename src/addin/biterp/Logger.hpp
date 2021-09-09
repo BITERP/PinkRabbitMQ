@@ -111,8 +111,9 @@ namespace Biterp {
             }
             time_t t = time(nullptr);
             LOCALTIME(tm, &t);
-            file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S] ") << text
-                 << endl;
+            file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S ") 
+                << std::time(nullptr) << " " << std::this_thread::get_id() << "]"
+                << text << endl;
             file.flush();
             if (file.tellp() > ROTATE_SIZE) {
                 rotate();
