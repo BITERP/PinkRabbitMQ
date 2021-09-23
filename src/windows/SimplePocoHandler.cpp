@@ -206,8 +206,9 @@ void SimplePocoHandler::onData(
 {
 	m_impl->connection = connection;
 	size_t written = m_impl->outBuffer.write(data, size);
-	if (written != size)
+	while (written != size)
 	{
+		sendDataFromBuffer();
 		written += m_impl->outBuffer.write(data + written, size - written);
 	}
 }
