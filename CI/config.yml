@@ -6,9 +6,9 @@ linux-vm:
   zone: ru-central1-b
   disk-size: 10
   disk-type: ssd
-  memory: 2
+  memory: 4
   cores: 2
-  core-fraction: 20
+  core-fraction: 100
   service-account: mdt
 
 notify:
