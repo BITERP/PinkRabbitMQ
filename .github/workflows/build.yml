@@ -147,7 +147,7 @@ jobs:
 
       - name: Notify
         if: always() && matrix.release
-        run: python3 CI/ci_scripts/notify.py ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
+        run: python3 -m pip install PyYAML && python3 CI/ci_scripts/notify.py ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
         env:
           YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
   
