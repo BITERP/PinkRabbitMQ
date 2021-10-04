@@ -12,7 +12,6 @@ linux-vm:
   service-account: mdt
 
 notify:
-  gateway: https://devapigwpriv.bit-erp.ru
   slack:
     default:
       channel: "#devops_build_log"
