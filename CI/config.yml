@@ -1,0 +1,19 @@
+
+linux-vm:
+  name: buildaddin-prmq
+  gateway: https://devapigwpriv.bit-erp.ru
+  image: standard-images/ubuntu-1604-lts
+  zone: ru-central1-b
+  disk-size: 10
+  disk-type: ssd
+  memory: 2
+  cores: 2
+  core-fraction: 20
+  service-account: mdt
+
+notify:
+  gateway: https://devapigwpriv.bit-erp.ru
+  slack:
+    default:
+      channel: "#devops_build_log"
+      user: "@vdykov @ipalenov"

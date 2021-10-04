@@ -2,7 +2,9 @@ name: Build
 
 on:
   push:
-    paths: 
+    paths:
+      - '.github/**'
+      - 'CI/**' 
       - 'src/**'
 
 env:
@@ -14,8 +16,27 @@ env:
   BID: ${{github.run_number}}
 
 jobs:
+  start_linux_vm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+        with:
+          repository: BITERP/ci_scripts
+          token: ${{secrect.IPALENOV_GHTOKEN}}
+          path: CI/ci_scripts
+
+      - name: Start Linux VM
+        run: python3 CI/ci_scripts/build_linux.py start 
+        env:
+          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
+
+
   build_linux:
-    runs-on: ubuntu-16.04
+    runs-on: buildaddin-prmq-${{github.run_number}}
+    needs: start_linux_vm
     environment: actions
 
     steps:
@@ -70,6 +91,8 @@ jobs:
     needs: build_linux
     runs-on: windows-latest
     environment: actions
+    outputs:
+      release_link: ${{steps.release.outputs.html_url}}
 
     steps:
     - uses: actions/checkout@v2
@@ -137,6 +160,7 @@ jobs:
       
     - name: Release
       uses: ncipollo/release-action@v1
+      id: release
       with:
         tag: ${{env.TAG_PREFIX}}${{env.CURRENT_VERSION}}.${{env.BID}}
         name: ${{env.NAME_PREFIX}}PinkRabbitMQ v${{env.CURRENT_VERSION}}.${{env.BID}}
@@ -150,4 +174,29 @@ jobs:
           ${{ github.event.head_commit.message }}
 
           [Лог сборки](https://github.com/BITERP/PinkRabbitMQ/actions/runs/${{github.run_id}})
-          
+
+  clean:
+    runs-on: ubuntu-latest
+    needs: build_windows
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+        with:
+          repository: BITERP/ci_scripts
+          token: ${{secrect.IPALENOV_GHTOKEN}}
+          path: CI/ci_scripts
+
+      - name: Clean Linux VM
+        run: python3 CI/ci_scripts/build_linux.py clean
+        env:
+          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
+
+      - name: Notify
+        run: python3 CI/ci_scripts/notify.py ${{needs.build_windows.result}} ${{needs.build_windows.outputs.release_link}}
+        env:
+          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
+
