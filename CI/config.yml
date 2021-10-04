@@ -2,7 +2,7 @@
 linux-vm:
   name: buildaddin-prmq
   gateway: https://devapigwpriv.bit-erp.ru
-  image: standard-images/ubuntu-1604-lts
+  image: ubuntu1604-addins
   zone: ru-central1-b
   disk-size: 10
   disk-type: ssd
