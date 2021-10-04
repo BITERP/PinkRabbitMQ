@@ -32,6 +32,12 @@ jobs:
           YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
 
+      - name: notify error
+        if: fail()
+        run: python3 CI/ci_scripts/nofity.py configure_fail 
+        env:
+          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
+
 
   buildLinux:
     runs-on: buildaddin-prmq-${{github.run_number}}
