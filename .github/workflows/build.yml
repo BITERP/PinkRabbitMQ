@@ -33,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
 
       - name: notify error
-        if: failed()
+        if: failure()
         run: python3 CI/ci_scripts/nofity.py -g config configure_fail 
         env:
           YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
