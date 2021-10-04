@@ -14,9 +14,7 @@ linux-vm:
 notify:
   slack:
     default:
-      channel: "#devops_build_log"
-    master:
-      channel: "#devops_build_log"
+      channel: "#devops_bot_test"
       user: "@vdykov @ipalenov"
 
 addins:
