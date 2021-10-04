@@ -16,4 +16,17 @@ notify:
   slack:
     default:
       channel: "#devops_build_log"
+    master:
+      channel: "#devops_build_log"
       user: "@vdykov @ipalenov"
+
+addins:
+  PinkRabbitMQ:
+    path: '.'
+    version: 2.1.0
+    linuxLibrary: libPinkRabbitMQ64.so
+    type:
+      - linux
+      - windows
+    release: true
+    uploadSymbols: true
