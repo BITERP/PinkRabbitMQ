@@ -139,7 +139,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: addins_${{matrix.component}}_${{github.run_number}}
-          name: '[DEV] ${{matrix.component}} v${{matrix.version}}'
+          name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}'
           prerelease: ${{ github.ref != 'refs/heads/master' }}
           artifacts: ${{matrix.location}}/${{matrix.out}}
           commit: ${{github.ref}}
@@ -159,6 +159,7 @@ jobs:
   
   cleanLinux:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [configure, buildLinux]
     if: always()
     steps:
