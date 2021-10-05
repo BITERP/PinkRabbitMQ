@@ -26,7 +26,7 @@ jobs:
 
       - name: configure components
         id: configure
-        run: python3 CI/ci_scripts/build_addins.py configure ${{ github.event.before }} ${{ github.event.after }}
+        run: python3 CI/ci_scripts/build_addins.py configure -a ${{ github.event.before }} ${{ github.event.after }}
         env:
           YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
