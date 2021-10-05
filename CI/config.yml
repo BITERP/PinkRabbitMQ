@@ -22,6 +22,7 @@ addins:
     path: '.'
     version: 2.1.0
     linuxLibrary: libPinkRabbitMQ64.so
+    packagePath: package
     type:
       - linux
       - windows
