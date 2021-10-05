@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     paths:
+      - 'CI/config.yml'
       - 'src/**'
 
 jobs:

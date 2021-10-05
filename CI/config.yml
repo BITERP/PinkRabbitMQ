@@ -17,6 +17,7 @@ notify:
       channel: "#devops_bot_test"
       user: "@vdykov @ipalenov"
 
+
 addins:
   PinkRabbitMQ:
     path: '.'
