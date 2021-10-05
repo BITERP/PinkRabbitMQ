@@ -1,0 +1,30 @@
+
+linux-vm:
+  name: buildaddin-prmq
+  gateway: https://devapigwpriv.bit-erp.ru
+  image: ubuntu1604-addins
+  zone: ru-central1-b
+  disk-size: 10
+  disk-type: ssd
+  memory: 4
+  cores: 2
+  core-fraction: 100
+  service-account: mdt
+
+notify:
+  slack:
+    default:
+      channel: "#devops_bot_test"
+      user: "@vdykov @ipalenov"
+
+addins:
+  PinkRabbitMQ:
+    path: '.'
+    version: 2.1.0
+    linuxLibrary: libPinkRabbitMQ64.so
+    packagePath: package
+    type:
+      - linux
+      - windows
+    release: true
+    uploadSymbols: true

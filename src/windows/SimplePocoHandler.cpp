@@ -205,10 +205,11 @@ void SimplePocoHandler::onData(
 	AMQP::Connection* connection, const char* data, size_t size)
 {
 	m_impl->connection = connection;
-	const size_t writen = m_impl->outBuffer.write(data, size);
-	if (writen != size)
+	size_t written = m_impl->outBuffer.write(data, size);
+	while (written != size)
 	{
-		m_impl->outBuffer.write(data + writen, size - writen);
+		sendDataFromBuffer();
+		written += m_impl->outBuffer.write(data + written, size - written);
 	}
 }
 
