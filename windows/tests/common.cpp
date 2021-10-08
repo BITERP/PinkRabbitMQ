@@ -148,15 +148,16 @@ bool publish(Connection& conn, u16string qname, u16string msg, u16string props, 
 }
 
 u16string basicConsume(Connection& conn, u16string queue, int size) {
-    tVariant paParams[5];
+    tVariant paParams[6];
     conn.stringParam(paParams, queue);
     u16string tag;
     conn.stringParam(&paParams[1], tag);
     conn.boolParam(&paParams[2], false);
     conn.boolParam(&paParams[3], false);
     conn.intParam(&paParams[4], size);
+    conn.nullParam(&paParams[5]);
     tVariant ret;
-    bool res = conn.callAsFunc(u"BasicConsume", &ret, paParams, 5);
+    bool res = conn.callAsFunc(u"BasicConsume", &ret, paParams, 6);
     if (!res) {
         return u"";
     }

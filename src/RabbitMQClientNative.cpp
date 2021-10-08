@@ -280,9 +280,8 @@ long RabbitMQClientNative::GetNParams(const long lMethodNum) {
 		return 7;
 	case eMethBasicPublish:
 	case eMethDeclareExchange:
-		return 6;
 	case eMethBasicConsume:
-		return 5;
+		return 6;
 	case eMethBasicConsumeMessage:
 	case eMethBindQueue:
 		return 4;
@@ -336,15 +335,9 @@ bool RabbitMQClientNative::GetParamDefValue(const long lMethodNum, const long lP
 			return true;
 		}
 		break;
-	case eMethDeclareExchange:
-		if (lParamNum == 5) {
-			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
-			TV_WSTR(pvarParamDefValue) = nullptr;
-			pvarParamDefValue->wstrLen = 0;
-			return true;
-		}
-		break;
 	case eMethBasicPublish:
+	case eMethDeclareExchange:
+	case eMethBasicConsume:
 		if (lParamNum == 5) {
 			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
 			TV_WSTR(pvarParamDefValue) = nullptr;
