@@ -261,11 +261,14 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	bool noconfirm = ctx.boolParam();
 	bool exclusive = ctx.boolParam();
 	int selectSize = ctx.intParam();
+	string propsJson = ctx.stringParamUtf8();
+
+	AMQP::Table args = headersFromJson(propsJson);
 	string result;
 	{
 		AMQP::Channel* channel = connection->readChannel();
 		channel->setQos(selectSize);
-		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0))
+		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
 			.onSuccess([this, &result](const string& tag)
 				{
 					result = tag;
