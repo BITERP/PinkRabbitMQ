@@ -49,6 +49,7 @@ static const char16_t* g_MethodNames[] = {
 	u"GetPriority",
 	u"GetRoutingKey",
 	u"GetHeaders",
+	u"SleepNative",
 };
 
 static const char16_t* g_PropNamesRu[] = {
@@ -83,6 +84,7 @@ static const char16_t* g_MethodNamesRu[] = {
 	u"GetPriority",
 	u"GetRoutingKey",
 	u"GetHeaders",
+	u"SleepNative",
 };
 
 const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ";
@@ -294,6 +296,7 @@ long RabbitMQClientNative::GetNParams(const long lMethodNum) {
 	case eMethBasicAck:
 	case eMethBasicReject:
 	case eMethSetPriority:
+	case eMethSleepNative:
 		return 1;
 	default:
 		return 0;
@@ -412,6 +415,9 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 		break;
 	case eMethSetPriority:
 		ret = impl.setPriority(paParams, lSizeArray);
+		break;
+	case eMethSleepNative:
+		ret = impl.sleepNative(paParams, lSizeArray);
 		break;
 	default:
 		ret = false;

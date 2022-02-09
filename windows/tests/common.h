@@ -29,3 +29,5 @@ bool publish(Connection& conn, u16string qname, u16string msg, u16string props =
 u16string basicConsume(Connection& conn, u16string queue, int size=10);
 
 u16string receiveUntil(Connection& conn, u16string qname, u16string msg, long* msgTag = nullptr);
+
+bool nSleep(Connection& conn, int timeout);

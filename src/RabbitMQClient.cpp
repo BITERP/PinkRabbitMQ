@@ -397,6 +397,12 @@ void RabbitMQClient::checkConnection() {
 	}
 }
 
+void RabbitMQClient::sleepNativeImpl(Biterp::CallContext& ctx) {
+
+	uint64_t amount = ctx.longParam();
+	std::this_thread::sleep_for(std::chrono::milliseconds(amount));
+}
+
 AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson)
 {
 	AMQP::Table headers;

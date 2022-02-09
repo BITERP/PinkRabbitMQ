@@ -400,5 +400,11 @@ namespace tests
            this_thread::sleep_for(chrono::seconds(1));
            t.join();
        }
+
+       TEST_METHOD(NativeSleep) {
+           Connection conn;
+           Assert::IsTrue(nSleep(conn, 1000));
+       }
+
 	};
 }

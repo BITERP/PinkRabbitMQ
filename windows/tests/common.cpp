@@ -184,3 +184,9 @@ u16string receiveUntil(Connection& conn, u16string qname, u16string msg, long* m
     }
     return u"";
 }
+
+bool nSleep(Connection& conn, int timeout) {
+    tVariant paParams[1];
+    conn.intParam(paParams, timeout);
+    return conn.callAsProc(u"SleepNative", paParams, 1);
+}
