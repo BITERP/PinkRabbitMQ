@@ -18,6 +18,7 @@ SET(AddInNative_SRC
     ${CMAKE_SOURCE_DIR}/RabbitMQClient.cpp
     ${CMAKE_SOURCE_DIR}/RabbitMQClientNative.cpp
     ${CMAKE_SOURCE_DIR}/AddInNative.cpp
+    ${CMAKE_SOURCE_DIR}/Utils.cpp
     )
 
 include_directories(${CMAKE_SOURCE_DIR})
@@ -38,7 +39,7 @@ target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVE
 
 #tests
 
-add_executable(unittest tests.cpp common.cpp)
+add_executable(unittest tests.cpp common.cpp ${CMAKE_SOURCE_DIR}/Utils.cpp)
 target_link_libraries(unittest ${PROJECT_NAME})
 
 enable_testing()

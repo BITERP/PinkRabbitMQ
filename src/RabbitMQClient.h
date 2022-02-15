@@ -117,7 +117,7 @@ private:
 	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum])); }
 	inline void setMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { msgProps[propNum] = ctx.stringParamUtf8(); }
 
-	AMQP::Table headersFromJson(const string& json);
+	AMQP::Table headersFromJson(const string& json, bool forConsume=false);
 	void checkConnection();
 	string lastMessageHeaders();
 
