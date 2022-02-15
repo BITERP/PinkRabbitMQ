@@ -3,6 +3,9 @@
 #include <chrono>
 #include "common.h"
 #include <nlohmann/json.hpp>
+#include <ctime>
+#inculde <time.h>
+#include <Utils.h>
 
 
 using namespace Biterp::Test;
@@ -352,5 +355,23 @@ CTEST(MultiAck) {
        ASSERT(con.callAsProc(u"BasicCancel", args, 1));
    }
 }
+
+CTEST(TimeConvertion) {
+    time_t time = Utils::parseDateTime("2022-01-02T12:13:14+03:00");
+    tm *ut = gmtime(&time);
+    ASSERT_EQ(2022, ut.tm_year+1900);
+    ASSERT_EQ(1, ut.tm_mon+1);
+    ASSERT_EQ(2, ut.tm_mday);
+    ASSERT_EQ(9, ut.tm_hour);
+    ASSERT_EQ(13, ut.tm_min);
+    ASSERT_EQ(14, ut.tm_sec);
+    try {
+        time = Utils::parseDateTime("2022-01-02T12131403:00");
+        throw exception("Must not be here");
+    }
+    catch (std::runtime_error& e) {
+    }
+}
+
 
 CTEST_RUN();

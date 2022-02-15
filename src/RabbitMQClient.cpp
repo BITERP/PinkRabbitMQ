@@ -1,4 +1,5 @@
 #include "RabbitMQClient.h"
+#include "Utils.h"
 #include <nlohmann/json.hpp>
 #if defined(__linux__)
 #include <sys/types.h>
@@ -263,7 +264,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	int selectSize = ctx.intParam();
 	string propsJson = ctx.stringParamUtf8();
 
-	AMQP::Table args = headersFromJson(propsJson);
+	AMQP::Table args = headersFromJson(propsJson, true);
 	string result;
 	{
 		AMQP::Channel* channel = connection->readChannel();
@@ -397,7 +398,7 @@ void RabbitMQClient::checkConnection() {
 	}
 }
 
-AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson)
+AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson, bool forConsume)
 {
 	AMQP::Table headers;
 	if (!propsJson.length()) {
@@ -415,6 +416,10 @@ AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson)
 		else if (value.is_number())
 		{
 			headers.set(name, value.get<int64_t>());
+		}
+		else if (forConsume && name == "x-stream-offset") 
+		{
+			headers.set(name, AMQP::Timestamp(Utils::parseDateTime(value)));
 		}
 		else if (value.is_string())
 		{

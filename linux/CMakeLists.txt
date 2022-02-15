@@ -18,6 +18,7 @@ SET(AddInNative_SRC
     ${CMAKE_SOURCE_DIR}/RabbitMQClient.cpp
     ${CMAKE_SOURCE_DIR}/RabbitMQClientNative.cpp
     ${CMAKE_SOURCE_DIR}/AddInNative.cpp
+    ${CMAKE_SOURCE_DIR}/Utils.cpp
     )
 
 include_directories(${CMAKE_SOURCE_DIR})

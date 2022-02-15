@@ -47,7 +47,7 @@ u16string qname() {
 }
 
 
-bool connect(Connection& conn, bool ssl, u16string password) {
+bool connect(Addin& conn, bool ssl, u16string password) {
     tVariant paParams[8];
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
     json conf = loadConfig(ssl);
@@ -67,7 +67,7 @@ bool connect(Connection& conn, bool ssl, u16string password) {
     return conn.callAsProc(u"Connect", paParams, 8);
 }
 
-bool makeQueue(Connection& conn, u16string name, u16string props) {
+bool makeQueue(Addin& conn, u16string name, u16string props) {
     delQueue(conn, name);
     tVariant paParams[7];
     conn.stringParam(paParams, name);
@@ -86,7 +86,7 @@ bool makeQueue(Connection& conn, u16string name, u16string props) {
     return res;
 }
 
-bool delQueue(Connection& conn, u16string name) {
+bool delQueue(Addin& conn, u16string name) {
     tVariant paParams[3];
     conn.stringParam(paParams, name);
     conn.boolParam(&paParams[1], false);
@@ -94,14 +94,14 @@ bool delQueue(Connection& conn, u16string name) {
     return conn.callAsProc(u"DeleteQueue", paParams, 3);
 }
 
-u16string lastError(Connection& conn) {
+u16string lastError(Addin& conn) {
     tVariant err;
     conn.callAsFunc(u"GetLastError", &err, nullptr, 0);
     u16string ret = conn.retString(&err);
     return ret;
 }
 
-bool makeExchange(Connection& conn, u16string ename, u16string props) {
+bool makeExchange(Addin& conn, u16string ename, u16string props) {
     delExchange(conn, ename);
     tVariant paParams[6];
     u16string type = u"topic";
@@ -114,14 +114,14 @@ bool makeExchange(Connection& conn, u16string ename, u16string props) {
     return conn.callAsProc(u"DeclareExchange", paParams, 6);
 }
 
-bool delExchange(Connection& conn, u16string qname) {
+bool delExchange(Addin& conn, u16string qname) {
     tVariant paParams[2];
     conn.stringParam(paParams, qname);
     conn.boolParam(&paParams[1], false);
     return conn.callAsProc(u"DeleteExchange", paParams, 2);
 }
 
-bool bindQueue(Connection& conn, u16string name, u16string props) {
+bool bindQueue(Addin& conn, u16string name, u16string props) {
     ASSERT(makeQueue(conn, name));
     ASSERT(makeExchange(conn, name));
     tVariant paParams[4];
@@ -133,7 +133,7 @@ bool bindQueue(Connection& conn, u16string name, u16string props) {
     return conn.callAsProc(u"BindQueue", paParams, 4);
 }
 
-bool publish(Connection& conn, u16string qname, u16string msg, u16string props, bool noBind) {
+bool publish(Addin& conn, u16string qname, u16string msg, u16string props, bool noBind) {
     if (!noBind) {
         ASSERT(bindQueue(conn, qname));
     }
@@ -147,7 +147,7 @@ bool publish(Connection& conn, u16string qname, u16string msg, u16string props, 
     return conn.callAsProc(u"BasicPublish", paParams, 6);
 }
 
-u16string basicConsume(Connection& conn, u16string queue, int size) {
+u16string basicConsume(Addin& conn, u16string queue, int size, u16string args) {
     tVariant paParams[6];
     conn.stringParam(paParams, queue);
     u16string tag;
@@ -155,7 +155,12 @@ u16string basicConsume(Connection& conn, u16string queue, int size) {
     conn.boolParam(&paParams[2], false);
     conn.boolParam(&paParams[3], false);
     conn.intParam(&paParams[4], size);
-    conn.nullParam(&paParams[5]);
+    if (!args.empty()) {
+        conn.stringParam(&paParams[5], args);
+    }
+    else {
+        conn.nullParam(&paParams[5]);
+    }
     tVariant ret;
     bool res = conn.callAsFunc(u"BasicConsume", &ret, paParams, 6);
     if (!res) {
@@ -165,7 +170,7 @@ u16string basicConsume(Connection& conn, u16string queue, int size) {
 }
 
 
-u16string receiveUntil(Connection& conn, u16string qname, u16string msg, long* msgTag) {
+u16string receiveUntil(Addin& conn, u16string qname, u16string msg, long* msgTag) {
     u16string tag = basicConsume(conn, qname);
     tVariant args[4];
     tVariant status;
