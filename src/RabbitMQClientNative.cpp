@@ -87,7 +87,7 @@ static const char16_t* g_MethodNamesRu[] = {
 	u"SleepNative",
 };
 
-const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ3";
+const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ";
 
 // CAddInNative
 //---------------------------------------------------------------------------//
