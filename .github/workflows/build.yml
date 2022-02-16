@@ -5,6 +5,7 @@ on:
     paths:
       - 'CI/config.yml'
       - 'src/**'
+  workflow_dispatch:
 
 jobs:
   configure:

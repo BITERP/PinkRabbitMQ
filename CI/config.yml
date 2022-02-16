@@ -3,19 +3,20 @@ linux-vm:
   name: buildaddin-prmq
   gateway: https://devapigwpriv.bit-erp.ru
   image: ubuntu1604-addins
-  zone: ru-central1-b
   disk-size: 10
   disk-type: ssd
   memory: 4
   cores: 2
-  core-fraction: 100
   service-account: mdt
+  expireIn: 1
+  autorun-ghnode: true
+  external-ip: false
 
 notify:
   slack:
     default:
       channel: "#devops_bot_test"
-      user: "@vdykov @ipalenov"
+      user: "@vdykov"
 
 addins:
   PinkRabbitMQ:
