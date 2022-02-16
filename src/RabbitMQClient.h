@@ -89,6 +89,11 @@ public:
 		return wrapLongCall(this, &RabbitMQClient::setMsgPropImpl, lPropNum, varPropVal, 1);
 	}
 
+	inline bool sleepNative(tVariant* paParams, const long lSizeArray) {
+		return wrapCall(this, &RabbitMQClient::sleepNativeImpl, paParams, lSizeArray);
+	}
+
+
 private:
 
 	void connectImpl(Biterp::CallContext& ctx);
@@ -108,6 +113,7 @@ private:
 	void basicAckImpl(Biterp::CallContext& ctx);
 	void basicRejectImpl(Biterp::CallContext& ctx);
 
+	void sleepNativeImpl(Biterp::CallContext& ctx);
 	
 	inline void getRoutingKeyImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.routingKey)); }
 	inline void getHeadersImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessageHeaders())); }

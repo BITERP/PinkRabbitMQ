@@ -16,7 +16,7 @@ typedef ADDRINFOA AINFO;
 using json = nlohmann::json;
 
 void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
-	string host = ctx.stringParamUtf8();
+	string host = ctx.stringParamUtf8(); 
 	uint16_t port = ctx.intParam();
 	string user = ctx.stringParamUtf8();
 	string pwd = ctx.stringParamUtf8();
@@ -396,6 +396,12 @@ void RabbitMQClient::checkConnection() {
 	if (!connection) {
 		throw Biterp::Error("Connection is not established! Use the method Connect() first");
 	}
+}
+
+void RabbitMQClient::sleepNativeImpl(Biterp::CallContext& ctx) {
+
+	uint64_t amount = ctx.longParam();
+	std::this_thread::sleep_for(std::chrono::milliseconds(amount));
 }
 
 AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson, bool forConsume)

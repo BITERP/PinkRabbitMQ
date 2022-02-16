@@ -47,6 +47,7 @@ public:
 		eMethGetPriority,
 		eMethGetRoutingKey,
 		eMethGetHeaders,
+		eMethSleepNative,
 		eMethLast      // Always last
 	};
 

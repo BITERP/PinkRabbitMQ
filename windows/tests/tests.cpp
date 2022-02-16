@@ -402,6 +402,10 @@ namespace tests
            t.join();
        }
 
+       TEST_METHOD(NativeSleep) {
+           Addin conn; 
+           Assert::IsTrue(nSleep(conn, 1000));
+       }
        TEST_METHOD(ConsumeWithOffset) {
            Addin conn;
            connect(conn);

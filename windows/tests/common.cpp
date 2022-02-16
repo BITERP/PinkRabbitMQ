@@ -189,3 +189,9 @@ u16string receiveUntil(Addin& conn, u16string qname, u16string msg, long* msgTag
     }
     return u"";
 }
+
+bool nSleep(Addin& conn, int timeout) {
+    tVariant paParams[1];
+    conn.intParam(paParams, timeout);
+    return conn.callAsProc(u"SleepNative", paParams, 1);
+}
