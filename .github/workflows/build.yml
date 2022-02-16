@@ -3,8 +3,12 @@ name: Build
 on:
   push:
     paths:
+      - '.github/**'
       - 'CI/config.yml'
       - 'src/**'
+      - 'windows/**'
+      - 'linux/**'
+  workflow_dispatch:
 
 jobs:
   configure:
