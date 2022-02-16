@@ -28,7 +28,7 @@ bool publish(Addin& conn, u16string qname, u16string msg, u16string props = u"",
 
 u16string basicConsume(Addin& conn, u16string queue, int size=10, u16string args=u"");
 
-bool nSleep(Connection& conn, int timeout);
+bool nSleep(Addin& conn, int timeout);
 
 u16string receiveUntil(Addin& conn, u16string qname, u16string msg, long* msgTag = nullptr);
 

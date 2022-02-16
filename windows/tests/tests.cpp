@@ -403,7 +403,7 @@ namespace tests
        }
 
        TEST_METHOD(NativeSleep) {
-           Connection conn;
+           Addin conn;
            Assert::IsTrue(nSleep(conn, 1000));
        }
        TEST_METHOD(ConsumeWithOffset) {
