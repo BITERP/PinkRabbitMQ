@@ -7,9 +7,11 @@
 #include "common.h"
 #include <thread>
 #include <nlohmann/json.hpp>
+#include <Utils.h>
+
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
-using namespace Biterp::Test;
+using Addin = Biterp::Test::Connection;
 using json = nlohmann::json;
 
 namespace tests
@@ -20,14 +22,14 @@ namespace tests
 		
 		TEST_METHOD(Connect)
 		{
-			Connection con;
+            Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con));
 		}
 
         TEST_METHOD(FailConnect)
         {
-            Connection con;
+            Addin con;
             con.raiseErrors = false;
             Assert::IsFalse(connect(con ,false, u"password"));
             con.hasError("Wrong login, password or vhost");
@@ -36,14 +38,14 @@ namespace tests
 
 		TEST_METHOD(ConnectSsl)
 		{
-			Connection con;
+            Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con, true));
 		}
 
 		TEST_METHOD(DefParams)
 		{
-			Connection con;
+            Addin con;
 			con.testDefaultParams(u"Connect", 5);
 			con.testDefaultParams(u"DeclareQueue", 5);
 			con.testDefaultParams(u"DeclareExchange", 5);
@@ -52,33 +54,33 @@ namespace tests
 		}
 
         TEST_METHOD(Publish) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             Assert::IsTrue(publish(conn, qname(), u"tset msg"));
         }
 
 
         TEST_METHOD(DeclareExchange) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             Assert::IsTrue(makeExchange(conn, qname()));
         }
 
         TEST_METHOD(DeclareQueue) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             Assert::IsTrue(makeQueue(conn, qname()));
         }
 
         TEST_METHOD(BindQueue) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             conn.raiseErrors = true;
             Assert::IsTrue(bindQueue(conn, qname()));
         }
 
         TEST_METHOD(UnbindQueue) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             tVariant paParams[3];
             u16string qn = qname();
@@ -91,19 +93,19 @@ namespace tests
         }
 
         TEST_METHOD(DeleteQueue) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             Assert::IsTrue(delQueue(conn, qname()));
         }
 
         TEST_METHOD(DeleteExchange) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             Assert::IsTrue(delExchange(conn, qname()));
         }
 
         TEST_METHOD(BasicAck) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string msg = u"msgack test";
             Assert::IsTrue(publish(conn, qname(), msg));
@@ -116,7 +118,7 @@ namespace tests
         }
 
         TEST_METHOD(BasicNack) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string msg = u"msgnack test";
             Assert::IsTrue(publish(conn, qname(), msg));
@@ -129,7 +131,7 @@ namespace tests
         }
 
         TEST_METHOD(BasicConsume) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             bindQueue(conn, qname());
             u16string tag = basicConsume(conn, qname());
@@ -137,7 +139,7 @@ namespace tests
         }
 
         TEST_METHOD(BasicConsumeNoMessage) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string qn = qname();
             bindQueue(conn, qn);
@@ -159,7 +161,7 @@ namespace tests
         }
 
         TEST_METHOD(BasicCancel) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string tag = basicConsume(conn, qname());
             Assert::IsTrue(tag.length() > 0);
@@ -170,7 +172,7 @@ namespace tests
 
         TEST_METHOD(BasicConsumeReceive) {
             Publish();
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string tag = basicConsume(conn, qname());
             tVariant args[4];
@@ -187,7 +189,7 @@ namespace tests
         }
 
         TEST_METHOD(Version) {
-            Connection conn;
+            Addin conn;
             tVariant ver;
             Assert::IsTrue(conn.getPropVal(u"Version", &ver));
             Assert::IsTrue(ver.vt == VTYPE_PWSTR);
@@ -195,7 +197,7 @@ namespace tests
         }
 
         TEST_METHOD(SetMessageProp) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             tVariant val;
             u16string value = u"MY_CORRELATION_ID";
@@ -206,7 +208,7 @@ namespace tests
 
         TEST_METHOD(GetMessageProp) {
             SetMessageProp();
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string text = receiveUntil(conn, qname(), u"msgprop test");
             Assert::IsTrue(text == u"msgprop test");
@@ -217,7 +219,7 @@ namespace tests
         }
 
         TEST_METHOD(SetPriority) {
-            Connection conn;
+            Addin conn;
             connect(conn);
             tVariant args[1];
             conn.intParam(args, 13);
@@ -227,7 +229,7 @@ namespace tests
 
         TEST_METHOD(GetPriority) {
             SetPriority();
-            Connection conn;
+            Addin conn;
             connect(conn);
             u16string text = receiveUntil(conn, qname(), u"msgpriority test");
             Assert::IsTrue(text == u"msgpriority test");
@@ -239,7 +241,7 @@ namespace tests
 
 
         TEST_METHOD(ExtBadjson) {
-            Connection con;
+            Addin con;
             con.raiseErrors = false;
             Assert::IsTrue(connect(con));
             Assert::IsTrue(!makeQueue(con, qname(), u"Not Json Object Param"));
@@ -247,25 +249,25 @@ namespace tests
         }
 
         TEST_METHOD(ExtGoodParam) {
-            Connection con;
+            Addin con;
             Assert::IsTrue(connect(con));
             Assert::IsTrue(makeQueue(con, qname(), u"{\"x-message-ttl\":60000}"));
         }
 
         TEST_METHOD(ExtExchange) {
-            Connection con;
+            Addin con;
             Assert::IsTrue(connect(con));
             Assert::IsTrue(makeExchange(con, qname(), u"{\"alternate-exchange\":\"myae\"}"));
         }
 
         TEST_METHOD(ExtBind) {
-            Connection con;
+            Addin con;
             Assert::IsTrue(connect(con));
             Assert::IsTrue(bindQueue(con, qname(), u"{\"x-message-ttl\":60000}"));
         }
 
         TEST_METHOD(ExtPublish) {
-            Connection con;
+            Addin con;
             Assert::IsTrue(connect(con));
             Assert::IsTrue(publish(con, qname(), u"args message", u"{\"some-header\":13,\"yes\":true,\"no\":false}"));
             u16string text = receiveUntil(con, qname(), u"args message");
@@ -279,7 +281,7 @@ namespace tests
         }
 
         TEST_METHOD(MultiConnectSsl) {
-            Connection con;
+            Addin con;
             con.raiseErrors = true;
             for (int i = 0; i < 10; i++) {
                 Assert::IsTrue(connect(con, true));
@@ -287,7 +289,7 @@ namespace tests
         }
 
         TEST_METHOD(NoCancel) {
-            Connection con;
+            Addin con;
             con.raiseErrors = true;
             for (int i = 0; i < 5; i++) {
                 Assert::IsTrue(connect(con));
@@ -308,7 +310,7 @@ namespace tests
         }
 
         TEST_METHOD(Select1) {
-            Connection con;
+            Addin con;
             con.raiseErrors = true;
             Assert::IsTrue(connect(con));
             u16string q = qname();
@@ -332,7 +334,7 @@ namespace tests
         }
 
        TEST_METHOD(MultiAck) {
-           Connection con;
+           Addin con;
            con.raiseErrors = true;
            Assert::IsTrue(connect(con));
            u16string q = qname();
@@ -359,7 +361,7 @@ namespace tests
         }
 
        TEST_METHOD(EmptyHost) {
-           Connection con;
+           Addin con;
            tVariant paParams[8];
            u16string host = u"";
            u16string user = u"user";
@@ -375,10 +377,9 @@ namespace tests
            con.hasError("Empty hostname not allowed");
        }
 
-       static void thread_proc(Connection& con) {
+       static void thread_proc(Addin& con) {
            u16string tag = basicConsume(con, qname(), 100);
            tVariant args[4];
-           tVariant status;
            con.stringParam(args, tag);
            con.intParam(&args[3], 500);
            tVariant ret;
@@ -392,7 +393,7 @@ namespace tests
        TEST_METHOD(KillWhileConsume) {
            std::thread t;
            {
-               Connection con;
+               Addin con;
                Assert::IsTrue(connect(con));
                t = std::thread(thread_proc, std::ref(con));
                this_thread::sleep_for(chrono::seconds(1));
@@ -404,6 +405,30 @@ namespace tests
        TEST_METHOD(NativeSleep) {
            Connection conn;
            Assert::IsTrue(nSleep(conn, 1000));
+       }
+       TEST_METHOD(ConsumeWithOffset) {
+           Addin conn;
+           connect(conn);
+           basicConsume(conn, qname(), 10, u"{\"x-stream-offset\":\"2022-01-02T12:13:14+03:00\"}");
+       }
+
+
+       TEST_METHOD(TimeConvertion) {
+           time_t time = Utils::parseDateTime("2022-01-02T12:13:14+03:00");
+           tm ut;
+           gmtime_s(&ut, &time);
+           Assert::AreEqual(2022, ut.tm_year+1900);
+           Assert::AreEqual(1, ut.tm_mon+1);
+           Assert::AreEqual(2, ut.tm_mday);
+           Assert::AreEqual(9, ut.tm_hour);
+           Assert::AreEqual(13, ut.tm_min);
+           Assert::AreEqual(14, ut.tm_sec);
+           try {
+               time = Utils::parseDateTime("2022-01-02T12131403:00");
+               throw exception("Must not be here");
+           }
+           catch (std::runtime_error& e) {
+           }
        }
 
 	};
