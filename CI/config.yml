@@ -7,7 +7,7 @@ linux-vm:
   disk-type: ssd
   memory: 4
   cores: 2
-  service-account: mdt
+  core-fraction: 100
   expireIn: 1
   autorun-ghnode: true
   external-ip: false
