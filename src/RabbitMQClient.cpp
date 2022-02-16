@@ -16,7 +16,7 @@ typedef ADDRINFOA AINFO;
 using json = nlohmann::json;
 
 void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
-	string host = ctx.stringParamUtf8();
+	string host = ctx.stringParamUtf8(); 
 	uint16_t port = ctx.intParam();
 	string user = ctx.stringParamUtf8();
 	string pwd = ctx.stringParamUtf8();
