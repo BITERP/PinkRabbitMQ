@@ -25,7 +25,6 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con));
-            con.raiseErrors = false;
         }
 
         TEST_METHOD(FailConnect)
@@ -42,7 +41,6 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con, true));
-            con.raiseErrors = false;
         }
 
 		TEST_METHOD(DefParams)
@@ -289,7 +287,6 @@ namespace tests
             for (int i = 0; i < 10; i++) {
                 Assert::IsTrue(connect(con, true));
             }
-            con.raiseErrors = false;
         }
 
         TEST_METHOD(NoCancel) {
@@ -311,7 +308,6 @@ namespace tests
                     con.callAsProc(u"BasicAck", &args[2], 1);
                 }
             }
-            con.raiseErrors = false;
         }
 
         TEST_METHOD(Select1) {
@@ -336,7 +332,6 @@ namespace tests
                 }               
                 Assert::IsTrue(con.callAsProc(u"BasicCancel", args, 1));
             }
-            con.raiseErrors = false;
         }
 
        TEST_METHOD(MultiAck) {
@@ -364,7 +359,6 @@ namespace tests
                }
                Assert::IsTrue(con.callAsProc(u"BasicCancel", args, 1));
            }
-           con.raiseErrors = false;
        }
 
        TEST_METHOD(EmptyHost) {
