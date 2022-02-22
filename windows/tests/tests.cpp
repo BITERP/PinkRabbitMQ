@@ -41,7 +41,7 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con, true));
-            this_thread::sleep_for(chrono::seconds(1));
+            this_thread::sleep_for(chrono::seconds(5));
 		}
 
 		TEST_METHOD(DefParams)
