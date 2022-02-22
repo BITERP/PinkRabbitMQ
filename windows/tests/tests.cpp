@@ -25,7 +25,7 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con));
-		}
+        }
 
         TEST_METHOD(FailConnect)
         {
@@ -41,7 +41,7 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con, true));
-		}
+        }
 
 		TEST_METHOD(DefParams)
 		{
@@ -77,6 +77,7 @@ namespace tests
             connect(conn);
             conn.raiseErrors = true;
             Assert::IsTrue(bindQueue(conn, qname()));
+            conn.raiseErrors = false;
         }
 
         TEST_METHOD(UnbindQueue) {
@@ -358,7 +359,7 @@ namespace tests
                }
                Assert::IsTrue(con.callAsProc(u"BasicCancel", args, 1));
            }
-        }
+       }
 
        TEST_METHOD(EmptyHost) {
            Addin con;
