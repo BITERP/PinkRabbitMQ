@@ -50,7 +50,7 @@ u16string qname() {
 bool connect(Addin& conn, bool ssl, u16string password) {
     tVariant paParams[8];
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-    json conf = loadConfig(ssl);
+    json conf = loadConfig(true);
     _qname = conv.from_bytes(conf["queue"]);
     u16string host = conv.from_bytes(conf["host"]);
     u16string user = conv.from_bytes(conf["user"]);
