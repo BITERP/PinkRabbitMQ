@@ -41,7 +41,8 @@ namespace tests
             Addin con;
 			con.raiseErrors = true;
 			Assert::IsTrue(connect(con, true));
-		}
+            con.raiseErrors = false;
+        }
 
 		TEST_METHOD(DefParams)
 		{
