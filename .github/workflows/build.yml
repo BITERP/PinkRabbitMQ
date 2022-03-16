@@ -137,9 +137,13 @@ jobs:
         with:
           name: ${{matrix.linuxLibrary}}
 
-      - name: Check transfer
+      - name: Cd
         run: cd ${{matrix.packagePath}}
+
+      - name: Dir
         run: dir
+
+      - name: Unzip
         run: unzip transfer.zip
 
       - name: Add MSBuild to PATH
