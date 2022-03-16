@@ -138,7 +138,9 @@ jobs:
           name: ${{matrix.linuxLibrary}}
 
       - name: Check transfer
-        run: dir ${{matrix.packagePath}}
+        run: cd ${{matrix.packagePath}}
+        run: dir
+        run: unzip transfer.zip
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
