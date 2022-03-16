@@ -27,6 +27,7 @@ jobs:
           repository: BITERP/ci_scripts
           token: ${{secrets.IPALENOV_GHTOKEN}}
           path: CI/ci_scripts
+          ref: DEVOPS-8524
 
       - name: configure components
         id: configure
@@ -80,18 +81,18 @@ jobs:
 
 
       # Build component replicas
-      - name: Loading ci_scripts
-        uses: actions/checkout@v2
-        with:
-          repository: BITERP/ci_scripts
-          token: ${{secrets.IPALENOV_GHTOKEN}}
-          ref: DEVOPS-8524
-          path: CI/ci_scripts
+      #- name: Loading ci_scripts
+        #uses: actions/checkout@v2
+        #with:
+          #repository: BITERP/ci_scripts
+          #token: ${{secrets.IPALENOV_GHTOKEN}}
+          #ref: DEVOPS-8524
+          #path: CI/ci_scripts
 
       - name: Build and pack component replicas
-        if: matrix.sourceLinuxLibrary != ''
         working-directory: ${{matrix.buildDir}}
         run: python3 CI/ci_scripts/build_replicas.py
+      # Build component replicas finish
 
 
       - name: Upload Linux Library
