@@ -91,11 +91,7 @@ jobs:
 
       - name: Build and pack component replicas
         #working-directory: ${{matrix.buildDir}}
-        #/home/yc-user/actions-runner/_work/PinkRabbitMQ/PinkRabbitMQ/linux/build/CI/ci_scripts/build_replicas.py
-        #Run pwd; python3 CI/ci_scripts/build_replicas.py
-        #/home/yc-user/actions-runner/_work/PinkRabbitMQ/PinkRabbitMQ
-        #python3: can't open file '/home/yc-user/actions-runner/_work/PinkRabbitMQ/PinkRabbitMQ/CI/ci_scripts/build_replicas.py': [Errno 2] No such file or directory
-        run: pwd; python3 CI/ci_scripts/build_replicas.py
+        run: pwd; python3 CI/ci_scripts/build_replicas.py ${{matrix.buildDir}}
       # Build component replicas finish
 
 
@@ -103,7 +99,9 @@ jobs:
         uses: actions/upload-artifact@v2.2.3
         with:
           name: ${{matrix.linuxLibrary}}
-          path: ${{matrix.buildDir}}/${{matrix.linuxLibrary}}
+          #name: transfer.zip
+          #path: ${{matrix.buildDir}}/${{matrix.linuxLibrary}}
+          path: ${{matrix.buildDir}}/transfer.zip
           if-no-files-found: error
           retention-days: 1
 
@@ -124,6 +122,7 @@ jobs:
           repository: BITERP/ci_scripts
           token: ${{secrets.IPALENOV_GHTOKEN}}
           path: CI/ci_scripts
+          ref: DEVOPS-8524
 
       - name: Download Linux Library
         if: matrix.linuxLibrary != ''
@@ -137,6 +136,9 @@ jobs:
         uses: geekyeggo/delete-artifact@v1
         with:
           name: ${{matrix.linuxLibrary}}
+
+      - name: Check transfer
+        run: dir ${{matrix.packagePath}}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
@@ -196,6 +198,7 @@ jobs:
           repository: BITERP/ci_scripts
           token: ${{secrets.IPALENOV_GHTOKEN}}
           path: CI/ci_scripts
+          ref: DEVOPS-8524
 
       - name: Clean Linux VM
         run: python3 CI/ci_scripts/build_addins.py clean
