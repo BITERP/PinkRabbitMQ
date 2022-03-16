@@ -90,8 +90,9 @@ jobs:
           #path: CI/ci_scripts
 
       - name: Build and pack component replicas
-        working-directory: ${{matrix.buildDir}}
-        run: python3 CI/ci_scripts/build_replicas.py
+        #working-directory: ${{matrix.buildDir}}
+        #/home/yc-user/actions-runner/_work/PinkRabbitMQ/PinkRabbitMQ/linux/build/CI/ci_scripts/build_replicas.py
+        run: pwd; python3 CI/ci_scripts/build_replicas.py
       # Build component replicas finish
 
 
