@@ -139,7 +139,14 @@ jobs:
 
       - name: Unzip
         working-directory: ${{matrix.packagePath}}
-        run: echo %cd% & unzip transfer.zip & dir & python3 --version
+        run: |
+          md ..\PinkRabbitMQ_iso_arch
+          move transfer.zip ..\PinkRabbitMQ_iso_arch
+          cd ..\PinkRabbitMQ_iso_arch
+          unzip transfer.zip
+          dir
+          rename PinkRabbitMQ.so ${{matrix.linuxLibrary}}
+          move ${{matrix.linuxLibrary}} ..\${{matrix.packagePath}}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
