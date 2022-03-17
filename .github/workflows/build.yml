@@ -138,7 +138,8 @@ jobs:
           name: ${{matrix.linuxLibrary}}
 
       - name: Unzip
-        run: unzip ${{matrix.packagePath}}\transfer.zip & dir ${{matrix.packagePath}}
+        working-directory: ${{matrix.packagePath}}
+        run: echo %cd% & unzip transfer.zip & dir & python3 --version
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
