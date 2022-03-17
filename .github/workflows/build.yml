@@ -145,8 +145,10 @@ jobs:
           cd ..\PinkRabbitMQ_iso_arch
           unzip transfer.zip
           dir
-          rename PinkRabbitMQ.so ${{matrix.linuxLibrary}}
+          move PinkRabbitMQ.so ${{matrix.linuxLibrary}}
           move ${{matrix.linuxLibrary}} ..\${{matrix.packagePath}}
+          cd ..\${{matrix.packagePath}}
+          dir
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
