@@ -144,6 +144,7 @@ jobs:
           move PinkRabbitMQ.so ${{matrix.linuxLibrary}}
           move ${{matrix.linuxLibrary}} ..\${{matrix.packagePath}}
           cd ..\${{matrix.packagePath}}
+          dir
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
@@ -166,7 +167,9 @@ jobs:
         run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
 
       - name: Build replicas
-        run: python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}}
+        run: |
+          python3 -m pip install PyYAML requests
+          python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}}
 
       - name: Release
         if: matrix.release
@@ -188,7 +191,8 @@ jobs:
 
       - name: Notify
         if: always() && matrix.release
-        run: python3 -m pip install PyYAML requests && python3 CI/ci_scripts/notify.py -g windows ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
+        run: python3 CI/ci_scripts/notify.py -g windows ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
+        #run: python3 -m pip install PyYAML requests && python3 CI/ci_scripts/notify.py -g windows ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
         env:
           YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
   
