@@ -138,8 +138,8 @@ jobs:
         working-directory: ${{matrix.packagePath}}
         run: |
           md ..\PinkRabbitMQ_iso_arch
-          move transfer.zip ..\PinkRabbitMQ_iso_arch
-          cd ..\PinkRabbitMQ_iso_arch
+          move transfer.zip ..\PinkRabbitMQ_so_arch
+          cd ..\PinkRabbitMQ_so_arch
           unzip transfer.zip
           move PinkRabbitMQ.so ${{matrix.linuxLibrary}}
           move ${{matrix.linuxLibrary}} ..\${{matrix.packagePath}}
@@ -168,8 +168,11 @@ jobs:
 
       - name: Build replicas
         run: |
+          dir
           python3 -m pip install PyYAML requests
           python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}}
+          dir ${{matrix.buildDir}}
+          dir ${{matrix.packagePath}}
 
       - name: Release
         if: matrix.release
