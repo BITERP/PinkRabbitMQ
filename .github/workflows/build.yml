@@ -158,9 +158,9 @@ jobs:
           filePath: ${{matrix.buildDir}}/tests/test.conf
           encodedString: ${{secrets.TEST_CONF}}
 
-      - name: Test
-        working-directory: ${{matrix.buildDir}}
-        run: msbuild ${{matrix.buildFile}} -t:${{matrix.testTarget}}
+#      - name: Test
+#        working-directory: ${{matrix.buildDir}}
+#        run: msbuild ${{matrix.buildFile}} -t:${{matrix.testTarget}}
 
       - name: Build
         working-directory: ${{matrix.buildDir}}
