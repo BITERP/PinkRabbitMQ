@@ -137,14 +137,11 @@ jobs:
         with:
           name: ${{matrix.linuxLibrary}}
 
-      - name: Cd
-        run: cd ${{matrix.packagePath}}
+      - name: Unzip
+        run: unzip ${{matrix.packagePath}}\transfer.zip
 
       - name: Dir
-        run: dir
-
-      - name: Unzip
-        run: unzip transfer.zip
+        run: dir ${{matrix.packagePath}}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
