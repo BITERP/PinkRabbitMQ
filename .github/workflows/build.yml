@@ -91,7 +91,7 @@ jobs:
 
       - name: Build and pack component replicas
         run: python3 CI/ci_scripts/build_replicas_linux.py ${{matrix.buildDir}}
-      # Build component replicas finish
+      # Build component replicas finished
 
 
       - name: Upload Linux Library
@@ -158,21 +158,19 @@ jobs:
           filePath: ${{matrix.buildDir}}/tests/test.conf
           encodedString: ${{secrets.TEST_CONF}}
 
-#      - name: Test
-#        working-directory: ${{matrix.buildDir}}
-#        run: msbuild ${{matrix.buildFile}} -t:${{matrix.testTarget}}
+      - name: Test
+        working-directory: ${{matrix.buildDir}}
+        run: msbuild ${{matrix.buildFile}} -t:${{matrix.testTarget}}
 
       - name: Build
         working-directory: ${{matrix.buildDir}}
         run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
 
+        # Build component replicas
       - name: Build replicas
         run: |
-          dir
           python3 -m pip install PyYAML requests
           python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}} --version ${{matrix.version}}
-          dir ${{matrix.buildDir}}
-          dir ${{matrix.packagePath}}
 
       - name: Release
         if: matrix.release
