@@ -170,7 +170,7 @@ jobs:
         run: |
           dir
           python3 -m pip install PyYAML requests
-          python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}}
+          python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}} --version ${{matrix.version}}
           dir ${{matrix.buildDir}}
           dir ${{matrix.packagePath}}
 
