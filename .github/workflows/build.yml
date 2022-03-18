@@ -166,6 +166,9 @@ jobs:
         working-directory: ${{matrix.buildDir}}
         run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
 
+      - name: Install zip
+        uses: montudor/action-zip@v1
+
       - name: Build replicas
         run: |
           dir
