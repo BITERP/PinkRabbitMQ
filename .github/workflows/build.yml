@@ -166,9 +166,6 @@ jobs:
         working-directory: ${{matrix.buildDir}}
         run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
 
-      - name: Zip find
-        run: cd ${{matrix.location}} & dir
-
       - name: Build replicas
         run: |
           dir
@@ -176,7 +173,6 @@ jobs:
           python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}} --version ${{matrix.version}}
           dir ${{matrix.buildDir}}
           dir ${{matrix.packagePath}}
-
 
       - name: Release
         if: matrix.release
