@@ -114,6 +114,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
+    env:
       filesr: ${{needs.buildLinux.outputs.release_files}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
     steps:
