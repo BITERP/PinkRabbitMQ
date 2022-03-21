@@ -114,7 +114,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
-      release_files: ${{needs.buildLinux.outputs.release_files}}
+      filesr: ${{needs.buildLinux.outputs.release_files}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
     steps:
       - uses: actions/checkout@v2
@@ -185,7 +185,7 @@ jobs:
           tag: addins_${{matrix.component}}_${{github.run_number}}
           name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
-          artifacts: ${{matrix.location}}/${{matrix.out}}, release_files
+          artifacts: ${{matrix.location}}/${{matrix.out}}, filesr
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
