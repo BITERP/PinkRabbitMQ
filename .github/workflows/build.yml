@@ -50,6 +50,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_linux)}}
+    outputs:
+      release_files: ${{steps.genstep.outputs.release_files}}
     name: Linux ${{matrix.component}} ${{matrix.version}}
     steps:
       - uses: actions/checkout@v2
@@ -79,7 +81,6 @@ jobs:
         working-directory: ${{matrix.buildDir}}
         run: mv ${{matrix.sourceLinuxLibrary}} ${{matrix.linuxLibrary}}
 
-
       # Build component replicas
       - name: Loading ci_scripts
         uses: actions/checkout@v2
@@ -93,7 +94,6 @@ jobs:
         run: python3 CI/ci_scripts/build_replicas_linux.py ${{matrix.buildDir}}
       # Build component replicas finished
 
-
       - name: Upload Linux Library
         uses: actions/upload-artifact@v2.2.3
         with:
@@ -101,6 +101,10 @@ jobs:
           path: ${{matrix.buildDir}}/transfer.zip
           if-no-files-found: error
           retention-days: 1
+
+      - name: Replica release files
+        id: genstep
+        run: python3 CI/ci_scripts/gen_replica_release_files.py --location ${{matrix.location}} --version ${{matrix.version}}
 
 
   buildWindows:
@@ -111,8 +115,8 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
-    outputs:
-          release_files: ${{steps.genstep.outputs.release_files}}
+#    outputs:
+#          release_files: ${{steps.genstep.outputs.release_files}}
 #    env:
 #      REPLICA_RELEASES: >
 #        ${{matrix.location}}/PinkRabbitMQ2_v${{matrix.version}}.zip,
@@ -175,9 +179,9 @@ jobs:
         working-directory: ${{matrix.buildDir}}
         run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
 
-      - name: Replica release files
-        id: genstep
-        run: python3 gen_replica_release_files.py --location ${{matrix.location}} --version ${{matrix.version}}
+      #- name: Replica release files
+        #id: genstep
+        #run: python3 gen_replica_release_files.py --location ${{matrix.location}} --version ${{matrix.version}}
 
         # Build component replicas
       - name: Build replicas
@@ -196,9 +200,10 @@ jobs:
           #artifacts: ./PinkRabbitMQ_v2.1.1.112.zip
           artifacts: >
             ${{matrix.location}}/${{matrix.out}},
+            ${{needs.configure.outputs.release_files}}
 #            ${{ env.REPLICA_RELEASES }}
-#            ${{ outputs.release_files }}
-            ${{steps.genstep.outputs.release_files}}
+#            ${{ buildWindows.outputs.release_files }}
+#            ${{steps.genstep.outputs.release_files}}
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
