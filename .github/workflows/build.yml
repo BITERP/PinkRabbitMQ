@@ -50,8 +50,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_linux)}}
-    outputs:
-      release_files: ${{steps.genstep.outputs.release_files}}
     name: Linux ${{matrix.component}} ${{matrix.version}}
     steps:
       - uses: actions/checkout@v2
@@ -102,10 +100,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Replica release files
-        id: genstep
-        run: python3 CI/ci_scripts/gen_replica_release_files.py --location ${{matrix.location}} --version ${{matrix.version}}
-
 
   buildWindows:
     runs-on: windows-latest
@@ -114,7 +108,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
-#      filesr: ${{fromJson(needs.buildLinux.outputs.release_files)}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
     steps:
       - uses: actions/checkout@v2
@@ -125,9 +118,6 @@ jobs:
           token: ${{secrets.IPALENOV_GHTOKEN}}
           path: CI/ci_scripts
           ref: DEVOPS-8524
-
-#      - name: Check release file names
-#        run: echo ${{filesr}}
 
       - name: Download Linux Library
         if: matrix.linuxLibrary != ''
