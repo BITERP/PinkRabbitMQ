@@ -197,7 +197,8 @@ jobs:
           artifacts: >
             ${{matrix.location}}/${{matrix.out}},
 #            ${{ env.REPLICA_RELEASES }}
-            ${{ outputs.release_files }}
+#            ${{ outputs.release_files }}
+            ${{steps.genstep.outputs.release_files}}
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
