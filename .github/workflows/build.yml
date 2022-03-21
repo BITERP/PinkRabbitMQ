@@ -111,6 +111,13 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
+    env:
+      REPLICA_RELEASES: >
+        ${{matrix.location}}/PinkRabbitMQ2_v${{matrix.version}}.zip,
+        ${{matrix.location}}/PinkRabbitMQ_2_v${{matrix.version}}.zip,
+        ${{matrix.location}}/PinkRabbitMQ2_2_v${{matrix.version}}.zip,
+        ${{matrix.location}}/PinkRabbitMQ3_v${{matrix.version}}.zip,
+        ${{matrix.location}}/PinkRabbitMQ3_2_v${{matrix.version}}.zip
     steps:
       - uses: actions/checkout@v2
 
@@ -181,7 +188,9 @@ jobs:
           name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
           #artifacts: ./PinkRabbitMQ_v2.1.1.112.zip
-          artifacts: ${{matrix.location}}/${{matrix.out}}, PinkRabbitMQ2_v${{matrix.version}}.zip, PinkRabbitMQ_2_v${{matrix.version}}.zip, PinkRabbitMQ2_2_v${{matrix.version}}.zip, PinkRabbitMQ3_v${{matrix.version}}.zip, PinkRabbitMQ3_2_v${{matrix.version}}.zip
+          artifacts: >
+            ${{matrix.location}}/${{matrix.out}},
+            ${{ env.REPLICA_RELEASES }}
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
