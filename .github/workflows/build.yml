@@ -127,6 +127,9 @@ jobs:
           path: CI/ci_scripts
           ref: DEVOPS-8524
 
+      - name: Check release file names
+        run: echo ${{filesr}}
+
       - name: Download Linux Library
         if: matrix.linuxLibrary != ''
         uses: actions/download-artifact@v2.0.9
