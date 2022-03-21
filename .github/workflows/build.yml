@@ -116,6 +116,9 @@ jobs:
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
     steps:
+      - name: Check file names
+        run: echo ${{needs.buildLinux.outputs.release_files}}
+
       - uses: actions/checkout@v2
 
       - uses: actions/checkout@v2
@@ -184,9 +187,7 @@ jobs:
           tag: addins_${{matrix.component}}_${{github.run_number}}
           name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
-          artifacts: >
-            ${{matrix.location}}/${{matrix.out}},
-            ${{needs.buildLinux.outputs.release_files}}
+          artifacts: ${{matrix.location}}/${{matrix.out}}, ${{needs.buildLinux.outputs.release_files}}
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
