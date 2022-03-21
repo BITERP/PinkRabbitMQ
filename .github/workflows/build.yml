@@ -114,7 +114,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
-      filesr: ${{fromJson(needs.buildLinux.outputs.release_files)}}
+#      filesr: ${{fromJson(needs.buildLinux.outputs.release_files)}}
     name: Windows ${{matrix.component}} ${{matrix.version}}
     steps:
       - uses: actions/checkout@v2
@@ -127,7 +127,7 @@ jobs:
           ref: DEVOPS-8524
 
       - name: Check release file names
-        run: echo ${{env.filesr}}
+        run: echo ${{filesr}}
 
       - name: Download Linux Library
         if: matrix.linuxLibrary != ''
@@ -188,7 +188,8 @@ jobs:
           tag: addins_${{matrix.component}}_${{github.run_number}}
           name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
-          artifacts: ${{matrix.location}}/${{matrix.out}}, ${{env.filesr}}
+          #artifacts: ${{matrix.location}}/${{matrix.out}}, ${{env.filesr}}
+          artifacts: ${{matrix.location}}/*.zip
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
