@@ -29,3 +29,9 @@ addins:
       - windows
     release: true
     uploadSymbols: true
+    replica:
+      - "2"
+      - "3"
+      - "_2"
+      - "2_2"
+      - "3_2"
