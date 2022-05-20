@@ -43,6 +43,11 @@ EXPORT AppCapabilities SetPlatformCapabilities(const AppCapabilities capabilitie
 }
 
 //---------------------------------------------------------------------------//
+EXPORT long GetAttachType() {
+    return 3;//eCanAttachAny = 3 - any connection type.
+}    
+    
+//---------------------------------------------------------------------------//
 EXPORT long DestroyObject(IComponentBase **pInterface) {
     if (!*pInterface)
         return -1;
