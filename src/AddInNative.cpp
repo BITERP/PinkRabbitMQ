@@ -94,6 +94,7 @@ namespace ADD_IN_NATIVE
     {
         "GetClassObject", (LPCVOID)GetClassObject,
         "DestroyObject", (LPCVOID)DestroyObject,
+        "GetAttachType", (LPCVOID)DestroyObject,
         "GetClassNames", (LPCVOID)GetClassNames,
         "SetPlatformCapabilities", (LPCVOID)SetPlatformCapabilities,
         NULL
