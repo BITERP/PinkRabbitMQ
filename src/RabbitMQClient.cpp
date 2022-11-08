@@ -322,7 +322,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	tVariant* outMessageTag = ctx.skipParam();
 	int timeout = ctx.intParam();
 	ctx.setEmptyResult(outdata);
-	ctx.setLongResult(0, outMessageTag);
+	ctx.setIntResult(0, outMessageTag);
 	{
 		unique_lock<mutex> lock(_mutex);
 		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
@@ -338,7 +338,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		messageQueue.pop();
 	}
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
-	ctx.setLongResult(lastMessage.messageTag, outMessageTag);
+	ctx.setIntResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
 	inConsume = false;
 }
