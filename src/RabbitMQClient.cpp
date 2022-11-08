@@ -338,7 +338,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		messageQueue.pop();
 	}
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
-	ctx.setIntResult(lastMessage.messageTag, outMessageTag);
+	ctx.setIntResult(lastMessage.messageTag, outMessageTag); 
 	ctx.setBoolResult(true);
 	inConsume = false;
 }
