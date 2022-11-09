@@ -181,7 +181,7 @@ u16string receiveUntil(Addin& conn, u16string qname, u16string msg, long* msgTag
         ret = conn.retString(&args[1]);
         if (ret == msg) {
             if (msgTag) {
-                *msgTag = static_cast<long>(args[2].dblVal);
+                *msgTag = static_cast<long>(args[2].lVal);
             }
             return ret;
         }

@@ -175,7 +175,7 @@ u16string receiveUntil(Connection& conn, u16string qname, u16string msg, long* m
         ret = conn.retString(&args[1]);
         if (ret == msg) {
             if (msgTag) {
-                *msgTag = static_cast<long>(args[2].dblVal);
+                *msgTag = static_cast<long>(args[2].lVal);
             }
             return ret;
         }
