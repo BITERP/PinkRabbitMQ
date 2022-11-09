@@ -157,8 +157,8 @@ namespace tests
             Assert::IsTrue(ret.vt == VTYPE_BOOL);
             Assert::IsTrue(!ret.bVal);
             Assert::IsTrue(args[1].vt == VTYPE_EMPTY);
-            Assert::IsTrue(args[2].vt == VTYPE_R8);
-            Assert::IsTrue(args[2].dblVal == 0);
+            Assert::IsTrue(args[2].vt == VTYPE_I4);
+            Assert::IsTrue(args[2].lVal == 0);
         }
 
         TEST_METHOD(BasicCancel) {
