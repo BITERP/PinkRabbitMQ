@@ -71,7 +71,7 @@ jobs:
 
       - name: Test
         working-directory: ${{matrix.buildDir}}
-        run: ctest .
+        run: ctest . -V
 
       - name: Rename Library
         if: matrix.sourceLinuxLibrary != ''

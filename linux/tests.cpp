@@ -146,8 +146,8 @@ CTEST(BasicConsumeNoMessage) {
     ASSERT(ret.vt == VTYPE_BOOL);
     ASSERT(!ret.bVal);
     ASSERT(args[1].vt == VTYPE_EMPTY);
-    ASSERT(args[2].vt == VTYPE_R8);
-    ASSERT(args[2].dblVal == 0);
+    ASSERT(args[2].vt == VTYPE_I4);
+    ASSERT(args[2].lVal == 0);
 }
 
 CTEST(BasicCancel) {
