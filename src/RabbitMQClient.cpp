@@ -296,9 +296,11 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					msgOb.routingKey = message.routingkey();
 					msgOb.headers = message.headers();
 					{
+						LOGI("Consume lock");
 						unique_lock<mutex> lock(_mutex);
 						LOGI("Consume push message");
 						messageQueue.push(msgOb);
+						LOGI("Consume notify data arrived");
 						cvDataArrived.notify_all();
 					}
 				})
@@ -316,7 +318,6 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	if (consumers.empty()) {
 		throw Biterp::Error("No active consumers");
 	}
-	inConsume = true;
 	ctx.skipParam();
 	tVariant* outdata = ctx.skipParam();
 	tVariant* outMessageTag = ctx.skipParam();
@@ -324,47 +325,51 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	ctx.setEmptyResult(outdata);
 	ctx.setIntResult(0, outMessageTag);
 	{
+		LOGI("ConsumeMessage lock");
 		unique_lock<mutex> lock(_mutex);
+		LOGI("ConsumeMessage wait message");
 		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
+			LOGI("ConsumeMessage no message");
 			ctx.setBoolResult(false);
-			inConsume = false;
 			return;
 		}
+		LOGI("ConsumeMessage process message");
 		if (messageQueue.empty()) {
-			inConsume = false;
 			throw Biterp::Error("Empty consume message");
 		}
 		lastMessage = messageQueue.front();
 		messageQueue.pop();
 	}
+	LOGI("ConsumeMessage return message");
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
 	ctx.setIntResult(lastMessage.messageTag, outMessageTag); 
 	ctx.setBoolResult(true);
-	inConsume = false;
 }
 
 void RabbitMQClient::clear() {
+	LOGI("Clear channels");
 	if (!consumers.empty() && connection) {
 		AMQP::Channel* ch = connection->readChannel();
 		ch->startTransaction();
+		LOGI("Cancel consumers");
 		for (auto& tag : consumers) {
 			ch->cancel(tag);
 		}	
 		ch->commitTransaction()
 			.onFinalize([&]() {
 				ch->close();
+				LOGI("End transaction");
 				connection->loopbreak();
 			});
+		LOGI("Start transaction");
 		connection->loop();
 	}
 	consumers.clear();
+	LOGI("Message queue clean lock");
 	unique_lock<mutex> lock(_mutex);
 	queue<MessageObject> empty;
 	messageQueue.swap(empty);
-	if (inConsume) {
-		cvDataArrived.notify_all();
-		this_thread::sleep_for(chrono::seconds(1));
-	}
+	LOGI("Clear channels end");
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {

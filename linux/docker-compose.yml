@@ -1,0 +1,23 @@
+services:
+
+  rabbit-mq:
+    image: rabbitmq:latest
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmuser
+      - RABBITMQ_DEFAULT_PASS=rmpassword
+      - RABBITMQ_DEFAULT_VHOST=rmuser
+    ports:
+      - 5672:5672
+      - 5671:5671
+
+  build:
+    image: ubuntu:16.04
+    depends_on:
+      - rabbit-mq
+    volumes:
+    - ..:/PinkRabbitMQ
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: /bin/bash /PinkRabbitMQ/linux/build.sh

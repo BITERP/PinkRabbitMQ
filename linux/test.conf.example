@@ -1,0 +1,22 @@
+{
+	"amqps": {
+		"host": "rabbitmq",
+		"port": 5672,
+		"user": "rmuser",
+		"pwd": "rmpassword",
+		"vhost": "rmuser",
+		"secure": false,
+		"exchange": "pinkrmq_test",
+		"queue": "pinkrmq_test"
+	},
+	"amqp": {
+		"host": "rabbitmq",
+		"port": 5672,
+		"user": "rmuser",
+		"pwd": "rmpassword",
+		"vhost": "rmuser",
+		"secure": false,
+		"exchange": "pinkrmq_test",
+		"queue": "pinkrmq_test"
+	}
+}

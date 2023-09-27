@@ -2,6 +2,7 @@
 #include <thread>
 #include <addin/biterp/Error.hpp>
 #include <chrono>
+#include <addin/biterp/Component.hpp>
 
 #if defined(__linux__)
 
@@ -42,6 +43,7 @@ void Connection::loop() {
 	std::unique_lock<std::mutex> lock(_mutex);
 	if (!cvBroken.wait_for(lock, std::chrono::seconds(timeout), [&] { return broken; })) {
 		broken = false;
+		LOGI("Channel closed by timeout");
 		channel()->close();
 		throw Biterp::Error("AMQP server timeout error");
 	}
