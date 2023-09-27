@@ -145,7 +145,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
     
       - name: Setup VSTest Path
-        uses: darenm/Setup-VSTest@v1
+        uses: darenm/Setup-VSTest@v1.2
 
       - name: base64-to-file
         uses: narcodico/base64-to-path@v1
