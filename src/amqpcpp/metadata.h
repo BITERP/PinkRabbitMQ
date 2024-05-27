@@ -4,7 +4,7 @@
  *  With every published message a set of meta data is passed to. This class
  *  holds all that meta data.
  *
- *  @copyright 2014 - 2017 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -127,14 +127,12 @@ protected:
     ShortString _clusterID;
 
 
+public:
     /**
-     *  Protected constructor to ensure that this class can only be constructed
-     *  in a derived class
+     *  Constructor for empty meta data. Can be useful when user-space wants to preserve all meta-data
      */
     MetaData() {}
 
-
-public:
     /**
      *  Read incoming frame
      *  @param  frame
@@ -274,6 +272,24 @@ public:
     void setUserID          (const char *value) { _userID.assign(value);          _bools2.set(4,true); }
     void setTypeName        (const char *value) { _typeName.assign(value);        _bools2.set(5,true); }
     void setMessageID       (const char *value) { _messageID.assign(value);       _bools2.set(7,true); }
+
+    /**
+     *  Methods to remove properties from the header
+     */
+    void removeExpiration      () { _expiration     .clear(); _bools1.set(0,false); }
+    void removeReplyTo         () { _replyTo        .clear(); _bools1.set(1,false); }
+    void removeCorrelationID   () { _correlationID  .clear(); _bools1.set(2,false); }
+    void removePriority        () { _priority       .clear(); _bools1.set(3,false); }
+    void removeDeliveryMode    () { _deliveryMode   .clear(); _bools1.set(4,false); }
+    void removeHeaders         () { _headers        .clear(); _bools1.set(5,false); }
+    void removeContentEncoding () { _contentEncoding.clear(); _bools1.set(6,false); }
+    void removeContentType     () { _contentType    .clear(); _bools1.set(7,false); }
+    void removeClusterID       () { _clusterID      .clear(); _bools2.set(2,false); }
+    void removeAppID           () { _appID          .clear(); _bools2.set(3,false); }
+    void removeUserID          () { _userID         .clear(); _bools2.set(4,false); }
+    void removeTypeName        () { _typeName       .clear(); _bools2.set(5,false); }
+    void removeTimestamp       () { _timestamp      .clear(); _bools2.set(6,false); }
+    void removeMessageID       () { _messageID      .clear(); _bools2.set(7,false); }
 
     /**
      *  Retrieve the fields

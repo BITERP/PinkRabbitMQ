@@ -1,7 +1,7 @@
 /**
  *  AMQP field table
  *
- *  @copyright 2014 - 2020 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -33,7 +33,7 @@ private:
      *  We define a custom type for storing fields
      *  @typedef    FieldMap
      */
-    typedef std::map<std::string, std::shared_ptr<Field> > FieldMap;
+    typedef std::map<std::string, std::unique_ptr<Field> > FieldMap;
 
     /**
      *  Store the fields
@@ -96,9 +96,9 @@ public:
      *  Create a new instance on the heap of this object, identical to the object passed
      *  @return Field*
      */
-    virtual std::shared_ptr<Field> clone() const override
+    virtual std::unique_ptr<Field> clone() const override
     {
-        return std::make_shared<Table>(*this);
+        return std::unique_ptr<Table>(new Table(*this));
     }
 
     /**
@@ -140,6 +140,16 @@ public:
     Table &set(const std::string &name, const std::string &value) { return set(name, LongString(value)); }
     Table &set(const std::string &name, const char *value) { return set(name, LongString(std::string(value))); }
     Table &set(const std::string &name, std::nullptr_t) { return set(name, VoidField()); }
+
+    /**
+     *  Clear the entire table
+     *  @return Table
+     */
+    Table &clear()
+    {
+        _fields.clear();
+        return *this;
+    }
 
     /**
      *  Is a certain field set in the table

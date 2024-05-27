@@ -122,10 +122,12 @@ namespace Biterp {
 
             virtual IInterface *ADDIN_API
             GetInterface(Interfaces iface) override {
+                #if defined(__ANDROID__)
                 if (iface == eIAndroidComponentHelper) {
                     static AndroidHelper helper;
                     return (IInterface *) &helper;
                 }
+                #endif
                 return nullptr;
             }
 
@@ -146,6 +148,7 @@ namespace Biterp {
             long methodNum(std::u16string name, const long argsCnt, bool isFunc) {
                 long ret = addin->FindMethod((WCHAR_T *)
                                                      name.c_str());
+                ASSERT(ret >= 0);
                 const WCHAR_T *wnameBuf = addin->GetMethodName(ret, 0);
                 u16string wname = (char16_t *) wnameBuf;
                 memManager.FreeMemory((void **) &wnameBuf);
@@ -226,21 +229,35 @@ namespace Biterp {
                 p->llVal = val;
             }
 
+            void doubleParam(tVariant *p, double val) {
+                p->vt = VTYPE_R8;
+                p->dblVal = val;
+            }
+
             void nullParam(tVariant *pVariant) {
                 pVariant->vt = VTYPE_EMPTY;
             }
 
-            u16string retString(tVariant *variant) {
+            u16string retString(tVariant *variant, bool free) {
                 u16string ret;
                 ASSERT_EQ((int) variant->vt, (int) VTYPE_PWSTR);
                 ret = u16string((char16_t *) variant->pwstrVal, variant->wstrLen);
-                memManager.FreeMemory((void **) &variant->pwstrVal);
+                if (free){
+                    freeResult(variant);
+                }
                 return ret;
             }
 
-            string retStringUtf8(tVariant *variant) {
+            string retStringUtf8(tVariant *variant, bool free=true) {
                 std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-                return conv.to_bytes(retString(variant));
+                return conv.to_bytes(retString(variant, free));
+            }
+
+            void freeResult(tVariant *variant){
+                if (variant->vt == VTYPE_PWSTR){
+                    memManager.FreeMemory((void **) &variant->pwstrVal);
+                    variant->vt = VTYPE_EMPTY;
+                }
             }
 
             bool hasError(string text, bool throwOnFail = true) {

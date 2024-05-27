@@ -4,7 +4,7 @@
 
 #if defined(__linux__) || defined(__APPLE__) || defined(__ANDROID__)
 
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef __ANDROID__
 
 typedef struct {
     unsigned int   Data1;

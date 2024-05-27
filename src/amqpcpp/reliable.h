@@ -1,11 +1,15 @@
 /**
  *  Reliable.h
  *  
- *  A channel wrapper based on AMQP::Throttle that allows message callbacks to be installed
- *  on the publishes, to be called when they are confirmed by the message broker.
+ *  A channel wrapper based on AMQP::Tagger that allows message callbacks to be installed
+ *  on the publish-confirms, to be called when they a confirmation is received from RabbitMQ.
+ * 
+ *  You can also change the base class and use Reliable<Throttle> if you not only
+ *  want to be notified about the publish-confirms, but want to use it for automatic
+ *  throttling at the same time.
  *  
  *  @author Michael van der Werve <michael.vanderwerve@mailerq.com>
- *  @copyright 2020 Copernica BV
+ *  @copyright 2020 - 2023 Copernica BV
  */
 
 /**
@@ -63,34 +67,40 @@ private:
             // the base-class publish methods for some reason.
             if (iter == _handlers.end()) return BASE::onAck(deliveryTag, multiple);
 
-            // call the ack handler
-            iter->second->reportAck();
+            // get the handler (we store it first so that we can remove it)
+            auto handler = iter->second;
 
-            // if the monitor is no longer valid, we stop (we're done)
-            if (!monitor) return;
-
-            // erase it from the map
+            // erase it from the map (we remove it before the call, because the callback might update
+            // the _handlers and invalidate the iterator)
             _handlers.erase(iter);
+
+            // call the ack handler
+            handler->reportAck();
+
         }
 
         // do multiple at once
         else
         {
-            // call the handlers
-            for (auto iter = _handlers.begin(); iter != _handlers.end(); iter++)
+            // keep looping for as long as the object is in a valid state
+            while (monitor && !_handlers.empty())
             {
+                // get the first handler
+                auto iter = _handlers.begin();
+                
                 // make sure this is the right deliverytag, if we've passed it we leap out
                 if (iter->first > deliveryTag) break;
 
-                // call the handler
-                iter->second->reportAck();
+                // get the handler
+                auto handler = iter->second;
+                
+                // remove it from the map (before we make a call to userspace, so that user space
+                // can add even more handlers, without invalidating iterators)
+                _handlers.erase(iter);
 
-                // if we were destructed in the meantime, we leap out
-                if (!monitor) return;
+                // call the ack handler
+                handler->reportAck();
             }
-
-            // erase all acknowledged items
-            _handlers.erase(_handlers.begin(), _handlers.upper_bound(deliveryTag));
         }
 
         // make sure the object is still valid
@@ -121,34 +131,39 @@ private:
             // the base-class publish methods for some reason.
             if (iter == _handlers.end()) return BASE::onNack(deliveryTag, multiple);
 
-            // call the ack handler
-            iter->second->reportNack();
+            // get the handler (we store it first so that we can remove it)
+            auto handler = iter->second;
 
-            // if the monitor is no longer valid, we stop (we're done)
-            if (!monitor) return;
-
-            // erase it from the map
+            // erase it from the map (we remove it before the call, because the callback might update
+            // the _handlers and invalidate the iterator)
             _handlers.erase(iter);
+
+            // call the ack handler
+            handler->reportNack();
         }
 
         // nack multiple elements
         else
         {
-            // call the handlers
-            for (auto iter = _handlers.begin(); iter != _handlers.end(); iter++)
+            // keep looping for as long as the object is in a valid state
+            while (monitor && !_handlers.empty())
             {
+                // get the first handler
+                auto iter = _handlers.begin();
+                
                 // make sure this is the right deliverytag, if we've passed it we leap out
                 if (iter->first > deliveryTag) break;
 
-                // call the handler
-                iter->second->reportNack();
+                // get the handler
+                auto handler = iter->second;
+                
+                // remove it from the map (before we make a call to userspace, so that user space
+                // can add even more handlers, without invalidating iterators)
+                _handlers.erase(iter);
 
-                // if we were destructed in the meantime, we leap out
-                if (!monitor) return;
+                // call the ack handler
+                handler->reportNack();
             }
-
-            // erase all negatively acknowledged items
-            _handlers.erase(_handlers.begin(), _handlers.upper_bound(deliveryTag));
         }
 
         // if the object is no longer valid, return
@@ -235,9 +250,9 @@ public:
      *  @param  flags       optional flags
      *  @return bool
      */
-    DeferredPublish &publish(const std::string &exchange, const std::string &routingKey, const std::string &message, int flags = 0) { return publish(exchange, routingKey, Envelope(message.data(), message.size()), flags); }
-    DeferredPublish &publish(const std::string &exchange, const std::string &routingKey, const char *message, size_t size, int flags = 0) { return publish(exchange, routingKey, Envelope(message, size), flags); }
-    DeferredPublish &publish(const std::string &exchange, const std::string &routingKey, const char *message, int flags = 0) { return publish(exchange, routingKey, Envelope(message, strlen(message)), flags); }
+    DeferredPublish &publish(const std::string_view &exchange, const std::string_view &routingKey, const std::string_view &message, int flags = 0) { return publish(exchange, routingKey, Envelope(message.data(), message.size()), flags); }
+    DeferredPublish &publish(const std::string_view &exchange, const std::string_view &routingKey, const char *message, size_t size, int flags = 0) { return publish(exchange, routingKey, Envelope(message, size), flags); }
+    DeferredPublish &publish(const std::string_view &exchange, const std::string_view &routingKey, const char *message, int flags = 0) { return publish(exchange, routingKey, Envelope(message, strlen(message)), flags); }
 
     /**
      *  Publish a message to an exchange. See amqpcpp/channel.h for more details on the flags. 
@@ -250,7 +265,7 @@ public:
      *  @param  size        size of the message
      *  @param  flags       optional flags
      */
-    DeferredPublish &publish(const std::string &exchange, const std::string &routingKey, const Envelope &envelope, int flags = 0)
+    DeferredPublish &publish(const std::string_view &exchange, const std::string_view &routingKey, const Envelope &envelope, int flags = 0)
     {
         // publish the entire thing, and remember if it failed at any point
         uint64_t tag = BASE::publish(exchange, routingKey, envelope, flags);

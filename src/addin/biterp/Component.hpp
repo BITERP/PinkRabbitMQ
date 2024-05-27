@@ -48,7 +48,7 @@ namespace Biterp {
         * @return
         */
         virtual bool init(IAddInDefBase *addin) {
-            Biterp::Logger::init(className, addin);
+            Biterp::Logger::init(className, addin, (void*)this);
             LOGD("init");
             this->addin = addin;
             return true;
@@ -126,14 +126,16 @@ namespace Biterp {
         void addError(const string &descr, const string &source = "",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
+            u16string wdescr;
+            u16string wsource;
             try {
-                u16string wdescr = u16Converter.from_bytes(descr);
-                u16string wsource = u16Converter.from_bytes(source);
-                addError(move(wdescr), move(wsource), wcode, scode);
+                wdescr = u16Converter.from_bytes(descr);
+                wsource = u16Converter.from_bytes(source);
             }
-            catch (const std::exception&) {
-                addError(u"NativeLibrary", u"Invalid error message");
+            catch (const std::exception &) {
+                wdescr = u"Invalid error message";
             }
+            addError(move(wdescr), move(wsource), wcode, scode);
         }
 
         /**

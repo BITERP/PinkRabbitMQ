@@ -58,8 +58,8 @@ namespace Biterp {
         };
 
     public:
-        inline static void init(const u16string &name, IAddInDefBase *addin) {
-            instance()._init(name, addin);
+        inline static void init(const u16string &name, IAddInDefBase *addin, void* compinst) {
+            instance()._init(name, addin, compinst);
         }
 
         inline static void log(int level, const string &text) {
@@ -84,13 +84,14 @@ namespace Biterp {
          * @param name
          * @param addin
          */
-        void _init(const u16string &name, IAddInDefBase *addin) {
+        void _init(const u16string &name, IAddInDefBase *addin, void* compinst) {
             if (filename.length()) {
                 // already inited
                 return;
             }
             std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-            this->name = getName(conv.to_bytes(name));
+            auto i = reinterpret_cast<std::uintptr_t>(compinst);
+            this->name = getName(conv.to_bytes(name)) + "_" + to_string(i);
             filename = getFileName(addin);
             if (!filename.length()) {
                 return;

@@ -1,16 +1,16 @@
 # Cmake script for background building 64 bit release project library PinkRabbitMQLinux
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.22 FATAL_ERROR)
 
 
 PROJECT(PinkRabbitMQ64)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 set (ROOT_DIR ${CMAKE_SOURCE_DIR}/..)
 set (CMAKE_SOURCE_DIR ${ROOT_DIR}/src)
 set (LIB_DIR ${ROOT_DIR}/lib/linux)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden -fPIC")
 
 SET(AddInNative_SRC 
     ${CMAKE_SOURCE_DIR}/linux/ConnectionImpl.cpp
@@ -29,20 +29,20 @@ add_definitions(-DVERSION=${VERSION})
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC})
 
-find_library(LIBEVENT NAMES event PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 find_library(LIBAMQP NAMES amqpcpp PATHS ${LIB_DIR} NO_DEFAULT_PATH)
-find_library(LIBSSL NAMES ssl PATHS ${LIB_DIR} NO_DEFAULT_PATH)
-find_library(LIBCRYPTO NAMES crypto PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 
+add_library(libevent STATIC IMPORTED)
+add_library(libssl STATIC IMPORTED)
+add_library(libcrypto STATIC IMPORTED)
 
-target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl)
+target_link_libraries(${PROJECT_NAME} -lssl -lcrypto ${LIBAMQP} -levent -lpthread -ldl)
 
 #tests
 
-add_executable(unittest tests.cpp common.cpp ${CMAKE_SOURCE_DIR}/Utils.cpp)
-target_link_libraries(unittest ${PROJECT_NAME})
+add_library(python_test SHARED ${ROOT_DIR}/test/python_test.cpp)
+target_link_libraries(python_test ${PROJECT_NAME})
 
 enable_testing()
 
-add_test(AllTests unittest)
+add_test(AllTests python3 -m pytest ../../test -v)
 

@@ -104,6 +104,7 @@ public:
 
 	// LocaleBase
 	virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
+	virtual void ADDIN_API SetUserInterfaceLanguageCode(const WCHAR_T* lang) {}
 
 private:
 

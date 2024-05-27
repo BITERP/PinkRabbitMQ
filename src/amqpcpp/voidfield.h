@@ -33,7 +33,7 @@ public:
      *  Construct based on incoming data
      *  @param  frame
      */
-    VoidField(InBuffer &frame) {}
+    VoidField(InBuffer &frame) { (void)frame; }
 
     /**
      *  Destructor
@@ -42,12 +42,12 @@ public:
 
     /**
      *  Create a new instance of this object
-     *  @return Field*
+     *  @return unique_ptr
      */
-    virtual std::shared_ptr<Field> clone() const override
+    virtual std::unique_ptr<Field> clone() const override
     {
         // create a new copy of ourselves and return it
-        return std::make_shared<VoidField>();
+        return std::unique_ptr<Field>(new VoidField);
     }
 
     /**
@@ -65,7 +65,7 @@ public:
      *  Write encoded payload to the given buffer.
      *  @param  buffer      OutBuffer to write to
      */
-    virtual void fill(OutBuffer &buffer) const override {}
+    virtual void fill(OutBuffer &buffer) const override { (void)buffer; }
 
     /**
      *  Get the type ID that is used to identify this type of

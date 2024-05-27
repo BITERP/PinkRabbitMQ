@@ -1,10 +1,17 @@
 /**
  *  Tagger.h
  *  
- *  Base class that enables publisher confirms and keeps track of the sent messages.
+ *  Base class that enables publisher confirms and keeps track of the sent 
+ *  messages. You can wrap this class around a AMQP::Channel object and use
+ *  this object for publishing instead. This is a base class that you cannot
+ *  use directly. You should instead use:
+ * 
+ *  - Throttle: to throttle traffic to prevent flooding RabbitMQ
+ *  - Reliable<Tagger>: to be notified about publish-confirms via callbacks
+ *  - Reliable<Throttle>: to have throttle + notifications via callbacks
  *  
  *  @author Michael van der Werve <michael.vanderwerve@mailerq.com>
- *  @copyright 2020 Copernica BV
+ *  @copyright 2020 - 2023 Copernica BV
  */
 
 /**
@@ -101,7 +108,7 @@ public:
     /**
      *  Virtual destructor
      */
-    virtual ~Tagger() = default;
+    virtual ~Tagger();
 
     /**
      *  Method to check how many messages are still unacked.
@@ -121,10 +128,10 @@ public:
      *  @param  flags       optional flags
      *  @return uint64_t
      */
-    uint64_t publish(const std::string &exchange, const std::string &routingKey, const Envelope &envelope, int flags = 0);
-    uint64_t publish(const std::string &exchange, const std::string &routingKey, const std::string &message, int flags = 0) { return publish(exchange, routingKey, Envelope(message.data(), message.size()), flags); }
-    uint64_t publish(const std::string &exchange, const std::string &routingKey, const char *message, size_t size, int flags = 0) { return publish(exchange, routingKey, Envelope(message, size), flags); }
-    uint64_t publish(const std::string &exchange, const std::string &routingKey, const char *message, int flags = 0) { return publish(exchange, routingKey, Envelope(message, strlen(message)), flags); }
+    uint64_t publish(const std::string_view &exchange, const std::string_view &routingKey, const Envelope &envelope, int flags = 0);
+    uint64_t publish(const std::string_view &exchange, const std::string_view &routingKey, const std::string_view &message, int flags = 0) { return publish(exchange, routingKey, Envelope(message.data(), message.size()), flags); }
+    uint64_t publish(const std::string_view &exchange, const std::string_view &routingKey, const char *message, size_t size, int flags = 0) { return publish(exchange, routingKey, Envelope(message, size), flags); }
+    uint64_t publish(const std::string_view &exchange, const std::string_view &routingKey, const char *message, int flags = 0) { return publish(exchange, routingKey, Envelope(message, strlen(message)), flags); }
 
     /**
      *  Close underlying channel
@@ -136,7 +143,8 @@ public:
      *  Install an error callback
      *  @param  callback
      */
-    void onError(const ErrorCallback &callback);
+    inline void onError(const ErrorCallback& callback) { return onError(ErrorCallback(callback)); }
+    void onError(ErrorCallback&& callback);
 };
 
 /**

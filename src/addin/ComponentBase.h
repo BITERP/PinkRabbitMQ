@@ -204,6 +204,22 @@ public:
     virtual void ADDIN_API SetLocale(const WCHAR_T* loc) = 0;
 };
 
+///////////////////////////////////////////////////////////////////////
+/// class UserLanguageBase- интерфейс изменения языка компоненты
+/**
+ *  Этот интерфейс предназначен для изменения локализации компоненты
+ */
+class UserLanguageBase
+{
+public:
+    virtual ~UserLanguageBase() {}
+    /// Изменение локали компоненты
+    /**
+     *  @param const char16_t* lang - устанавливаемый язык (ru, etc...)
+     */
+    virtual void ADDIN_API SetUserInterfaceLanguageCode(const WCHAR_T* lang) = 0;
+};
+
 ///////////////////////////////////////////////////////////////////////////
 /**
  *  The given interface is generalized, for its obligatory inheritance 
@@ -211,9 +227,10 @@ public:
  */
 ///  Base interface describing object as a set of properties and methods.
 class IComponentBase :
-public IInitDoneBase,
+    public IInitDoneBase,
     public ILanguageExtenderBase,
-    public LocaleBase
+    public LocaleBase,
+    public UserLanguageBase
 {
 public:
     virtual ~IComponentBase(){}
@@ -223,7 +240,16 @@ enum AppCapabilities
 {
     eAppCapabilitiesInvalid = -1,
     eAppCapabilities1 = 1,
-    eAppCapabilitiesLast = eAppCapabilities1,
+    eAppCapabilities2 = 2,
+    eAppCapabilities3 = 3,
+    eAppCapabilitiesLast = eAppCapabilities3,
+};
+
+enum AttachType
+{
+    eCanAttachNotIsolated = 1,
+    eCanAttachIsolated,
+    eCanAttachAny,
 };
 
 /// Announcements of exported functions
@@ -234,10 +260,12 @@ extern "C" long GetClassObject(const WCHAR_T*, IComponentBase** pIntf);
 extern "C" long DestroyObject(IComponentBase** pIntf);
 extern "C" const WCHAR_T* GetClassNames();
 extern "C" AppCapabilities SetPlatformCapabilities(const AppCapabilities capabilities);
+extern "C" AttachType GetAttachType();
 
 typedef long (*GetClassObjectPtr)(const WCHAR_T* wsName, IComponentBase** pIntf);
 typedef long (*DestroyObjectPtr)(IComponentBase** pIntf);
 typedef const WCHAR_T* (*GetClassNamesPtr)();
 typedef AppCapabilities (*SetPlatformCapabilitiesPtr)(const AppCapabilities capabilities);
+typedef AttachType (*GetAttachTypePtr)();
 
 #endif //__COMPONENT_BASE_H__

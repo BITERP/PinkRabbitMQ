@@ -1,7 +1,7 @@
 /**
  *  Numeric field types for AMQP
  *
- *  @copyright 2014 - 2020 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -93,12 +93,12 @@ public:
 
     /**
      *  Create a new instance of this object
-     *  @return Field*
+     *  @return unique_ptr
      */
-    virtual std::shared_ptr<Field> clone() const override
+    virtual std::unique_ptr<Field> clone() const override
     {
         // create a new copy of ourselves and return it
-        return std::make_shared<NumericField>(_value);
+        return std::unique_ptr<Field>(new NumericField(_value));
     }
 
     /**
@@ -112,6 +112,16 @@ public:
         _value = value;
         return *this;
     };
+    
+    /**
+     *  Clear the field
+     *  @return NumericField
+     */
+    NumericField& clear()
+    {
+        _value = 0;
+        return *this;
+    }
 
     /**
      *  Get the value

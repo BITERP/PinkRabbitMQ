@@ -2,12 +2,15 @@
 #ifndef __CON_TYPES_H__
 #define __CON_TYPES_H__
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WINDOWS) || defined(WINAPI_FAMILY)
 #include <windows.h>
+#endif
+
+#if defined(WINAPI_FAMILY)
 #include <wtypes.h>
 #endif
 
-#if __GNUC__ >= 3
+#if __GNUC__ >=3
 #pragma GCC system_header
 #endif
 
@@ -54,14 +57,13 @@
 #define ADDIN_E_MSGBOX_FAIL 1009
 
 #ifndef  ADDIN_API
-#if defined(_WINDOWS) || defined(_WIN32)
+#ifdef _WINDOWS
 #define ADDIN_API __stdcall
 #else
 //#define ADDIN_API __attribute__ ((__stdcall__))
 #define ADDIN_API
 #endif //_WINDOWS
 #endif //ADDIN_API
-
 
 #ifndef _NOEXCEPT
 
@@ -75,11 +77,15 @@
 
 #include <stdint.h>
 
+#ifdef _WINDOWS
 #define WCHAR_T     char16_t
-
+#else
+#define WCHAR_T     char16_t
+#endif //_WINDOWS
 typedef unsigned short TYPEVAR;
-enum ENUMVAR {
-    VTYPE_EMPTY = 0,
+enum ENUMVAR
+{   
+    VTYPE_EMPTY    = 0,
     VTYPE_NULL,
     VTYPE_I2,                   //int16_t
     VTYPE_I4,                   //int32_t
@@ -104,59 +110,64 @@ enum ENUMVAR {
     VTYPE_PWSTR,                //struct wstr
     VTYPE_BLOB,                 //means in struct str binary data contain
     VTYPE_CLSID,                //UUID
-    VTYPE_STR_BLOB = 0xfff,
-    VTYPE_VECTOR = 0x1000,
-    VTYPE_ARRAY = 0x2000,
-    VTYPE_BYREF = 0x4000,    //Only with struct _tVariant *
+    VTYPE_STR_BLOB    = 0xfff,
+    VTYPE_VECTOR   = 0x1000,
+    VTYPE_ARRAY    = 0x2000,
+    VTYPE_BYREF    = 0x4000,    //Only with struct _tVariant *
     VTYPE_RESERVED = 0x8000,
-    VTYPE_ILLEGAL = 0xffff,
-    VTYPE_ILLEGALMASKED = 0xfff,
+    VTYPE_ILLEGAL  = 0xffff,
+    VTYPE_ILLEGALMASKED    = 0xfff,
     VTYPE_TYPEMASK = 0xfff
-};
+} ;
 #if defined (__GNUC__) && !defined (NONAMELESSUNION)
 __extension__   /* no named members  */
 #endif
-struct _tVariant {
-    _ANONYMOUS_UNION union {
-        int8_t i8Val;
-        int16_t shortVal;
-        int32_t lVal;
-        int intVal;
-        unsigned int uintVal;
-        int64_t llVal;
-        uint8_t ui8Val;
-        uint16_t ushortVal;
-        uint32_t ulVal;
-        uint64_t ullVal;
-        int32_t errCode;
-        long hRes;
-        float fltVal;
-        double dblVal;
-        bool bVal;
-        char chVal;
-        wchar_t wchVal;
-        DATE date;
-        IID IDVal;
+struct _tVariant
+{
+    _ANONYMOUS_UNION union 
+    {
+        int8_t         i8Val;
+        int16_t        shortVal;
+        int32_t        lVal;
+        int            intVal;
+        unsigned int   uintVal;
+        int64_t        llVal;
+        uint8_t        ui8Val;
+        uint16_t       ushortVal;
+        uint32_t       ulVal;
+        uint64_t       ullVal;
+        int32_t        errCode;
+        long           hRes;
+        float          fltVal;
+        double         dblVal;
+        bool           bVal;
+        char           chVal;
+        wchar_t        wchVal;
+        DATE           date;
+        IID            IDVal;
         struct _tVariant *pvarVal;
-        struct tm tmVal;
-        _ANONYMOUS_STRUCT struct {
-            void *pInterfaceVal;
-            IID InterfaceID;
+        struct tm      tmVal;
+        _ANONYMOUS_STRUCT struct 
+        {
+            void*  pInterfaceVal;
+            IID        InterfaceID;
         } __VARIANT_NAME_2/*iface*/;
-        _ANONYMOUS_STRUCT struct {
-            char *pstrVal;
-            uint32_t strLen; //count of bytes
+        _ANONYMOUS_STRUCT struct 
+        {
+            char*        pstrVal;
+            uint32_t     strLen; //count of bytes
         } __VARIANT_NAME_3/*str*/;
-        _ANONYMOUS_STRUCT struct {
-            WCHAR_T *pwstrVal;
-            uint32_t wstrLen; //count of symbol
+        _ANONYMOUS_STRUCT struct 
+        {
+            WCHAR_T*    pwstrVal;
+            uint32_t    wstrLen; //count of symbol
         } __VARIANT_NAME_4/*wstr*/;
     } __VARIANT_NAME_1;
-    uint32_t cbElements;    //Dimension for an one-dimensional array in pvarVal
-    TYPEVAR vt;
+    uint32_t      cbElements;    //Dimension for an one-dimensional array in pvarVal
+    TYPEVAR       vt;
 };
-typedef struct _tVariant tVariant;
-typedef tVariant tVariantArg;
+typedef struct _tVariant    tVariant;
+typedef tVariant    tVariantArg;
 
 
 #if defined(NONAMELESSUNION)
@@ -200,10 +211,11 @@ typedef tVariant tVariantArg;
 #define TV_UNKNOWN(X)     TV_JOIN(X, pInterfaceVal)
 #define TV_VARIANTREF(X)  TV_JOIN(X, pvarVal)
 
-void tVarInit(tVariant *tvar);
+void tVarInit(tVariant* tvar);
 
 inline
-void tVarInit(tVariant *tvar) {
+void tVarInit(tVariant* tvar)
+{
     assert(tvar != NULL);
     memset(tvar, 0, sizeof(tVariant));
     TV_VT(tvar) = VTYPE_EMPTY;
@@ -216,7 +228,7 @@ void tVarInit(tVariant *tvar) {
 
 #define DATA_SET_END(data_, type_)                                    \
     TV_VT(data_) = type_;
-
+    
 
 #define DATA_SET(data_, type_, member_, value_)                       \
     DATA_SET_BEGIN(data_)                                             \
