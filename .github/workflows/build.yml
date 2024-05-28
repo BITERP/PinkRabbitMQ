@@ -36,18 +36,18 @@ jobs:
         run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} ..
 
       - name: Build
-        working-directory: $LINUX_DIR
+        working-directory: ${{env.LINUX_DIR}}
         run: cmake --build .
 
       - name: Test
-        working-directory: $LINUX_DIR
+        working-directory: ${{env.LINUX_DIR}}
         run: ctest . -V
 
       - name: Upload Linux Library
         uses: actions/upload-artifact@v2.2.3
         with:
-          name: $LINUX_LIB
-          path: $LINUX_DIR/$LINUX_LIB
+          name: ${{env.LINUX_LIB}}
+          path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
           if-no-files-found: error
           retention-days: 1
 
@@ -66,23 +66,23 @@ jobs:
       - name: Download Linux Library
         uses: actions/download-artifact@v2.0.9
         with:
-          name: $LINUX_LIB
-          path: $PKG_DIR/
+          name: ${{env.LINUX_LIB}}
+          path: ${{env.PKG_DIR}}/
 
       - name: Remove Linux Artifact
         uses: geekyeggo/delete-artifact@v1
         with:
-          name: $LINUX_LIB
+          name: ${{env.LINUX_LIB}}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
     
       - name: Test
-        working-directory: $WIN_DIR
+        working-directory: ${{env.WIN_DIR}}
         run: msbuild msbuild.xml -t:runTests
 
       - name: Build
-        working-directory: $WIN_DIR
+        working-directory: ${{env.WIN_DIR}}
         run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
 
       - name: Release
