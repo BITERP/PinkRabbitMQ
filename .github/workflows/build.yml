@@ -29,6 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - run: apt install -y build-essential cmake libssl-dev libevent-dev uuid-dev
+
       - run: mkdir $LINUX_DIR
 
       - name: Configure CMake.
