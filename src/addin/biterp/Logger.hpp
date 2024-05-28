@@ -224,7 +224,7 @@ namespace Biterp {
             }
             return path + "/" + name + ".log";
 #elif defined(__linux__)
-            string path = getpwuid(getuid())->pw_dir;
+            std::string path = getpwuid(getuid())->pw_dir;
             path+="/.biterp";
             if (!pathExists(path)) {
                 mkdir(path.c_str(), 0755);

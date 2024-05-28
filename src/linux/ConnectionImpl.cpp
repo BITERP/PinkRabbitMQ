@@ -79,7 +79,7 @@ void ConnectionImpl::connect() {
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
     while (!connection->ready() &&  !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
-        this_thread::sleep_for(chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     if (!connection->ready()) {
         throw Biterp::Error("Wrong login, password or vhost");
