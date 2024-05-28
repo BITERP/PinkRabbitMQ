@@ -21,7 +21,7 @@ env:
 jobs:
   buildLinux:
     runs-on: ubuntu-22.04
-    name: Linux PinkRabbitMQ ${{env.VERSION}}
+    name: Linux build
     services:
       rabbitmq:
         image: rabbitmq
@@ -55,7 +55,7 @@ jobs:
   buildWindows:
     runs-on: windows-latest
     needs: [buildLinux]
-    name: Windows PinkRabbitMQ ${{env.VERSION}}
+    name: Windows build
     services:
       rabbitmq:
         image: rabbitmq
