@@ -110,7 +110,7 @@ private:
 
 	RabbitMQClient impl;
 
-	long findName(const char16_t* names[], u16string name, const uint32_t size) const;
+	long findName(const char16_t* names[], std::u16string name, const uint32_t size) const;
 
 };
 

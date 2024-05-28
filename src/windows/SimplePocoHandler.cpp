@@ -148,7 +148,7 @@ void SimplePocoHandler::loopRead()
 		}
 		catch (const Poco::Exception& exc)
 		{
-			std::string err = typeid(exc).name() +string(": ") + exc.displayText() + string(". ") + exc.what();
+			std::string err = typeid(exc).name() + std::string(": ") + exc.displayText() + std::string(". ") + exc.what();
 			LOGE(err);
 			std::cerr << err << std::endl;
 		}

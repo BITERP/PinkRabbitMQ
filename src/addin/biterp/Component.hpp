@@ -26,8 +26,6 @@
 #define LOGE(M) Biterp::Logger::error(M)
 
 
-using namespace std;
-
 namespace Biterp {
 
     /**
@@ -80,7 +78,7 @@ namespace Biterp {
             return memManager.variantFromString(pvarRetValue, lastError);
         }
 
-        void setLastError(u16string error) { lastError = error; }
+        void setLastError(std::u16string error) { lastError = error; }
 
         /**
         * Return component version
@@ -101,7 +99,7 @@ namespace Biterp {
         * @param wcode - internal code.
         * @param scode - hresult.
         */
-        void addError(const u16string &descr, u16string source = u"",
+        void addError(const std::u16string &descr, std::u16string source = u"",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
             setLastError(descr);
@@ -123,11 +121,11 @@ namespace Biterp {
         * @param wcode
         * @param scode
         */
-        void addError(const string &descr, const string &source = "",
+        void addError(const std::string &descr, const std::string &source = "",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
-            u16string wdescr;
-            u16string wsource;
+            std::u16string wdescr;
+            std::u16string wsource;
             try {
                 wdescr = u16Converter.from_bytes(descr);
                 wsource = u16Converter.from_bytes(source);
@@ -170,8 +168,8 @@ namespace Biterp {
                 result = true;
             }
             catch (std::exception &e) {
-                string who = typeid(e).name();
-                string what = e.what();
+                std::string who = typeid(e).name();
+                std::string what = e.what();
                 LOGE(who + ": " + what);
                 addError(what, who);
             }
@@ -181,10 +179,10 @@ namespace Biterp {
 
     protected:
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> u16Converter;
-        u16string className;
-        u16string version;
+        std::u16string className;
+        std::u16string version;
         IAddInDefBase *addin;
-        u16string lastError;
+        std::u16string lastError;
         MemoryManager memManager;
         bool skipAddError;
     };

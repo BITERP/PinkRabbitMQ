@@ -44,7 +44,7 @@
 // Foundation_API functions as being imported from a DLL, wheras this DLL sees symbols
 // defined with this macro as being exported.
 //
-#if (defined(_WIN32) || defined(_WIN32_WCE)) && defined(POCO_DLL)
+#if defined(_WIN32) && defined(POCO_DLL)
 	#if defined(Foundation_EXPORTS)
 		#define Foundation_API __declspec(dllexport)
 	#else
@@ -91,6 +91,14 @@
 	#endif
 #endif
 
+#include <string>
+
+namespace Poco {
+
+using namespace std::literals;
+
+} // namespace Poco
+
 
 //
 // Include platform-specific definitions
@@ -114,12 +122,8 @@
 // Cleanup inconsistencies
 //
 #ifdef POCO_OS_FAMILY_WINDOWS
-	#if defined(POCO_WIN32_UTF8) && defined(POCO_NO_WSTRING)
-		#error POCO_WIN32_UTF8 and POCO_NO_WSTRING are mutually exclusive.
-	#endif
-#else
-	#ifdef POCO_WIN32_UTF8
-		#undef POCO_WIN32_UTF8
+	#if defined(POCO_NO_WSTRING)
+		#error POCO_NO_WSTRING is not supported on Windows.
 	#endif
 #endif
 

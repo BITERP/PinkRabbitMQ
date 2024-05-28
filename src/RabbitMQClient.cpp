@@ -16,11 +16,11 @@ typedef ADDRINFOA AINFO;
 using json = nlohmann::json;
 
 void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
-	string host = ctx.stringParamUtf8(); 
+	std::string host = ctx.stringParamUtf8();
 	uint16_t port = ctx.intParam();
-	string user = ctx.stringParamUtf8();
-	string pwd = ctx.stringParamUtf8();
-	string vhost = ctx.stringParamUtf8();
+	std::string user = ctx.stringParamUtf8();
+	std::string pwd = ctx.stringParamUtf8();
+	std::string vhost = ctx.stringParamUtf8();
 	ctx.skipParam();
 	bool ssl = ctx.boolParam();
 	int timeout = ctx.intParam();
@@ -43,7 +43,7 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	try {
 		connection->connect();
 	}
-	catch (exception&) {
+	catch (std::exception&) {
 		connection.reset(nullptr);
 		throw;
 	}
@@ -53,12 +53,12 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string name = ctx.stringParamUtf8();
-	string type = ctx.stringParamUtf8();
+	std::string name = ctx.stringParamUtf8();
+	std::string type = ctx.stringParamUtf8();
 	bool onlyCheckIfExists = ctx.boolParam();
 	bool durable = ctx.boolParam();
 	bool autodelete = ctx.boolParam();
-	string propsJson = ctx.stringParamUtf8();
+	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::ExchangeType topic = AMQP::ExchangeType::topic;
 	if (type == "topic") {
@@ -94,7 +94,7 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string name = ctx.stringParamUtf8();
+	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
 	{
 		connection->channel()
@@ -114,13 +114,13 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string name = ctx.stringParamUtf8();
+	std::string name = ctx.stringParamUtf8();
 	bool onlyCheckIfExists = ctx.boolParam();
 	bool durable = ctx.boolParam();
 	bool exclusive = ctx.boolParam();
 	bool autodelete = ctx.boolParam();
 	uint16_t maxPriority = ctx.intParam();
-	string propsJson = ctx.stringParamUtf8();
+	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
 	if (maxPriority != 0) {
@@ -146,7 +146,7 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string name = ctx.stringParamUtf8();
+	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
 	bool ifempty = ctx.boolParam();
 	{
@@ -167,10 +167,10 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string queue = ctx.stringParamUtf8();
-	string exchange = ctx.stringParamUtf8();
-	string routingKey = ctx.stringParamUtf8();
-	string propsJson = ctx.stringParamUtf8();
+	std::string queue = ctx.stringParamUtf8();
+	std::string exchange = ctx.stringParamUtf8();
+	std::string routingKey = ctx.stringParamUtf8();
+	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
 	{
@@ -191,9 +191,9 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string queue = ctx.stringParamUtf8();
-	string exchange = ctx.stringParamUtf8();
-	string routingKey = ctx.stringParamUtf8();
+	std::string queue = ctx.stringParamUtf8();
+	std::string exchange = ctx.stringParamUtf8();
+	std::string routingKey = ctx.stringParamUtf8();
 	{
 		connection->channel()
 			->unbindQueue(exchange, queue, routingKey)
@@ -214,12 +214,12 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
-	string exchange = ctx.stringParamUtf8();
-	string routingKey = ctx.stringParamUtf8();
-	string message = ctx.stringParamUtf8();
+	std::string exchange = ctx.stringParamUtf8();
+	std::string routingKey = ctx.stringParamUtf8();
+	std::string message = ctx.stringParamUtf8();
 	ctx.skipParam();
 	bool persistent = ctx.boolParam();
-	string propsJson = ctx.stringParamUtf8();
+	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
 
@@ -257,20 +257,20 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 
 void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	checkConnection();
-	string queue = ctx.stringParamUtf8();
-	string consumerId = ctx.stringParamUtf8(true);
+	std::string queue = ctx.stringParamUtf8();
+	std::string consumerId = ctx.stringParamUtf8(true);
 	bool noconfirm = ctx.boolParam();
 	bool exclusive = ctx.boolParam();
 	int selectSize = ctx.intParam();
-	string propsJson = ctx.stringParamUtf8();
+	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson, true);
-	string result;
+	std::string result;
 	{
 		AMQP::Channel* channel = connection->readChannel();
 		channel->setQos(selectSize);
 		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
-			.onSuccess([this, &result](const string& tag)
+			.onSuccess([this, &result](const std::string& tag)
 				{
 					result = tag;
 					consumers.push_back(tag);
@@ -296,7 +296,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					msgOb.routingKey = message.routingkey();
 					msgOb.headers = message.headers();
 					{
-						unique_lock<mutex> lock(_mutex);
+						std::unique_lock<std::mutex> lock(_mutex);
 						LOGI("Consume push message");
 						messageQueue.push(msgOb);
 						cvDataArrived.notify_all();
@@ -324,8 +324,8 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	ctx.setEmptyResult(outdata);
 	ctx.setIntResult(0, outMessageTag);
 	{
-		unique_lock<mutex> lock(_mutex);
-		if (!cvDataArrived.wait_for(lock, chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
+		std::unique_lock<std::mutex> lock(_mutex);
+		if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 			ctx.setBoolResult(false);
 			inConsume = false;
 			return;
@@ -358,12 +358,12 @@ void RabbitMQClient::clear() {
 		connection->loop();
 	}
 	consumers.clear();
-	unique_lock<mutex> lock(_mutex);
-	queue<MessageObject> empty;
+	std::unique_lock<std::mutex> lock(_mutex);
+	std::queue<MessageObject> empty;
 	messageQueue.swap(empty);
 	if (inConsume) {
 		cvDataArrived.notify_all();
-		this_thread::sleep_for(chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 }
 
@@ -379,7 +379,7 @@ void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
 	connection->readChannel()->ack(tag);
-	this_thread::sleep_for(chrono::microseconds(10));
+	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
 void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
@@ -389,7 +389,7 @@ void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
 	connection->readChannel()->reject(tag);
-	this_thread::sleep_for(chrono::microseconds(10));
+	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
 void RabbitMQClient::checkConnection() {
@@ -404,7 +404,7 @@ void RabbitMQClient::sleepNativeImpl(Biterp::CallContext& ctx) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(amount));
 }
 
-AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson, bool forConsume)
+AMQP::Table RabbitMQClient::headersFromJson(const std::string& propsJson, bool forConsume)
 {
 	AMQP::Table headers;
 	if (!propsJson.length()) {
@@ -439,7 +439,7 @@ AMQP::Table RabbitMQClient::headersFromJson(const string& propsJson, bool forCon
 	return headers;
 }
 
-string RabbitMQClient::lastMessageHeaders() {
+std::string RabbitMQClient::lastMessageHeaders() {
 	AMQP::Table& headersTbl = lastMessage.headers;
 	json hdr = json::object();
 	for (const std::string& key : headersTbl.keys()) {

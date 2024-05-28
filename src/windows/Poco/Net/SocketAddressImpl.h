@@ -32,7 +32,7 @@ namespace Impl {
 class Net_API SocketAddressImpl : public Poco::RefCountedObject
 {
 public:
-	typedef AddressFamily::Family Family;
+	using Family = AddressFamily::Family;
 
 	virtual ~SocketAddressImpl();
 
@@ -177,7 +177,7 @@ inline SocketAddressImpl::Family IPv6SocketAddressImpl::family() const
 #endif // POCO_HAVE_IPv6
 
 
-#if defined(POCO_OS_FAMILY_UNIX)
+#if defined(POCO_HAS_UNIX_SOCKET)
 
 
 class Net_API LocalSocketAddressImpl: public SocketAddressImpl

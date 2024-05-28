@@ -18,34 +18,34 @@ ConnectionImpl::~ConnectionImpl() {
 	delete connection;
 }
 
-void ConnectionImpl::openChannel(unique_ptr<AMQP::Channel>& channel) {
+void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (channel) {
 		closeChannel(channel);
 	}
 	if (!connection->usable()) {
 		throw Biterp::Error("Connection lost");
 	}
-	mutex m;
-	condition_variable cv;
+	std::mutex m;
+	std::condition_variable cv;
 	bool ready = false;
 	channel.reset(new AMQP::Channel(connection));
 	channel->onReady([&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		ready = true;
 		cv.notify_all();
 		});
 	channel->onError([this, &channel](const char* message) {
-		LOGW("Channel closed with reason: " + string(message));
+		LOGW("Channel closed with reason: " + std::string(message));
 		channel.reset(nullptr);
 		});
-	unique_lock<mutex> lock(m);
+	std::unique_lock<std::mutex> lock(m);
 	cv.wait(lock, [&] { return ready; });
 	if (!channel) {
 		throw Biterp::Error("Channel not opened");
 	}
 }
 
-void ConnectionImpl::closeChannel(unique_ptr<AMQP::Channel>& channel) {
+void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (channel && channel->usable()) {
 		channel->close();
 	}
@@ -58,7 +58,7 @@ void ConnectionImpl::connect() {
 	std::chrono::milliseconds timeoutMs{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutMs;
 	while (connection->waiting() && (end - std::chrono::system_clock::now()).count() > 0) {
-		this_thread::sleep_for(chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	if (!connection->ready()) {
 		throw Biterp::Error("Wrong login, password or vhost");

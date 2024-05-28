@@ -40,7 +40,7 @@
 #endif
 
 
-using namespace std;
+//using namespace std;
 
 namespace Biterp {
 
@@ -58,21 +58,21 @@ namespace Biterp {
         };
 
     public:
-        inline static void init(const u16string &name, IAddInDefBase *addin, void* compinst) {
+        inline static void init(const std::u16string &name, IAddInDefBase *addin, void* compinst) {
             instance()._init(name, addin, compinst);
         }
 
-        inline static void log(int level, const string &text) {
+        inline static void log(int level, const std::string &text) {
             instance()._log(level, text);
         }
 
-        inline static void debug(const string &text) { log(Level::LDEBUG, text); }
+        inline static void debug(const std::string &text) { log(Level::LDEBUG, text); }
 
-        inline static void info(const string &text) { log(Level::LINFO, text); }
+        inline static void info(const std::string &text) { log(Level::LINFO, text); }
 
-        inline static void warning(const string &text) { log(Level::LWARNING, text); }
+        inline static void warning(const std::string &text) { log(Level::LWARNING, text); }
 
-        inline static void error(const string &text) { log(Level::LERROR, text); }
+        inline static void error(const std::string &text) { log(Level::LERROR, text); }
 
     private:
         // rotation size 2Mb
@@ -84,19 +84,19 @@ namespace Biterp {
          * @param name
          * @param addin
          */
-        void _init(const u16string &name, IAddInDefBase *addin, void* compinst) {
+        void _init(const std::u16string &name, IAddInDefBase *addin, void* compinst) {
             if (filename.length()) {
                 // already inited
                 return;
             }
             std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
             auto i = reinterpret_cast<std::uintptr_t>(compinst);
-            this->name = getName(conv.to_bytes(name)) + "_" + to_string(i);
+            this->name = getName(conv.to_bytes(name)) + "_" + std::to_string(i);
             filename = getFileName(addin);
             if (!filename.length()) {
                 return;
             }
-            file.open(filename, ios::out | ios::app | ios::ate);
+            file.open(filename, std::ios::out | std::ios::app | std::ios::ate);
         }
 
         /**
@@ -104,7 +104,7 @@ namespace Biterp {
          * @param level
          * @param text
          */
-        void _log(int level, const string &text) {
+        void _log(int level, const std::string &text) {
             logNative(level, text);
             std::lock_guard<std::mutex> lock(_mutex);
             if (!file) {
@@ -114,7 +114,7 @@ namespace Biterp {
             LOCALTIME(tm, &t);
             file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S ") 
                 << std::time(nullptr) << " " << std::this_thread::get_id() << "]"
-                << text << endl;
+                << text << std::endl;
             file.flush();
             if (file.tellp() > ROTATE_SIZE) {
                 rotate();
@@ -135,9 +135,9 @@ namespace Biterp {
             }
             file.close();
             moveFile(0);
-            file.open(filename, ios::out);
+            file.open(filename, std::ios::out);
             if (fileExists(2)) {
-                thread th(filterLogs, filename + ".2");
+                std::thread th(filterLogs, filename + ".2");
                 th.detach();
             }
         }
@@ -146,19 +146,19 @@ namespace Biterp {
          * Copy file removeing D(ebug) lines.
          * @param filename
          */
-        static void filterLogs(string filename) {
-            string bak = filename + ".bak";
+        static void filterLogs(std::string filename) {
+            std::string bak = filename + ".bak";
             std::rename(filename.c_str(), bak.c_str());
-            ifstream in(bak);
-            ofstream out(filename, ios::out);
+            std::ifstream in(bak);
+            std::ofstream out(filename, std::ios::out);
             bool keep = true;
-            string line;
-            while (getline(in, line)) {
+            std::string line;
+            while (std::getline(in, line)) {
                 if (line[0] == '[' && line[7] == '-') {
                     keep = line[1] != 'D';
                 }
                 if (keep) {
-                    out << line << endl;
+                    out << line << std::endl;
                 }
             }
             in.close();
@@ -172,7 +172,7 @@ namespace Biterp {
          * @param addin
          * @return
          */
-        string getFileName(IAddInDefBase *addin) {
+        std::string getFileName(IAddInDefBase *addin) {
 #if defined(__ANDROID__)
             // return activity.getExternalFilesDir(null).getAbsolutePath() + "/logs/<name>.log"
             string path;
@@ -213,7 +213,7 @@ namespace Biterp {
             // create logfile in LOCAL_APPDATA/biterp/logs/<name>.log
             char buf[MAX_PATH];
             SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, buf);
-            string path = buf;
+            std::string path = buf;
             path += "/biterp";
             if (!pathExists(path)) {
                 CreateDirectoryA(path.c_str(), NULL);
@@ -245,11 +245,11 @@ namespace Biterp {
          * @param name
          * @return
          */
-        string getName(string name) {
-            string cut = "./\\:";
+        std::string getName(std::string name) {
+            std::string cut = "./\\:";
             for (char c: cut) {
                 size_t pos = name.rfind(c);
-                if (pos != string::npos) {
+                if (pos != std::string::npos) {
                     name = name.substr(pos + 1);
                 }
             }
@@ -261,7 +261,7 @@ namespace Biterp {
          * @param level
          * @param text
          */
-        void logNative(int level, const string &text) {
+        void logNative(int level, const std::string &text) {
 #if defined(__ANDROID__)
             level += ANDROID_LOG_DEBUG - Level::LDEBUG;
             __android_log_write(level, name.c_str(), text.c_str());
@@ -269,24 +269,24 @@ namespace Biterp {
         }
 
         inline bool fileExists(int num) {
-            return pathExists(filename + "." + to_string(num));
+            return pathExists(filename + "." + std::to_string(num));
         }
 
-        bool pathExists(string path) {
+        bool pathExists(std::string path) {
             struct stat buffer;
             return (stat(path.c_str(), &buffer) == 0);
         }
 
         void moveFile(int from) {
-            string src = filename + (from == 0 ? "" : ("." + to_string(from)));
-            string dest = filename + "." + to_string(from + 1);
+            std::string src = filename + (from == 0 ? "" : ("." + std::to_string(from)));
+            std::string dest = filename + "." + std::to_string(from + 1);
             std::rename(src.c_str(), dest.c_str());
         }
 
     private:
-        string filename;
-        string name;
-        ofstream file;
+        std::string filename;
+        std::string name;
+        std::ofstream file;
         std::mutex _mutex;
 
     private:
