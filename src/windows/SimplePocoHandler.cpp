@@ -83,7 +83,7 @@ struct SimplePocoHandlerImpl
 		{
 			// Replace with AcceptCertificateHandler to skip cert verification 
 			Poco::SharedPtr<InvalidCertificateHandler> pCert = new RejectCertificateHandler(false);
-			Context::Ptr pContext = new Poco::Net::Context(Context::TLSV1_2_CLIENT_USE, "");
+			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
 			SSLManager::instance().initializeClient(0, pCert, pContext);
 			SecureStreamSocket* sslSocket = new SecureStreamSocket();
 			sslSocket->setPeerHostName(host);
