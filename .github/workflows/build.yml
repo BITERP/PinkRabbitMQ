@@ -21,7 +21,7 @@ env:
 jobs:
   buildLinux:
     runs-on: ubuntu-22.04
-    name: Linux PinkRabbitMQ $VERSION
+    name: Linux PinkRabbitMQ ${{env.VERSION}}
     services:
       rabbitmq:
         image: rabbitmq
@@ -33,7 +33,7 @@ jobs:
 
       - name: Configure CMake.
         working-directory: $LINUX_DIR
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=$VERSION ..
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} ..
 
       - name: Build
         working-directory: $LINUX_DIR
@@ -55,7 +55,7 @@ jobs:
   buildWindows:
     runs-on: windows-latest
     needs: [buildLinux]
-    name: Windows PinkRabbitMQ $VERSION
+    name: Windows PinkRabbitMQ ${{env.VERSION}}
     services:
       rabbitmq:
         image: rabbitmq
@@ -83,14 +83,14 @@ jobs:
 
       - name: Build
         working-directory: $WIN_DIR
-        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=$VERSION
+        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
 
       - name: Release
         id: release
         uses: ncipollo/release-action@v1
         with:
           tag: prmq_${{github.run_number}}
-          name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}PinkRabbitMQ v$VERSION
+          name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}PinkRabbitMQ v{{env.$VERSION}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
           artifacts: '*.zip'
           commit: ${{github.ref}}
