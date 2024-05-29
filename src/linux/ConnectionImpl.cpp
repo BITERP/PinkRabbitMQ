@@ -81,10 +81,10 @@ void ConnectionImpl::connect() {
     while (!connection->ready() && !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    if (!handler->getError().empty()){
-        throw Biterp::Error(handler->getError());
-    }
     if (!connection->ready()) {
+        if (!handler->getError().empty()){
+            throw Biterp::Error(handler->getError());
+        }
         throw Biterp::Error("Wrong login, password or vhost");
     }
 }

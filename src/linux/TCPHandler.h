@@ -13,7 +13,7 @@ public:
         error = message;
     }
 
-    const std::string& getError(){
+    inline const std::string& getError(){
         return error;
     }
 

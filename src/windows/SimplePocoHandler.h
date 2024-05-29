@@ -20,6 +20,7 @@ public:
  	void loopRead();
 	static void loopThread(SimplePocoHandler* clazz);
 	void loopIteration();
+    inline const std::string& getError(){ return error;}
 
 private:
 
