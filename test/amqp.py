@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 
 logger = logging.getLogger("AMQP")
 
@@ -8,7 +9,7 @@ from addin1c import Component
 QUEUE = "test_queue"
 
 def connect(host=None, port=None, login="guest", pswd="guest", vhost="/", ssl=False):
-    host = host or "rabbitmq"
+    host = host or os.getenv("RMQ_HOST", "127.0.0.1")
     port = port or (5671 if ssl else 5672)
     vhost = vhost or login
     com = Component("PinkRabbitMQ")

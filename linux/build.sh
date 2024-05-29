@@ -6,4 +6,4 @@ mkdir tmp
 cd tmp
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
-ctest -V 
+RMQ_HOST=rabbitmq ctest -V 
