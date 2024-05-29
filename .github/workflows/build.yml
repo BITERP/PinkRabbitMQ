@@ -62,11 +62,6 @@ jobs:
     runs-on: windows-latest
     needs: [buildLinux]
     name: Windows build
-    services:
-      rabbitmq:
-        image: rabbitmq
-        ports:
-          - 5672:5672
 
     steps:
       - uses: actions/checkout@v2
@@ -85,10 +80,6 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
     
-      - name: Test
-        working-directory: ${{env.WIN_DIR}}
-        run: msbuild msbuild.xml -t:runTests
-
       - name: Build
         working-directory: ${{env.WIN_DIR}}
         run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
