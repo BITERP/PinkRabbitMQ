@@ -71,12 +71,12 @@ jobs:
           path: ${{env.PKG_DIR}}/
 
       - name: Remove Linux Artifact
-        uses: geekyeggo/delete-artifact@v1
+        uses: GeekyEggo/delete-artifact@v5.0.0
         with:
           name: ${{env.LINUX_LIB}}
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
     
       - name: Build
         working-directory: ${{env.WIN_DIR}}
