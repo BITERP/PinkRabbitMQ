@@ -29,7 +29,7 @@ jobs:
           - 5672:5672
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.1.5
 
       - run: python3 -m pip install pytest
 
@@ -48,7 +48,7 @@ jobs:
         run: ctest . -V
 
       - name: Upload Linux Library
-        uses: actions/upload-artifact@v2.2.3
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{env.LINUX_LIB}}
           path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
@@ -62,10 +62,10 @@ jobs:
     name: Windows build
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.1.5
 
       - name: Download Linux Library
-        uses: actions/download-artifact@v2.0.9
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{env.LINUX_LIB}}
           path: ${{env.PKG_DIR}}/
