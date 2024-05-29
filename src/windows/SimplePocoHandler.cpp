@@ -220,10 +220,8 @@ void SimplePocoHandler::onReady(AMQP::Connection* connection)
 void SimplePocoHandler::onError(
 	AMQP::Connection* connection, const char* message)
 {
-	std::string err = "AMQP error: ";
-	err += message;
-	LOGE(err);
-	//std::cerr << err << std::endl;
+	error = message;
+	LOGE("AMQP error: " + error);
 }
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)

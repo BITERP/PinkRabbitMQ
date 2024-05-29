@@ -2,8 +2,8 @@
 
 #include <amqpcpp.h>
 #include <thread>
-#include <amqpcpp/libevent.h>
 #include <memory>
+#include "TCPHandler.h"
 
 class ConnectionImpl{
 public:
@@ -21,7 +21,7 @@ private:
 
 private:
     event_base* eventLoop;
-    AMQP::LibEventHandler* handler;
+    TCPHandler* handler;
     AMQP::TcpConnection* connection;
 
     std::unique_ptr<AMQP::TcpChannel> trChannel;

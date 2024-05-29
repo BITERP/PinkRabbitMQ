@@ -12,7 +12,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
         sslInited = true;
     } 
     eventLoop = event_base_new();
-    handler = new AMQP::LibEventHandler(eventLoop);
+    handler = new TCPHandler(eventLoop);
     connection = new AMQP::TcpConnection(handler, address);
     thread = std::thread(ConnectionImpl::loopThread, this);
 }
@@ -78,8 +78,11 @@ void ConnectionImpl::connect() {
     const uint16_t timeout = 5000;
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
-    while (!connection->ready() &&  !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
+    while (!connection->ready() && !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (!handler->getError().empty()){
+        throw Biterp::Error(handler->getError());
     }
     if (!connection->ready()) {
         throw Biterp::Error("Wrong login, password or vhost");
