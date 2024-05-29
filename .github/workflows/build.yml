@@ -31,8 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: sudo apt install -y build-essential cmake libssl-dev libevent-dev uuid-dev
-
       - run: python3 -m pip install pytest
 
       - run: mkdir $LINUX_DIR
