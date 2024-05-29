@@ -25,6 +25,8 @@ jobs:
     services:
       rabbitmq:
         image: rabbitmq
+        ports:
+          - 5672:5672
 
     steps:
       - uses: actions/checkout@v2
@@ -63,6 +65,8 @@ jobs:
     services:
       rabbitmq:
         image: rabbitmq
+        ports:
+          - 5672:5672
 
     steps:
       - uses: actions/checkout@v2
