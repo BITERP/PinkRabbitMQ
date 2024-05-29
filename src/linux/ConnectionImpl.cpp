@@ -19,7 +19,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 
 ConnectionImpl::~ConnectionImpl() {
     closeChannel(trChannel);
-    while (connection->usable()) {
+    if (!connection->closed()){
         connection->close();
     }
     event_base_loopbreak(eventLoop);
@@ -55,9 +55,12 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
         ready = true;
         cv.notify_all();
         });
-    channel->onError([this, &channel](const char* message) {
+    channel->onError([&](const char* message) {
         LOGW("Channel closed with reason: " + std::string(message));
         channel.reset(nullptr);
+        std::unique_lock<std::mutex> lock(m);
+        ready = true;
+        cv.notify_all();
         });
     std::unique_lock<std::mutex> lock(m);
     cv.wait(lock, [&] { return ready; });

@@ -11,6 +11,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 
 ConnectionImpl::~ConnectionImpl() {
 	closeChannel(trChannel);
+	closeChannel(rcChannel);
 	if (connection->usable()) {
 		connection->close();
 	}

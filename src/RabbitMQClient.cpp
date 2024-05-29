@@ -316,7 +316,6 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	if (consumers.empty()) {
 		throw Biterp::Error("No active consumers");
 	}
-	inConsume = true;
 	ctx.skipParam();
 	tVariant* outdata = ctx.skipParam();
 	tVariant* outMessageTag = ctx.skipParam();
@@ -327,11 +326,9 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		std::unique_lock<std::mutex> lock(_mutex);
 		if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 			ctx.setBoolResult(false);
-			inConsume = false;
 			return;
 		}
 		if (messageQueue.empty()) {
-			inConsume = false;
 			throw Biterp::Error("Empty consume message");
 		}
 		lastMessage = messageQueue.front();
@@ -340,7 +337,6 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
 	ctx.setIntResult(lastMessage.messageTag, outMessageTag); 
 	ctx.setBoolResult(true);
-	inConsume = false;
 }
 
 void RabbitMQClient::clear() {
@@ -361,10 +357,7 @@ void RabbitMQClient::clear() {
 	std::unique_lock<std::mutex> lock(_mutex);
 	std::queue<MessageObject> empty;
 	messageQueue.swap(empty);
-	if (inConsume) {
-		cvDataArrived.notify_all();
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
+	cvDataArrived.notify_all();
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {

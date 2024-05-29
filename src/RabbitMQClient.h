@@ -23,9 +23,12 @@ public:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 public:
-	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0), inConsume(false) {};
+	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
 
-	virtual ~RabbitMQClient() { clear(); };
+	virtual ~RabbitMQClient() { 
+		clear(); 
+		connection.reset(nullptr);
+	};
 
 	inline bool connect(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::connectImpl, paParams, lSizeArray);
@@ -145,7 +148,6 @@ private:
 	std::vector<std::string> consumers;
 	std::queue<MessageObject> messageQueue;
 	std::mutex _mutex;
-	volatile bool inConsume;
 	std::condition_variable cvDataArrived;
 
 private:
