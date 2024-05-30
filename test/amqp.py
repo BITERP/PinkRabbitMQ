@@ -8,12 +8,31 @@ from addin1c import Component
 
 QUEUE = "test_queue"
 
+def get_config(host, port, login, pswd, vhost, ssl):
+    if os.path.exists("test.conf"):
+        with open("test.conf") as f:
+            cfg = json.load(f)
+        if 'host' in cfg:
+            host = cfg['host']
+        if 'login' in cfg:
+            login = cfg['login']
+        if 'password' in cfg:
+            pswd = cfg['password']
+        if 'vhost' in cfg:
+            vhost = cfg['vhost']
+    return {
+        'host': host or os.getenv("RMQ_HOST", "127.0.0.1"),
+        'port': port or (5671 if ssl else 5672),
+        'login': login,
+        'pswd': pswd,
+        'vhost': vhost or login,
+        'ssl': ssl
+    }
+
 def connect(host=None, port=None, login="guest", pswd="guest", vhost="/", ssl=False):
-    host = host or os.getenv("RMQ_HOST", "127.0.0.1")
-    port = port or (5671 if ssl else 5672)
-    vhost = vhost or login
+    cfg = get_config(host, port, login, pswd, vhost, ssl)
     com = Component("PinkRabbitMQ")
-    res = com.call_proc("Connect", host, port, login, pswd, vhost, 0, ssl, 5)
+    res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
     assert res
     return com
 

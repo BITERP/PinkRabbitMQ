@@ -2,6 +2,7 @@
 
 #include <amqpcpp/libevent.h>
 #include <string>
+#include <openssl/ssl.h>
 
 class TCPHandler: public AMQP::LibEventHandler{
 public:
@@ -12,6 +13,13 @@ public:
     {
         error = message;
     }
+
+    virtual bool onSecured(AMQP::TcpConnection *connection, const SSL *ssl) override
+    {
+        SSL_set_cipher_list((SSL*)ssl, "ALL:@SECLEVEL=0");
+        return true;
+    }
+
 
     inline const std::string& getError(){
         return error;
