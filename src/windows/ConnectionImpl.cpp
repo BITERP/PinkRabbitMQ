@@ -12,7 +12,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 ConnectionImpl::~ConnectionImpl() {
 	closeChannel(trChannel);
 	closeChannel(rcChannel);
-	if (!connection->closed()) {
+	if (connection->usable()) {
 		connection->close();
 	}
 	thread.join();
