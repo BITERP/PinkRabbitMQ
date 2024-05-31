@@ -148,7 +148,7 @@ namespace Biterp {
             }
             defaultLogger().subname = name;
             defaultLogger().version = version;
-            uint pid = (uint)GETPID();
+            uint32_t pid = (uint32_t)GETPID();
             _path = getFilePath(addin);
             _fname = _path + PREFIX + std::to_string(pid);
         }
@@ -183,10 +183,10 @@ namespace Biterp {
             if (!file) {
                 return;
             }
-            std::string line = buildRecord(logger, text, level, formatTime(ISO_FMT, &tm, ms.count()));
+            std::string line = buildRecord(logger, text, level, formatTime(ISO_FMT, &tm, (int)ms.count()));
             file << line << std::endl;
             file.flush();
-            if (duration_cast<seconds>(now - cleanTime).count() < CLEAN_INTERVAL){
+            if ((int)duration_cast<seconds>(now - cleanTime).count() < CLEAN_INTERVAL){
                 return;
             }
             cleanTime = now;
@@ -213,7 +213,7 @@ namespace Biterp {
                 if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
                     continue;
                 }
-                std::string nm = entry.path().stem();
+                std::string nm = entry.path().stem().string();
                 if (nm.find(PREFIX) != 0){
                     continue;
                 }
