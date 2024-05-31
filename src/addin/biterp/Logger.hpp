@@ -1,13 +1,23 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include <ctime>
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
 #include <mutex>
+#include <chrono>
 #include <iomanip>
 #include <thread>
 #include <sys/stat.h>
+#include <filesystem>
+
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+using namespace std::chrono;
+namespace fs = std::filesystem;
 
 #if defined(__ANDROID__)
 
@@ -15,7 +25,6 @@
 #include <addin/IAndroidComponentHelper.h>
 #include "../jni/jnienv.h"
 
-#define UNLINK  unlink
 #define LOCALTIME(V, T) tm V = *localtime(T)
 
 #endif
@@ -25,7 +34,7 @@
 #include <unistd.h>
 #include <pwd.h>
 
-#define UNLINK  unlink
+#define GETPID  getpid 
 #define LOCALTIME(V, T) tm V = *localtime(T)
 
 #endif
@@ -33,8 +42,9 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <Shlobj.h>
+#include <process.h>
 
-#define UNLINK  _unlink
+#define GETPID  _getpid 
 #define LOCALTIME(V, T) tm V; localtime_s(&V, T)
 
 #endif
@@ -47,135 +57,194 @@ namespace Biterp {
     /**
      * Log to file and logcat. Rotate logs with debug filtering.
      */
-    class Logger {
+    class Logging {
+
     public:
-        enum Level {
-            LDEBUG = 0,
-            LINFO,
-            LWARNING,
-            LERROR,
-            LFATAL
+        struct Logger{
+            enum Level {
+                LDEBUG = 0,
+                LINFO,
+                LWARNING,
+                LERROR,
+                LFATAL
+            };
+            std::string subname;
+            std::string version;
+            std::string instance;
+            inline void debug(const std::string &text) const {Logging::debug(text, *this);}
+            inline void info(const std::string &text) const {Logging::info(text, *this);}
+            inline void warning(const std::string &text) const {Logging::warning(text, *this);}
+            inline void error(const std::string &text) const {Logging::error(text, *this);}
         };
 
+
     public:
-        inline static void init(const std::u16string &name, IAddInDefBase *addin, void* compinst) {
-            instance()._init(name, addin, compinst);
+        inline static Logger getLogger(const std::string &name, const std::string &version, IAddInDefBase *addin, void* compinst) {
+            instance()._init(addin, name, version);
+            Logger logger;
+            logger.subname = name;
+            logger.version = version;
+            uintptr_t instance = reinterpret_cast<uintptr_t>(compinst);
+            logger.instance = std::to_string(instance);
+            return logger;
         }
 
-        inline static void log(int level, const std::string &text) {
-            instance()._log(level, text);
+        Logging& getInstance(){
+            return instance();
         }
 
-        inline static void debug(const std::string &text) { log(Level::LDEBUG, text); }
+        inline static void log(int level, const std::string &text, const Logger& logger) {
+            instance()._log(level, text, logger);
+        }
 
-        inline static void info(const std::string &text) { log(Level::LINFO, text); }
+        inline static void debug(const std::string &text, const Logger& logger=defaultLogger()) { log(Logger::Level::LDEBUG, text, logger); }
+        inline static void info(const std::string &text, const Logger& logger=defaultLogger()) { log(Logger::Level::LINFO, text, logger); }
+        inline static void warning(const std::string &text, const Logger& logger=defaultLogger()) { log(Logger::Level::LWARNING, text, logger); }
+        inline static void error(const std::string &text, const Logger& logger=defaultLogger()) { log(Logger::Level::LERROR, text, logger); }
 
-        inline static void warning(const std::string &text) { log(Level::LWARNING, text); }
+        Logging& setAppName(const std::string& appname){
+            std::lock_guard<std::mutex> lock(_mutex);
+            record["Appname"] = appname;
+            return *this;
+        }
+        Logging& setDeviceid(const std::string& deviceid){
+            std::lock_guard<std::mutex> lock(_mutex);
+            record["Deviceid"] = deviceid;
+            return *this;
+        }
 
-        inline static void error(const std::string &text) { log(Level::LERROR, text); }
+        Logging& setClientid(const std::string& clientid){
+            std::lock_guard<std::mutex> lock(_mutex);
+            record["Clientid"] = clientid;
+            return *this;
+        }
+
+        Logging& setLoglevel(const std::string& loglevel){
+            std::lock_guard<std::mutex> lock(_mutex);
+            for (int i=0;i<=Logger::Level::LFATAL; i++){
+                if (levels[i] == loglevel){
+                    minlevel = i;
+                }
+            }
+            return *this;
+        }
 
     private:
-        // rotation size 2Mb
-        const int ROTATE_SIZE = 2 * 1024 * 1024;
-        const char *LEVELS = "DIWEF";
+        const int CLEAN_INTERVAL = 600;
+        const int KEEP_TIME = 60 * 10;
+        const char* FILE_FMT = "%Y-%m-%d-%H-%M";
+        const char* ISO_FMT = "%FT%H:%M:%S";
+        const char* PREFIX = "comc1c";
 
         /**
          * Set logs filename, open current logfile.
          * @param name
          * @param addin
          */
-        void _init(const std::u16string &name, IAddInDefBase *addin, void* compinst) {
-            if (filename.length()) {
+        void _init(IAddInDefBase *addin, const std::string& name, const std::string& version) {
+            if (!_fname.empty()) {
                 // already inited
                 return;
             }
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-            auto i = reinterpret_cast<std::uintptr_t>(compinst);
-            this->name = getName(conv.to_bytes(name)) + "_" + std::to_string(i);
-            filename = getFileName(addin);
-            if (!filename.length()) {
-                return;
-            }
-            file.open(filename, std::ios::out | std::ios::app | std::ios::ate);
+            defaultLogger().subname = name;
+            defaultLogger().version = version;
+            uint pid = (uint)GETPID();
+            _path = getFilePath(addin);
+            _fname = _path + PREFIX + std::to_string(pid);
         }
+
+        std::string formatTime(const char* fmt, const std::tm* tm, int ms=-1){
+            std::ostringstream oss;
+            oss << std::put_time(tm, fmt);
+            if (ms>=0){
+                oss << '.' << std::setfill('0') << std::setw(3) << ms;
+            }
+            return oss.str();
+        }
+
 
         /**
          * Save log to file. Multithread.
          * @param level
          * @param text
          */
-        void _log(int level, const std::string &text) {
+        void _log(int level, const std::string &text, const Logger& logger) {
             logNative(level, text);
+            if (level < minlevel || _fname.empty()){
+                return;
+            }
+
+            auto now = system_clock::now();
+            auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+            time_t timer = system_clock::to_time_t(now);
+            LOCALTIME(tm, &timer);
             std::lock_guard<std::mutex> lock(_mutex);
+            std::ofstream& file = getFile(formatTime(FILE_FMT, &tm));
             if (!file) {
                 return;
             }
-            time_t t = time(nullptr);
-            LOCALTIME(tm, &t);
-            file << "[" << LEVELS[level] << std::put_time(&tm, " %Y-%m-%d %H:%M:%S ") 
-                << std::time(nullptr) << " " << std::this_thread::get_id() << "]"
-                << text << std::endl;
+            std::string line = buildRecord(logger, text, level, formatTime(ISO_FMT, &tm, ms.count()));
+            file << line << std::endl;
             file.flush();
-            if (file.tellp() > ROTATE_SIZE) {
-                rotate();
+            if (duration_cast<seconds>(now - cleanTime).count() < CLEAN_INTERVAL){
+                return;
             }
+            cleanTime = now;
+            std::thread(&Logging::cleanOld, this).detach();
         }
 
-        /**
-         * Rotate logs (current -> .1 -> .2 -> .3 -> .4). Filter debug messages from log.2
-         */
-        void rotate() {
-            if (fileExists(4)) {
-                UNLINK((filename + ".4").c_str());
-            }
-            for (int i = 3; i > 0; i--) {
-                if (fileExists(i)) {
-                    moveFile(i);
-                }
-            }
-            file.close();
-            moveFile(0);
-            file.open(filename, std::ios::out);
-            if (fileExists(2)) {
-                std::thread th(filterLogs, filename + ".2");
-                th.detach();
-            }
+        std::string buildRecord(const Logger& logger, const std::string message, int level, const std::string time){
+            record["Subsystemname"] = logger.subname;
+            record["Version"] = logger.version;
+            record["Instance"] = logger.instance;
+            record["Description"] = message;
+            record["Loglevel"] = levels[level];
+            record["Date"] = time;
+            return record.dump();
         }
 
-        /**
-         * Copy file removeing D(ebug) lines.
-         * @param filename
-         */
-        static void filterLogs(std::string filename) {
-            std::string bak = filename + ".bak";
-            std::rename(filename.c_str(), bak.c_str());
-            std::ifstream in(bak);
-            std::ofstream out(filename, std::ios::out);
-            bool keep = true;
-            std::string line;
-            while (std::getline(in, line)) {
-                if (line[0] == '[' && line[7] == '-') {
-                    keep = line[1] != 'D';
+        void cleanOld(){
+            auto now = system_clock::now();
+            std::tm tm = {};
+            if (!fs::exists(_path)){
+                return;
+            }
+            for (const auto & entry : fs::directory_iterator(_path)){
+                if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
+                    continue;
                 }
-                if (keep) {
-                    out << line << std::endl;
+                std::string nm = entry.path().stem();
+                if (nm.find(PREFIX) != 0){
+                    continue;
+                }
+                size_t pos = nm.find("-");
+                if (pos == std::string::npos){
+                    continue;
+                }
+                std::string dt = nm.substr(pos + 1);
+                if (dt.length() != 16 || dt[4]!='-' || dt[7]!='-' || dt[10]!='-' || dt[13]!='-'){
+                    continue;
+                }
+                std::istringstream ss(dt);
+                ss >> std::get_time(&tm, FILE_FMT);
+                if (ss.fail()){
+                    continue;
+                }
+                auto diff = now - system_clock::from_time_t(mktime(&tm));
+                if (duration_cast<seconds>(diff).count() > KEEP_TIME){
+                    fs::remove(entry.path());
                 }
             }
-            in.close();
-            out.close();
-            UNLINK(bak.c_str());
         }
-
 
         /**
          * Get log filename with OS specific path.
          * @param addin
          * @return
          */
-        std::string getFileName(IAddInDefBase *addin) {
+        std::string getFilePath(IAddInDefBase *addin) {
+            std::string path;
 #if defined(__ANDROID__)
-            // return activity.getExternalFilesDir(null).getAbsolutePath() + "/logs/<name>.log"
-            string path;
             IAddInDefBaseEx *addinex = static_cast<IAddInDefBaseEx *>(addin);
             IAndroidComponentHelper *helper = (IAndroidComponentHelper *) addinex->GetInterface(
                     eIAndroidComponentHelper);
@@ -202,58 +271,30 @@ namespace Biterp {
             path = chars;
             env->ReleaseStringUTFChars(jpath, chars);
             env->DeleteLocalRef(jpath);
-            if (path.length()) {
-                path += "/logs";
-                if (!pathExists(path)) {
-                    mkdir(path.c_str(), 0755);
-                }
-                return path + "/" + name + ".log";
-            }
 #elif (defined(_WIN32) || defined(_WIN64))
             // create logfile in LOCAL_APPDATA/biterp/logs/<name>.log
             char buf[MAX_PATH];
             SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, buf);
-            std::string path = buf;
+            path = buf;
+            if (path.empty()){
+                return "./";
+            }
             path += "/biterp";
-            if (!pathExists(path)) {
-                CreateDirectoryA(path.c_str(), NULL);
-            }
-            path += "/logs";
-            if (!pathExists(path)) {
-                CreateDirectoryA(path.c_str(), NULL);
-            }
-            return path + "/" + name + ".log";
 #elif defined(__linux__)
-            std::string path = getpwuid(getuid())->pw_dir;
-            path+="/.biterp";
-            if (!pathExists(path)) {
-                mkdir(path.c_str(), 0755);
+            path = getpwuid(getuid())->pw_dir;
+            if (path.empty()){
+                return "./";
             }
-            path += "/logs";
-            if (!pathExists(path)) {
-                mkdir(path.c_str(), 0755);
-            }
-            return path + "/" + name + ".log";
+            path += "/.biterp";
 #else
 #error "Unsupported OS"
 #endif
-            return name + ".log";
-        }
-
-        /**
-         * Get log name
-         * @param name
-         * @return
-         */
-        std::string getName(std::string name) {
-            std::string cut = "./\\:";
-            for (char c: cut) {
-                size_t pos = name.rfind(c);
-                if (pos != std::string::npos) {
-                    name = name.substr(pos + 1);
-                }
+            if (path.empty()){
+                return "./";
             }
-            return name;
+            path += "/logs";
+            fs::create_directories(path);
+            return path + "/";
         }
 
         /**
@@ -268,51 +309,73 @@ namespace Biterp {
 #endif
         }
 
-        inline bool fileExists(int num) {
-            return pathExists(filename + "." + std::to_string(num));
-        }
-
-        bool pathExists(std::string path) {
-            struct stat buffer;
-            return (stat(path.c_str(), &buffer) == 0);
-        }
-
-        void moveFile(int from) {
-            std::string src = filename + (from == 0 ? "" : ("." + std::to_string(from)));
-            std::string dest = filename + "." + std::to_string(from + 1);
-            std::rename(src.c_str(), dest.c_str());
+        std::ofstream& getFile(const std::string& date){
+            time_t tm = time(nullptr);
+            std::string fname = _fname + "-" + date + ".txt";
+            if (fname == _current_file && _file){
+                return _file;
+            }
+            if (_file){
+                _file.close();
+            }
+            _file.open(fname, std::ios::out | std::ios::app | std::ios::ate);
+            _current_file = fname;
+            return _file;
         }
 
     private:
-        std::string filename;
-        std::string name;
-        std::ofstream file;
+        std::string _path;
+        std::string _fname;
+        std::string _current_file;
+        std::ofstream _file;
         std::mutex _mutex;
+        system_clock::time_point cleanTime;
+        json record;
+        int minlevel;
+        std::vector<std::string> levels;
 
     private:
         // Singleton
-        static Logger &instance() {
-            static Logger _inst;
+        inline static Logging &instance() {
+            static Logging _inst;
             return _inst;
         }
 
-        Logger() {}
+        inline static Logger &defaultLogger() {
+            static Logger _defaultLogger;
+            return _defaultLogger;
+        }
 
-        ~Logger() {
-            if (file) {
-                file.close();
+        Logging(): minlevel(0) , levels{"D","I","W","E","F"}{
+            record = json({
+                {"Appname", ""},
+                {"Subsystemname", ""},
+                {"Version", ""},
+                {"Description", ""},
+                {"Loglevel", ""},
+                {"Date", ""},
+                {"Deviceid", ""},
+                {"Clientid", ""},
+                {"Instance", ""},
+            });
+        }
+
+        ~Logging() {
+            if (_file) {
+                _file.close();
             }
         }
 
-        Logger(const Logger &) = delete;
+        Logging(const Logging &) = delete;
 
-        Logger(const Logger &&) = delete;
+        Logging(const Logging &&) = delete;
 
-        void operator=(const Logger &) = delete;
+        void operator=(const Logging &) = delete;
 
-        void operator=(const Logger &&) = delete;
+        void operator=(const Logging &&) = delete;
 
     };
+
 }
 
 

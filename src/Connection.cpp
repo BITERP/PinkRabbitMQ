@@ -1,5 +1,4 @@
 #include "Connection.h"
-#include <thread>
 #include <addin/biterp/Error.hpp>
 #include <chrono>
 

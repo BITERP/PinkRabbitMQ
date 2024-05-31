@@ -143,13 +143,13 @@ void SimplePocoHandler::loopRead()
 			loopIteration();
 		}
 		catch (const Poco::Net::ConnectionResetException& exc) {
-			LOGE(exc.displayText());
+			Biterp::Logging::error(exc.displayText());
 			m_impl->connection->close();
 		}
 		catch (const Poco::Exception& exc)
 		{
 			std::string err = typeid(exc).name() + std::string(": ") + exc.displayText() + std::string(". ") + exc.what();
-			LOGE(err);
+			Biterp::Logging::error(err);
 			std::cerr << err << std::endl;
 		}
 	}
@@ -221,7 +221,7 @@ void SimplePocoHandler::onError(
 	AMQP::Connection* connection, const char* message)
 {
 	error = message;
-	LOGE("AMQP error: " + error);
+	Biterp::Logging::error("AMQP error: " + error);
 }
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)

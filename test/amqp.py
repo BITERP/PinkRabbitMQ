@@ -12,24 +12,26 @@ def get_config(host, port, login, pswd, vhost, ssl):
     if os.path.exists("test.conf"):
         with open("test.conf") as f:
             cfg = json.load(f)
-        if 'host' in cfg:
+        if 'host' in cfg and not host:
             host = cfg['host']
-        if 'login' in cfg:
+        if 'login' in cfg and not login:
             login = cfg['login']
-        if 'password' in cfg:
+        if 'password' in cfg and not pswd:
             pswd = cfg['password']
-        if 'vhost' in cfg:
+        if 'vhost' in cfg and not vhost:
             vhost = cfg['vhost']
+    if not vhost:
+        vhost = login or "/"
     return {
         'host': host or os.getenv("RMQ_HOST", "127.0.0.1"),
         'port': port or (5671 if ssl else 5672),
-        'login': login,
-        'pswd': pswd,
-        'vhost': vhost or login,
+        'login': login or "guest",
+        'pswd': pswd or "guest",
+        'vhost': vhost,
         'ssl': ssl
     }
 
-def connect(host=None, port=None, login="guest", pswd="guest", vhost="/", ssl=False):
+def connect(host=None, port=None, login=None, pswd=None, vhost=None, ssl=False):
     cfg = get_config(host, port, login, pswd, vhost, ssl)
     com = Component("PinkRabbitMQ")
     res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)

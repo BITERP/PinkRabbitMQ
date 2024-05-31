@@ -92,19 +92,19 @@ const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ";
 // CAddInNative
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::RabbitMQClientNative() {
-	LOGD("construct");
+	impl.LOGD("construct");
 }
 
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::~RabbitMQClientNative() {
-	LOGD("destruct");
+	impl.LOGD("destruct");
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::Init(VOID_PTR pConnection) {
-	LOGD("init start");
+	impl.LOGD("init start");
 	bool ret = impl.init(static_cast<IAddInDefBase*>(pConnection));
-	LOGD("init end");
+	impl.LOGD("init end");
 	return ret;
 }
 
@@ -117,9 +117,9 @@ long RabbitMQClientNative::GetInfo() {
 
 //---------------------------------------------------------------------------//
 void RabbitMQClientNative::Done() {
-	LOGD("done start");
+	impl.LOGD("done start");
 	impl.done();
-	LOGD("done end");
+	impl.LOGD("done end");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -172,7 +172,7 @@ const WCHAR_T* RabbitMQClientNative::GetPropName(long lPropNum, long lPropAlias)
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal) {
-	LOGD("1C get prop start " + std::to_string(lPropNum));
+	impl.LOGD("1C get prop start " + std::to_string(lPropNum));
 	bool ret = false;
 	switch (lPropNum) {
 	case ePropVersion:
@@ -194,13 +194,13 @@ bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal
 		ret = false;
 		break;
 	}
-	LOGD("1C get prop end " + std::to_string(lPropNum));
+	impl.LOGD("1C get prop end " + std::to_string(lPropNum));
 	return ret;
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal) {
-	LOGD("1C set prop start " + std::to_string(lPropNum));
+	impl.LOGD("1C set prop start " + std::to_string(lPropNum));
 	bool ret = false;
 	switch (lPropNum) {
 	case ePropCorrelationId:
@@ -219,7 +219,7 @@ bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal)
 		ret = false;
 		break;
 	}
-	LOGD("1C set prop end " + std::to_string(lPropNum));
+	impl.LOGD("1C set prop end " + std::to_string(lPropNum));
 	return ret;
 }
 
@@ -380,7 +380,7 @@ bool RabbitMQClientNative::HasRetVal(const long lMethodNum) {
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 	tVariant* paParams, const long lSizeArray) {
-	LOGD("1C call proc start " + std::to_string(lMethodNum));
+	impl.LOGD("1C call proc start " + std::to_string(lMethodNum));
 	bool ret = false;
 	switch (lMethodNum) {
 	case eMethConnect:
@@ -423,7 +423,7 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 		ret = false;
 		break;
 	}
-	LOGD("1C call proc end " + std::to_string(lMethodNum));
+	impl.LOGD("1C call proc end " + std::to_string(lMethodNum));
 	return ret;
 }
 
@@ -431,7 +431,7 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 	tVariant* pvarRetValue, tVariant* paParams,
 	const long lSizeArray) {
-	LOGD("1C call func start " + std::to_string(lMethodNum));
+	impl.LOGD("1C call func start " + std::to_string(lMethodNum));
 	bool ret = false;
 	switch (lMethodNum) {
 	case eMethGetLastError:
@@ -459,7 +459,7 @@ bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 		ret = false;
 		break;
 	}
-	LOGD("1C call func end " + std::to_string(lMethodNum));
+	impl.LOGD("1C call func end " + std::to_string(lMethodNum));
 	return ret;
 }
 

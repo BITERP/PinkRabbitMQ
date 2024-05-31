@@ -1,5 +1,6 @@
 #include "ConnectionImpl.h"
 #include <addin/biterp/Component.hpp>
+#include <addin/biterp/Logger.hpp>
 #include <mutex>
 #include <condition_variable>
 
@@ -56,7 +57,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
         cv.notify_all();
         });
     channel->onError([&](const char* message) {
-        LOGW("Channel closed with reason: " + std::string(message));
+        Biterp::Logging::error("Channel closed with reason: " + std::string(message));
         channel.reset(nullptr);
         std::unique_lock<std::mutex> lock(m);
         ready = true;

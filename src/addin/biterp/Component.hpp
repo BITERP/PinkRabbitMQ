@@ -20,10 +20,10 @@
 #define DO_QUOTE(...) #__VA_ARGS__
 #define QUOTE(X)  "" DO_QUOTE(X)
 
-#define LOGD(M) Biterp::Logger::debug(M)
-#define LOGI(M) Biterp::Logger::info(M)
-#define LOGW(M) Biterp::Logger::warning(M)
-#define LOGE(M) Biterp::Logger::error(M)
+#define LOGD(M) getLogger().debug(M)
+#define LOGI(M) getLogger().info(M)
+#define LOGW(M) getLogger().warning(M)
+#define LOGE(M) getLogger().error(M)
 
 
 namespace Biterp {
@@ -35,7 +35,7 @@ namespace Biterp {
     public:
         Component(const char *className) : addin(nullptr), skipAddError(false) {
             this->className = u16Converter.from_bytes(className);
-            this->version = u16Converter.from_bytes(QUOTE(VERSION));
+            this->version = QUOTE(VERSION);
         }
 
         virtual ~Component() {}
@@ -46,7 +46,7 @@ namespace Biterp {
         * @return
         */
         virtual bool init(IAddInDefBase *addin) {
-            Biterp::Logger::init(className, addin, (void*)this);
+            logger = Biterp::Logging::getLogger(u16Converter.to_bytes(className), version, addin, this);
             LOGD("init");
             this->addin = addin;
             return true;
@@ -86,8 +86,11 @@ namespace Biterp {
         * @return
         */
         inline bool getVersion(tVariant *pvarRetValue) {
-            return memManager.variantFromString(pvarRetValue, version);
+            std::u16string uver = u16Converter.from_bytes(version);
+            return memManager.variantFromString(pvarRetValue, uver);
         }
+
+        inline const Biterp::Logging::Logger& getLogger(){ return logger; }
 
     protected:
         //---- utils
@@ -180,11 +183,12 @@ namespace Biterp {
     protected:
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> u16Converter;
         std::u16string className;
-        std::u16string version;
+        std::string version;
         IAddInDefBase *addin;
         std::u16string lastError;
         MemoryManager memManager;
         bool skipAddError;
+        Biterp::Logging::Logger logger;
     };
 
 }
