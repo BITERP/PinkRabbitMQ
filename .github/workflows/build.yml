@@ -14,7 +14,7 @@ name: Build
 on:
   workflow_call:
     inputs:
-      component_name:
+      postfix:
         required: true
         type: string
 
@@ -28,7 +28,7 @@ env:
 jobs:
   buildLinux:
     runs-on: ubuntu-22.04
-    name: Linux ${{inputs.component_name}}
+    name: Linux ${{inputs.postfix}}
     services:
       rabbitmq:
         image: rabbitmq
@@ -44,7 +44,7 @@ jobs:
 
       - name: Configure CMake.
         working-directory: ${{env.LINUX_DIR}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DCOMPONENT_NAME=${{inputs.component_name}} ..
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
 
       - name: Build
         working-directory: ${{env.LINUX_DIR}}
@@ -57,7 +57,7 @@ jobs:
       - name: Upload Linux Library
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: ${{env.LINUX_LIB}}_${{inputs.component_name}}
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
           path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
           if-no-files-found: error
           retention-days: 1
@@ -66,7 +66,7 @@ jobs:
   buildWindows:
     runs-on: windows-latest
     needs: [buildLinux]
-    name: Windows ${{inputs.component_name}}
+    name: Windows ${{inputs.postfix}}
 
     steps:
       - uses: actions/checkout@v4.1.5
@@ -74,23 +74,23 @@ jobs:
       - name: Download Linux Library
         uses: actions/download-artifact@v4.1.7
         with:
-          name: ${{env.LINUX_LIB}}_${{inputs.component_name}}
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
           path: ${{env.PKG_DIR}}/
 
       - name: Remove Linux Artifact
         uses: GeekyEggo/delete-artifact@v5.0.0
         with:
-          name: ${{env.LINUX_LIB}}_${{inputs.component_name}}
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
     
       - name: Build
         working-directory: ${{env.WIN_DIR}}
-        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:COMPONENT_NAME=${{inputs.component_name}}
+        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:NAME_POSTFIX=${{inputs.postfix}}
 
       - name: Rename Build
-        run: ren PinkRabbitMQ_v${{env.VERSION}}.zip ${{inputs.component_name}}_v${{env.VERSION}}.zip
+        run: ren PinkRabbitMQ_v${{env.VERSION}}.zip PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
 
       - name: Release
         id: release

@@ -9,7 +9,7 @@
       </ConfigAndPlatform>
     </ItemGroup>
     <MSBuild Projects="WindowsAddin\WindowsAddin.vcxproj" Targets="Build"
-             Properties="Configuration=%(ConfigAndPlatform.Identity);Platform=%(ConfigAndPlatform.Platform);VersionDef=$(VERSION);CompName=$(COMPONENT_NAME)"/>
+             Properties="Configuration=%(ConfigAndPlatform.Identity);Platform=%(ConfigAndPlatform.Platform);VersionDef=$(VERSION);CompName=$(NAME_POSTFIX)"/>
   </Target>
   <Target Name="makeRelease" DependsOnTargets="FullRebuild">
 	<WriteLinesToFile File="..\package\version.txt" Lines="version=$(VERSION)" Overwrite="true"/>

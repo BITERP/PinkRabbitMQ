@@ -15,11 +15,11 @@ jobs:
   versions:
     strategy:
       matrix:
-        name: ["PinkRabbitMQ","PinkRabbitMQ_2",
-            "PinkRabbitMQ2","PinkRabbitMQ2_2",
-            "PinkRabbitMQ3","PinkRabbitMQ3_2",
+        name: ["","_2",
+            "2","2_2",
+            "3","3_2",
           ]
       fail-fast: true
     uses: ./.github/workflows/build.yml
     with:
-      component_name: ${{ matrix.name }}
+      postfix: ${{ matrix.name }}

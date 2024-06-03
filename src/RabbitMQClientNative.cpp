@@ -14,11 +14,6 @@
 #include "RabbitMQClientNative.h"
 #include <string>
 
-#define EMPTY_STR
-#if (!defined(COMPONENT_NAME) || (#COMPONENT_NAME == #EMPTY_STR))
-	#define COMPONENT_NAME PinkRabbitMQ
-#endif
-
 Biterp::Names RabbitMQClientNative::properties{{
 	{RabbitMQClientNative::ePropVersion, {u"Version"}},
 	{RabbitMQClientNative::ePropCorrelationId, {u"CorrelationId"}},
@@ -56,7 +51,7 @@ Biterp::Names RabbitMQClientNative::methods{{
 }};
 
 
-const char16_t* RabbitMQClientNative::componentName = u"" QUOTE(COMPONENT_NAME);
+const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ" QUOTE(NAME_POSTFIX);
 
 // CAddInNative
 //---------------------------------------------------------------------------//
