@@ -28,7 +28,7 @@ env:
 jobs:
   buildLinux:
     runs-on: ubuntu-22.04
-    name: Linux build ${{inputs.component_name}}
+    name: Linux ${{inputs.component_name}}
     services:
       rabbitmq:
         image: rabbitmq
@@ -54,9 +54,6 @@ jobs:
         working-directory: ${{env.LINUX_DIR}}
         run: ctest . -V
 
-      - name: Rename
-        run: mv 
-
       - name: Upload Linux Library
         uses: actions/upload-artifact@v4.3.3
         with:
@@ -69,7 +66,7 @@ jobs:
   buildWindows:
     runs-on: windows-latest
     needs: [buildLinux]
-    name: Windows build ${{inputs.component_name}}
+    name: Windows ${{inputs.component_name}}
 
     steps:
       - uses: actions/checkout@v4.1.5

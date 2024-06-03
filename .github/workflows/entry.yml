@@ -12,8 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  make_matrix:
-    name: Build Versions Matrix
+  versions:
     strategy:
       matrix:
         name: ["PinkRabbitMQ","PinkRabbitMQ_2",
