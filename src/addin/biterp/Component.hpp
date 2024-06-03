@@ -6,10 +6,8 @@
 #define COMPONENT_HPP
 
 #include <string>
-#include <iostream>
 #include "../AddInDefBase.h"
 #include "MemoryManager.hpp"
-#include "Error.hpp"
 #include "CallContext.hpp"
 #include <codecvt>
 #include <locale>

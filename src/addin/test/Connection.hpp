@@ -133,8 +133,16 @@ namespace Biterp {
 
             void init(u16string className) {
                 GetClassObject(className.c_str(), &addin);
-                addin->Init(this);
                 addin->setMemManager(&memManager);
+                char16_t *component_name = nullptr;
+                ASSERT(addin->RegisterExtensionAs(&component_name));
+                ASSERT(component_name != nullptr);
+                u16string cname = component_name;
+                memManager.FreeMemory((void**)&component_name);
+                if (!className.empty()){
+                    ASSERT_EQ(className, cname);
+                }
+                addin->Init(this);
             }
 
             void done() {

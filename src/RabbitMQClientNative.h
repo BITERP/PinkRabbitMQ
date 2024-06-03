@@ -4,6 +4,7 @@
 #include "RabbitMQClient.h"
 #include <addin/ComponentBase.h>
 #include <addin/AddInDefBase.h>
+#include <addin/biterp/Names.hpp>
 
 typedef void* VOID_PTR;
 
@@ -110,7 +111,8 @@ private:
 
 	RabbitMQClient impl;
 
-	long findName(const char16_t* names[], std::u16string name, const uint32_t size) const;
+	static Biterp::Names properties;
+	static Biterp::Names methods;
 
 };
 

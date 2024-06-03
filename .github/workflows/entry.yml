@@ -1,0 +1,28 @@
+name: Entry
+
+on:
+  push:
+    paths:
+      - '.github/**'
+      - 'CI/config.yml'
+      - 'src/**'
+      - 'windows/**'
+      - 'linux/**'
+      - 'test/**'
+  workflow_dispatch:
+
+  jobs:
+  version:
+    runs-on: ubuntu-22.04
+    name: Build Versions Matrix
+    strategy:
+      matrix:
+        name: ["PinkRabbitMQ","PinkRabbitMQ_2",
+            "PinkRabbitMQ2","PinkRabbitMQ2_2",
+            "PinkRabbitMQ3","PinkRabbitMQ3_2",
+          ]
+      fail-fast: true
+      max-parallel: 1
+    uses: .github/workflows/build.yml
+    with:
+      component_name: ${{ matrix.name }}

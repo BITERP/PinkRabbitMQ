@@ -26,6 +26,7 @@ include_directories(${CMAKE_SOURCE_DIR}/linux/libevent)
 include_directories(${CMAKE_SOURCE_DIR}/linux/openssl)
 
 add_definitions(-DVERSION=${VERSION})
+add_definitions(-DCOMPONENT_NAME=${COMPONENT_NAME})
 
 add_library(${PROJECT_NAME} SHARED ${AddInNative_SRC})
 

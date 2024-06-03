@@ -1,15 +1,22 @@
 name: Build
 
+#on:
+#  push:
+#    paths:
+#      - '.github/**'
+#      - 'CI/config.yml'
+#      - 'src/**'
+#      - 'windows/**'
+#      - 'linux/**'
+#      - 'test/**'
+#  workflow_dispatch:
+
 on:
-  push:
-    paths:
-      - '.github/**'
-      - 'CI/config.yml'
-      - 'src/**'
-      - 'windows/**'
-      - 'linux/**'
-      - 'test/**'
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      component_name:
+        required: true
+        type: string
 
 env:
   VERSION: 2.2.0.${{github.run_number}}
@@ -21,7 +28,7 @@ env:
 jobs:
   buildLinux:
     runs-on: ubuntu-22.04
-    name: Linux build
+    name: Linux build ${{inputs.component_name}}
     services:
       rabbitmq:
         image: rabbitmq
@@ -37,7 +44,7 @@ jobs:
 
       - name: Configure CMake.
         working-directory: ${{env.LINUX_DIR}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} ..
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DCOMPONENT_NAME=${{inputs.component_name}} ..
 
       - name: Build
         working-directory: ${{env.LINUX_DIR}}
@@ -59,7 +66,7 @@ jobs:
   buildWindows:
     runs-on: windows-latest
     needs: [buildLinux]
-    name: Windows build
+    name: Windows build ${{inputs.component_name}}
 
     steps:
       - uses: actions/checkout@v4.1.5
@@ -80,7 +87,10 @@ jobs:
     
       - name: Build
         working-directory: ${{env.WIN_DIR}}
-        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}}
+        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:COMPONENT_NAME=${{inputs.component_name}}
+
+      - name: Rename Build
+        run: rename PinkRabbitMQ_v${{env.VERSION}}.zip ${{inputs.component_name}}_v${{env.VERSION}}.zip
 
       - name: Release
         id: release
