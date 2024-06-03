@@ -82,10 +82,6 @@ jobs:
         with:
           name: ${{env.LINUX_LIB}}_${{inputs.component_name}}
 
-      - name: Rename Linux Library
-        working-directory: ${{env.PKG_DIR}}
-        run: ren ${{env.LINUX_LIB}}_${{inputs.component_name}} ${{env.LINUX_LIB}}
-
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
     
