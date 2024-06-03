@@ -51,6 +51,7 @@ jobs:
         run: cmake --build .
 
       - name: Test
+        if: ${{ inputs.postfix == "" }}
         working-directory: ${{env.LINUX_DIR}}
         run: ctest . -V
 
