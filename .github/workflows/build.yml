@@ -38,8 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.5
 
-      - run: python3 -m pip install pytest
-
       - run: mkdir $LINUX_DIR
 
       - name: Configure CMake.
@@ -49,6 +47,9 @@ jobs:
       - name: Build
         working-directory: ${{env.LINUX_DIR}}
         run: cmake --build .
+
+      - if: ${{ inputs.postfix == '' }}
+        run: python3 -m pip install pytest
 
       - name: Test
         if: ${{ inputs.postfix == '' }}
