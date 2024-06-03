@@ -68,7 +68,7 @@ void ConnectionImpl::connect() {
 		if (!handler.getError().empty()){
 			throw Biterp::Error(handler.getError());
 		}
-		throw Biterp::Error("Wrong login, password or vhost");
+		throw Biterp::Error("Connection timeout.");
 	}
 }
 

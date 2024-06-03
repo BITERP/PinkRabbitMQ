@@ -79,7 +79,7 @@ void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
 
 
 void ConnectionImpl::connect() {    
-    const uint16_t timeout = 5000;
+    const uint16_t timeout = 10000;
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
     while (!connection->ready() && !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
@@ -89,7 +89,7 @@ void ConnectionImpl::connect() {
         if (!handler->getError().empty()){
             throw Biterp::Error(handler->getError());
         }
-        throw Biterp::Error("Wrong login, password or vhost");
+        throw Biterp::Error("Connection timeout.");
     }
 }
 
