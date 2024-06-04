@@ -58,7 +58,7 @@ void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel) {
 
 
 void ConnectionImpl::connect() {
-	const uint16_t timeout = 10000;
+	const uint16_t timeout = 15000;
 	std::chrono::milliseconds timeoutMs{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutMs;
 	while (connection->waiting() && (end - std::chrono::system_clock::now()).count() > 0) {
