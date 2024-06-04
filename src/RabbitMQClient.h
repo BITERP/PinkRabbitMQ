@@ -145,6 +145,7 @@ private:
 	std::unique_ptr<Connection> connection;
 	int priority;
 	MessageObject lastMessage;
+	std::string consumerError;
 	std::vector<std::string> consumers;
 	std::queue<MessageObject> messageQueue;
 	std::mutex _mutex;
