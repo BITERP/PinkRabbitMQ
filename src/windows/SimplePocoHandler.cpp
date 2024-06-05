@@ -124,7 +124,7 @@ SimplePocoHandler::~SimplePocoHandler()
 	close();
 }
 
-void SimplePocoHandler::setConnection(AMQP::Connection* connection)
+void SimplePocoHandler::setConnection(AMQP::Connection* connection): stop(false)
 {
 	m_impl->connection = connection;
 }
@@ -136,8 +136,7 @@ void SimplePocoHandler::loopThread(SimplePocoHandler* obj)
 
 void SimplePocoHandler::loopRead()
 {
-
-	while (m_impl->connection->usable())
+	while (!stop)
 	{
 		try
 		{

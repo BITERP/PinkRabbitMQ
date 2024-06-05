@@ -18,6 +18,7 @@ public:
 
     void setConnection(AMQP::Connection* connection);
  	void loopRead();
+ 	inline void stopLoop() {stop=true;}
 	static void loopThread(SimplePocoHandler* clazz);
 	void loopIteration();
     inline const std::string& getError(){ return error;}
@@ -43,6 +44,7 @@ private:
 
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
     std::string error;
+    volatile bool stop;
 
 };
 
