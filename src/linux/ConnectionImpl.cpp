@@ -5,7 +5,7 @@
 #include <condition_variable>
 
 ConnectionImpl::ConnectionImpl(const AMQP::Address& address) : 
-    trChannel(nullptr)
+    trChannel(nullptr), stop(false)
 {
     static bool sslInited = false;
     if (!sslInited){
@@ -20,9 +20,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 
 ConnectionImpl::~ConnectionImpl() {
     closeChannel(trChannel);
-    if (!connection->closed()){
-        connection->close();
-    }
+    stop = true;
     event_base_loopbreak(eventLoop);
     thread.join();
     connection.reset(nullptr);
@@ -33,7 +31,7 @@ ConnectionImpl::~ConnectionImpl() {
 
 void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
-    while(!thiz->connection->closed()) {
+    while(!thiz->stop) {
         try{
             event_base_loop(loop, EVLOOP_NONBLOCK);
         }catch(std::exception& ex){
