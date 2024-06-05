@@ -1,13 +1,13 @@
 //
 // PrivateKeyFactoryMgr.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  PrivateKeyFactoryMgr
 //
 // Definition of the PrivateKeyFactoryMgr class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -28,7 +28,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API PrivateKeyFactoryMgr
+class NetSSL_API PrivateKeyFactoryMgr
 	/// A PrivateKeyFactoryMgr manages all existing PrivateKeyFactories.
 {
 public:

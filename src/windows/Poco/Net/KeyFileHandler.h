@@ -1,13 +1,13 @@
 //
 // KeyFileHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  KeyFileHandler
 //
 // Definition of the KeyFileHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,7 +26,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API KeyFileHandler: public PrivateKeyPassphraseHandler
+class NetSSL_API KeyFileHandler: public PrivateKeyPassphraseHandler
 	/// An implementation of PrivateKeyPassphraseHandler that
 	/// reads the key for a certificate from a configuration file
 	/// under the path "openSSL.privateKeyPassphraseHandler.options.password".

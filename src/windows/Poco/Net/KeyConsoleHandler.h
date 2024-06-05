@@ -1,13 +1,13 @@
 //
 // KeyConsoleHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  KeyConsoleHandler
 //
 // Definition of the KeyConsoleHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,7 +26,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API KeyConsoleHandler: public PrivateKeyPassphraseHandler
+class NetSSL_API KeyConsoleHandler: public PrivateKeyPassphraseHandler
 	/// An implementation of PrivateKeyPassphraseHandler that
 	/// reads the key for a certificate from the console.
 {

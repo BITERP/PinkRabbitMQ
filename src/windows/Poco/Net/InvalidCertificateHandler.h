@@ -1,13 +1,13 @@
 //
 // InvalidCertificateHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  InvalidCertificateHandler
 //
 // Definition of the InvalidCertificateHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -19,14 +19,16 @@
 
 
 #include "Poco/Net/NetSSL.h"
-#include "Poco/Net/VerificationErrorArgs.h"
 
 
 namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API InvalidCertificateHandler
+class VerificationErrorArgs;
+
+
+class NetSSL_API InvalidCertificateHandler
 	/// A InvalidCertificateHandler is invoked whenever an error occurs verifying the certificate. It allows the user
 	/// to inspect and accept/reject the certificate.
 	/// One can install one's own InvalidCertificateHandler by implementing this interface. Note that

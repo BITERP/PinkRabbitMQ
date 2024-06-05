@@ -1,13 +1,13 @@
 //
 // SecureStreamSocket.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLSockets
 // Module:  SecureStreamSocket
 //
 // Definition of the SecureStreamSocket class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2010, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -29,7 +29,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API SecureStreamSocket: public StreamSocket
+class NetSSL_API SecureStreamSocket: public StreamSocket
 	/// A subclass of StreamSocket for secure SSL sockets.
 	///
 	/// A few notes about nonblocking IO:
@@ -132,7 +132,7 @@ public:
 		/// a SecureStreamSocketImpl, otherwise an InvalidArgumentException
 		/// will be thrown.
 
-	virtual ~SecureStreamSocket();
+	~SecureStreamSocket() override;
 		/// Destroys the StreamSocket.
 
 	SecureStreamSocket& operator = (const Socket& socket);

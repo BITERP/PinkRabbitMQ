@@ -7,6 +7,7 @@
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/SecureStreamSocket.h>
 #include <Poco/Net/RejectCertificateHandler.h>
+#include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/Net/SSLManager.h>
 #include <Poco/Net/NetException.h>
 
@@ -82,9 +83,9 @@ struct SimplePocoHandlerImpl
 		if (ssl) 
 		{
 			// Replace with AcceptCertificateHandler to skip cert verification 
-			Poco::SharedPtr<InvalidCertificateHandler> pCert = new RejectCertificateHandler(false);
+			Poco::SharedPtr<InvalidCertificateHandler> pInvHandler = new AcceptCertificateHandler(false);
 			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
-			SSLManager::instance().initializeClient(0, pCert, pContext);
+			SSLManager::instance().initializeClient(nullptr, pInvHandler, pContext);
 			SecureStreamSocket* sslSocket = new SecureStreamSocket();
 			sslSocket->setPeerHostName(host);
 			sslSocket->setLazyHandshake(true);

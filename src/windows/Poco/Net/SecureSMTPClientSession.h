@@ -1,7 +1,7 @@
 //
 // SecureSMTPClientSession.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: Mail
 // Module:  SecureSMTPClientSession
 //
@@ -27,7 +27,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API SecureSMTPClientSession: public SMTPClientSession
+class NetSSL_API SecureSMTPClientSession: public SMTPClientSession
 	/// This class implements an Simple Mail
 	/// Transfer Protocol (SMTP, RFC 2821)
 	/// client for sending e-mail messages that

@@ -1,13 +1,13 @@
 //
 // Utility.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  Utility
 //
 // Definition of the Utility class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -20,27 +20,29 @@
 
 #include "Poco/Net/NetSSL.h"
 #include "Poco/Net/Context.h"
-#include <map>
 
 
 namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API Utility
-	/// Various helper functions.
+class NetSSL_API Utility
+	/// This class provides various helper functions for working
+	/// with the OpenSSL library.
 {
 public:
 	static Context::VerificationMode convertVerificationMode(const std::string& verMode);
 		/// Non-case sensitive conversion of a string to a VerificationMode enum.
-		/// If verMode is illegal an OptionException is thrown.
+		/// If verMode is illegal an InvalidArgumentException is thrown.
 
-	static const std::string& formatError(long errCode);
-		/// Converts an winerror.h code into human readable form.
+	static std::string convertCertificateError(long errCode);
+		/// Converts an SSL certificate handling error code into an error message.
 
-private:
-	static std::map<long, const std::string> initSSPIErr();
-	static Poco::FastMutex _mutex;
+	static std::string getLastError();
+		/// Returns the last error from the error stack
+
+	static void clearErrorStack();
+		/// Clears the error stack
 };
 
 

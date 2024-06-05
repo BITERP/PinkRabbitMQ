@@ -1,7 +1,7 @@
 //
 // HTTPSSessionInstantiator.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: HTTPSClient
 // Module:  HTTPSSessionInstantiator
 //
@@ -29,7 +29,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API HTTPSSessionInstantiator: public HTTPSessionInstantiator
+class NetSSL_API HTTPSSessionInstantiator: public HTTPSessionInstantiator
 	/// The HTTPSessionInstantiator for HTTPSClientSession.
 {
 public:

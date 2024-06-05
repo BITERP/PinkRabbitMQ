@@ -1,13 +1,13 @@
 //
 // SecureServerSocketImpl.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLSockets
 // Module:  SecureServerSocketImpl
 //
 // Definition of the SecureServerSocketImpl class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -28,7 +28,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API SecureServerSocketImpl: public ServerSocketImpl
+class NetSSL_API SecureServerSocketImpl: public ServerSocketImpl
 	/// The SocketImpl class for SecureServerSocket.
 {
 public:

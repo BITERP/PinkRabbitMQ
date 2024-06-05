@@ -1,13 +1,13 @@
 //
 // CertificateHandlerFactoryMgr.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  CertificateHandlerFactoryMgr
 //
 // Definition of the CertificateHandlerFactoryMgr class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -28,7 +28,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API CertificateHandlerFactoryMgr
+class NetSSL_API CertificateHandlerFactoryMgr
 	/// A CertificateHandlerFactoryMgr manages all existing CertificateHandlerFactories.
 {
 public:

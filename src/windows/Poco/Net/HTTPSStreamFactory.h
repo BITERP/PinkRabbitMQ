@@ -1,7 +1,7 @@
 //
 // HTTPSStreamFactory.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: HTTPSClient
 // Module:  HTTPSStreamFactory
 //
@@ -27,7 +27,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API HTTPSStreamFactory: public Poco::URIStreamFactory
+class NetSSL_API HTTPSStreamFactory: public Poco::URIStreamFactory
 	/// An implementation of the URIStreamFactory interface
 	/// that handles secure Hyper-Text Transfer Protocol (https) URIs.
 {

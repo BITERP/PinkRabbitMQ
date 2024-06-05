@@ -110,7 +110,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;amqpcppmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;libssl_static.lib;libcrypto_static.lib;amqpcppmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
@@ -137,7 +137,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;amqpcppmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;libssl_static.lib;libcrypto_static.lib;amqpcppmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -159,7 +159,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;amqpcppmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;libssl_static.lib;libcrypto_static.lib;amqpcppmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
@@ -186,7 +186,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>AddinNative.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;amqpcppmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Iphlpapi.lib;libssl_static.lib;libcrypto_static.lib;amqpcppmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
