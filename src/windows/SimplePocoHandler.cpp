@@ -109,7 +109,7 @@ struct SimplePocoHandlerImpl
 	Poco::Timespan pollTimeout;
 };
 SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl) :
-	m_impl(new SimplePocoHandlerImpl(ssl, host))
+	m_impl(new SimplePocoHandlerImpl(ssl, host)), stop(false)
 {
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket->connect(address);
@@ -124,7 +124,7 @@ SimplePocoHandler::~SimplePocoHandler()
 	close();
 }
 
-void SimplePocoHandler::setConnection(AMQP::Connection* connection): stop(false)
+void SimplePocoHandler::setConnection(AMQP::Connection* connection)
 {
 	m_impl->connection = connection;
 }
