@@ -13,8 +13,8 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
         sslInited = true;
     } 
     eventLoop = event_base_new();
-    handler = new TCPHandler(eventLoop);
-    connection = new AMQP::TcpConnection(handler, address);
+    handler.reset(new TCPHandler(eventLoop));
+    connection.reset(new AMQP::TcpConnection(handler.get(), address));
     thread = std::thread(ConnectionImpl::loopThread, this);
 }
 
@@ -25,8 +25,8 @@ ConnectionImpl::~ConnectionImpl() {
     }
     event_base_loopbreak(eventLoop);
     thread.join();
-    delete connection;
-    delete handler;
+    connection.reset(nullptr);
+    handler.reset(nullptr);
 
     event_base_free(eventLoop);
 }
@@ -34,7 +34,11 @@ ConnectionImpl::~ConnectionImpl() {
 void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
     while(!thiz->connection->closed()) {
-        event_base_loop(loop, EVLOOP_NONBLOCK);
+        try{
+            event_base_loop(loop, EVLOOP_NONBLOCK);
+        }catch(std::exception& ex){
+            Biterp::Logging::error("Channel loop error: " + std::string(ex.what()));
+        }
     }
 }
 
@@ -50,7 +54,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     std::condition_variable cv;
     bool ready = false;
 
-    channel.reset(new AMQP::TcpChannel(connection));
+    channel.reset(new AMQP::TcpChannel(connection.get()));
     channel->onReady([&]() {
         std::unique_lock<std::mutex> lock(m);
         ready = true;

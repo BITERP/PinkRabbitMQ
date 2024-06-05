@@ -22,6 +22,7 @@ Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeo
 
 Connection::~Connection() {
 	delete pimpl;
+	pimpl = nullptr;
 }
 
 void Connection::connect() {

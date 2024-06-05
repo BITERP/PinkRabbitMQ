@@ -21,8 +21,8 @@ private:
 
 private:
     event_base* eventLoop;
-    TCPHandler* handler;
-    AMQP::TcpConnection* connection;
+    std::unique_ptr<TCPHandler> handler;
+    std::unique_ptr<AMQP::TcpConnection> connection;
 
     std::unique_ptr<AMQP::TcpChannel> trChannel;
     std::thread thread;

@@ -4,8 +4,8 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 	handler(address.hostname(), address.port(), address.secure()),
 	trChannel(nullptr)
 {
-	connection = new AMQP::Connection(&handler, address.login(), address.vhost());
-	handler.setConnection(connection);
+	connection.reset(new AMQP::Connection(&handler, address.login(), address.vhost()));
+	handler.setConnection(connection.get());
 	thread = std::thread(SimplePocoHandler::loopThread, &handler);
 }
 
@@ -16,7 +16,7 @@ ConnectionImpl::~ConnectionImpl() {
 		connection->close();
 	}
 	thread.join();
-	delete connection;
+	connection.reset(nullptr);
 }
 
 void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
@@ -29,7 +29,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	std::mutex m;
 	std::condition_variable cv;
 	bool ready = false;
-	channel.reset(new AMQP::Channel(connection));
+	channel.reset(new AMQP::Channel(connection.get()));
 	channel->onReady([&]() {
 		std::unique_lock<std::mutex> lock(m);
 		ready = true;
