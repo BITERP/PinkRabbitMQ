@@ -84,6 +84,6 @@ def test_consume_nomsg(com):
         if not ret:
             break
     assert res
-    assert msg[0] == ''
+    assert msg[0] == None
     assert mtag[0] == 0
 
