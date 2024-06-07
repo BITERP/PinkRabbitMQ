@@ -344,6 +344,8 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		}
 		if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 			ctx.setBoolResult(false);
+			ctx.setStringResult(u"", outdata);
+			ctx.setIntResult(0, outMessageTag); 
 			return;
 		}
 		if (messageQueue.empty()) {
