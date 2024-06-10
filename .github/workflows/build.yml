@@ -42,7 +42,7 @@ jobs:
 
       - name: Configure CMake.
         working-directory: ${{env.LINUX_DIR}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
 
       - name: Build
         working-directory: ${{env.LINUX_DIR}}
