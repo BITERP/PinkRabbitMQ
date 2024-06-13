@@ -92,6 +92,7 @@ namespace Biterp {
         }
 
         inline static void log(int level, const std::string &text, const Logger& logger) {
+            return;
             instance()._log(level, text, logger);
         }
 
@@ -202,11 +203,12 @@ namespace Biterp {
         }
 
         static void cleanOld(Logging* thiz){
-            auto now = system_clock::now();
-            std::tm tm = {};
-            std::string path = thiz->_path;
             try{
-                if (!path.empty() && !fs::exists(path)){
+                auto now = system_clock::now();
+                std::tm tm = {};
+                std::string path = thiz->_path;
+                std::error_code err;
+                if (!path.empty() && !fs::exists(path, err)){
                     return;
                 }
                 for (const auto & entry : fs::directory_iterator(path)){
@@ -232,7 +234,7 @@ namespace Biterp {
                     }
                     auto diff = now - system_clock::from_time_t(mktime(&tm));
                     if (duration_cast<seconds>(diff).count() > KEEP_TIME){
-                        fs::remove(entry.path());
+                        fs::remove(entry.path(), err);
                     }
                 }
             }catch(...){
