@@ -50,8 +50,6 @@ namespace fs = std::filesystem;
 #endif
 
 
-//using namespace std;
-
 namespace Biterp {
 
     /**
@@ -94,7 +92,6 @@ namespace Biterp {
         }
 
         inline static void log(int level, const std::string &text, const Logger& logger) {
-            return;
             instance()._log(level, text, logger);
         }
 
@@ -131,11 +128,11 @@ namespace Biterp {
         }
 
     private:
-        const int CLEAN_INTERVAL = 600;
-        const int KEEP_TIME = 60 * 10;
-        const char* FILE_FMT = "%Y-%m-%d-%H-%M";
-        const char* ISO_FMT = "%FT%H:%M:%S";
-        const char* PREFIX = "comc1c";
+        static constexpr int CLEAN_INTERVAL = 600;
+        static constexpr int KEEP_TIME = 60 * 10;
+        static constexpr char FILE_FMT[] = "%Y-%m-%d-%H-%M";
+        static constexpr char ISO_FMT[] = "%FT%H:%M:%S";
+        static constexpr char PREFIX[] = "comc1c";
 
         /**
          * Set logs filename, open current logfile.
@@ -204,37 +201,41 @@ namespace Biterp {
             return record.dump();
         }
 
-        void cleanOld(){
+        static void cleanOld(Logging* thiz){
             auto now = system_clock::now();
             std::tm tm = {};
-            if (!fs::exists(_path)){
-                return;
-            }
-            for (const auto & entry : fs::directory_iterator(_path)){
-                if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
-                    continue;
+            std::string path = thiz->_path;
+            try{
+                if (!path.empty() && !fs::exists(path)){
+                    return;
                 }
-                std::string nm = entry.path().stem().string();
-                if (nm.find(PREFIX) != 0){
-                    continue;
+                for (const auto & entry : fs::directory_iterator(path)){
+                    if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
+                        continue;
+                    }
+                    std::string nm = entry.path().stem().string();
+                    if (nm.find(Logging::PREFIX) != 0){
+                        continue;
+                    }
+                    size_t pos = nm.find("-");
+                    if (pos == std::string::npos){
+                        continue;
+                    }
+                    std::string dt = nm.substr(pos + 1);
+                    if (dt.length() != 16 || dt[4]!='-' || dt[7]!='-' || dt[10]!='-' || dt[13]!='-'){
+                        continue;
+                    }
+                    std::istringstream ss(dt);
+                    ss >> std::get_time(&tm, Logging::FILE_FMT);
+                    if (ss.fail()){
+                        continue;
+                    }
+                    auto diff = now - system_clock::from_time_t(mktime(&tm));
+                    if (duration_cast<seconds>(diff).count() > KEEP_TIME){
+                        fs::remove(entry.path());
+                    }
                 }
-                size_t pos = nm.find("-");
-                if (pos == std::string::npos){
-                    continue;
-                }
-                std::string dt = nm.substr(pos + 1);
-                if (dt.length() != 16 || dt[4]!='-' || dt[7]!='-' || dt[10]!='-' || dt[13]!='-'){
-                    continue;
-                }
-                std::istringstream ss(dt);
-                ss >> std::get_time(&tm, FILE_FMT);
-                if (ss.fail()){
-                    continue;
-                }
-                auto diff = now - system_clock::from_time_t(mktime(&tm));
-                if (duration_cast<seconds>(diff).count() > KEEP_TIME){
-                    fs::remove(entry.path());
-                }
+            }catch(...){
             }
         }
 

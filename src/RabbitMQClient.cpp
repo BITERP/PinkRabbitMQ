@@ -310,8 +310,8 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 				})
 			.onCancelled([this](const std::string &consumer){
 					LOGI("Consumer cancelled " + consumer);
-					// std::lock_guard<std::mutex> lock(_mutex);
-					// consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
+					std::lock_guard<std::mutex> lock(_mutex);
+					consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
 				})
 			.onError([this, &result](const char* message)
 				{
@@ -344,9 +344,9 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 		if (messageQueue.empty()){
-			// if (!consumerError.empty()){
-			// 	throw Biterp::Error(consumerError);
-			// }
+			if (!consumerError.empty()){
+				throw Biterp::Error(consumerError);
+			}
 			if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 				ctx.setBoolResult(false);
 				return;
