@@ -15,6 +15,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <iostream>
+
 using json = nlohmann::json;
 using namespace std::chrono;
 namespace fs = std::filesystem;
@@ -66,6 +68,7 @@ namespace Biterp {
                 LERROR,
                 LFATAL
             };
+            virtual ~Logger(){}
             std::string subname;
             std::string version;
             std::string instance;
@@ -78,12 +81,14 @@ namespace Biterp {
 
     public:
         inline static Logger getLogger(const std::string &name, const std::string &version, IAddInDefBase *addin, void* compinst) {
+            std::cout << "getlogger" << std::endl;
             instance()._init(addin, name, version);
             Logger logger;
             logger.subname = name;
             logger.version = version;
             uintptr_t instance = reinterpret_cast<uintptr_t>(compinst);
             logger.instance = std::to_string(instance);
+            std::cout << "getlogger end" << std::endl;
             return logger;
         }
 
@@ -92,8 +97,9 @@ namespace Biterp {
         }
 
         inline static void log(int level, const std::string &text, const Logger& logger) {
-            return;
+            std::cout << "log " << text  <<std::endl;
             instance()._log(level, text, logger);
+            std::cout << "log end" << std::endl;
         }
 
         inline static void debug(const std::string &text, const Logger& logger=defaultLogger()) { log(Logger::Level::LDEBUG, text, logger); }
@@ -168,11 +174,13 @@ namespace Biterp {
          * @param text
          */
         void _log(int level, const std::string &text, const Logger& logger) {
+            std::cout << "_log" << std::endl;
             logNative(level, text);
             if (level < minlevel || _fname.empty()){
                 return;
             }
 
+            std::cout << "_log prepare" << std::endl;
             auto now = system_clock::now();
             auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
             time_t timer = system_clock::to_time_t(now);
@@ -182,13 +190,17 @@ namespace Biterp {
             if (!file) {
                 return;
             }
+            std::cout << "_log build" << std::endl;
             std::string line = buildRecord(logger, text, level, formatTime(ISO_FMT, &tm, (int)ms.count()));
+            std::cout << "_log write" << std::endl;
             file << line << std::endl;
             file.flush();
+            std::cout << "_log check clean" << std::endl;
             if ((int)duration_cast<seconds>(now - cleanTime).count() < CLEAN_INTERVAL){
                 return;
             }
             cleanTime = now;
+            std::cout << "_log clean" << std::endl;
             std::thread(&Logging::cleanOld, this).detach();
         }
 
@@ -204,6 +216,7 @@ namespace Biterp {
 
         static void cleanOld(Logging* thiz){
             try{
+                std::cout << "clean start" << std::endl;
                 auto now = system_clock::now();
                 std::tm tm = {};
                 std::string path = thiz->_path;
@@ -211,6 +224,7 @@ namespace Biterp {
                 if (!path.empty() && !fs::exists(path, err)){
                     return;
                 }
+                std::cout << "clean iter" << std::endl;
                 for (const auto & entry : fs::directory_iterator(path)){
                     if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
                         continue;
@@ -237,6 +251,7 @@ namespace Biterp {
                         fs::remove(entry.path(), err);
                     }
                 }
+                std::cout << "clean end" << std::endl;
             }catch(...){
             }
         }
@@ -247,6 +262,7 @@ namespace Biterp {
          * @return
          */
         std::string getFilePath(IAddInDefBase *addin) {
+            std::cout << "get file path" << std::endl;
             std::string path;
 #if defined(__ANDROID__)
             IAddInDefBaseEx *addinex = static_cast<IAddInDefBaseEx *>(addin);
@@ -365,6 +381,7 @@ namespace Biterp {
         }
 
         ~Logging() {
+            std::cout << "logger desructor" << std::endl;
             if (_file) {
                 _file.close();
             }
