@@ -276,9 +276,9 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					result = tag;
 					LOGI("Consumer created " + tag);
 					{
-						// std::lock_guard<std::mutex> lock(_mutex);
-						// consumers.push_back(tag);
-						// consumerError.clear();
+						std::lock_guard<std::mutex> lock(_mutex);
+						consumers.push_back(tag);
+						consumerError.clear();
 					}
 					connection->loopbreak();
 				})
@@ -313,7 +313,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					// std::lock_guard<std::mutex> lock(_mutex);
 					// consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
 				})
-			.onError([this, result](const char* message)
+			.onError([this, &result](const char* message)
 				{
 					std::lock_guard<std::mutex> lock(_mutex);
 					consumerError = message;
