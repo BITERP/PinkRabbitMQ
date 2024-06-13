@@ -221,7 +221,7 @@ namespace Biterp {
                 std::tm tm = {};
                 std::string path = thiz->_path;
                 std::error_code err;
-                if (!path.empty() && !fs::exists(path, err)){
+                if (path.empty() || !fs::exists(path, err)){
                     return;
                 }
                 std::cout << "clean iter" << std::endl;
