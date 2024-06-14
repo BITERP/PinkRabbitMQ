@@ -201,7 +201,7 @@ namespace Biterp {
             }
             cleanTime = now;
             std::cout << "_log clean" << std::endl;
-            std::thread(&Logging::cleanOld, std::string(_path)).detach();
+            //std::thread(&Logging::cleanOld, std::string(_path)).detach();
         }
 
         std::string buildRecord(const Logger& logger, const std::string message, int level, const std::string time){
@@ -223,7 +223,7 @@ namespace Biterp {
                 if (path.empty() || !fs::exists(path, err)){
                     return;
                 }
-                std::cout << "clean iter" << std::endl;
+                std::cout << "clean iter " << path << std::endl;
                 for (const auto & entry : fs::directory_iterator(path)){
                     if (!entry.is_regular_file() || entry.path().extension() != ".txt"){
                         continue;
@@ -381,6 +381,7 @@ namespace Biterp {
 
         ~Logging() {
             std::cout << "logger desructor" << std::endl;
+            _log(1,"DESTROY", defaultLogger());
             if (_file) {
                 _file.close();
             }
