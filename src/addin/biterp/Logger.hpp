@@ -201,7 +201,7 @@ namespace Biterp {
             }
             cleanTime = now;
             std::cout << "_log clean" << std::endl;
-            std::thread(&Logging::cleanOld, this).detach();
+            std::thread(&Logging::cleanOld, std::string(_path)).detach();
         }
 
         std::string buildRecord(const Logger& logger, const std::string message, int level, const std::string time){
@@ -214,12 +214,11 @@ namespace Biterp {
             return record.dump();
         }
 
-        static void cleanOld(Logging* thiz){
+        static void cleanOld(std::string path){
             try{
                 std::cout << "clean start" << std::endl;
                 auto now = system_clock::now();
                 std::tm tm = {};
-                std::string path = thiz->_path;
                 std::error_code err;
                 if (path.empty() || !fs::exists(path, err)){
                     return;
