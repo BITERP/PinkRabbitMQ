@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <thread>
 typedef struct addrinfo AINFO;
 #else
 #include <winsock2.h>
