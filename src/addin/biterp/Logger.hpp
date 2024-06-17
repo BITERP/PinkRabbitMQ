@@ -92,6 +92,7 @@ namespace Biterp {
         }
 
         inline static void log(int level, const std::string &text, const Logger& logger) {
+            return;
             instance()._log(level, text, logger);
         }
 
