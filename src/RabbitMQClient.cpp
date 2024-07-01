@@ -365,21 +365,8 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 }
 
 void RabbitMQClient::clear() {
-	if (!consumers.empty() && connection) {
-		AMQP::Channel* ch = connection->readChannel();
-		ch->startTransaction();
-		for (auto& tag : consumers) {
-			ch->cancel(tag);
-		}	
-		ch->commitTransaction()
-			.onFinalize([&]() {
-				ch->close();
-				connection->loopbreak();
-			});
-		connection->loop();
-	}
-	consumers.clear();
 	std::lock_guard<std::mutex> lock(_mutex);
+	consumers.clear();
 	std::queue<MessageObject> empty;
 	messageQueue.swap(empty);
 	cvDataArrived.notify_all();
