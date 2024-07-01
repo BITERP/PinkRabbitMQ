@@ -73,9 +73,9 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
 }
 
 void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
-    if (channel && channel->usable()) {
-        channel->close();
-    }
+    //if (channel && channel->usable()) {
+    //    channel->close();
+    //}
     channel.reset(nullptr);
 }
 
