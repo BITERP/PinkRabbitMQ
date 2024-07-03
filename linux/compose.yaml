@@ -1,0 +1,12 @@
+services:
+  rabbitmq:
+    image: "rabbitmq:alpine"
+    ports:
+      - "5672:5672"
+  prmq-build:
+    depends_on:
+      - rabbitmq
+    build: .
+    volumes:
+      - ../:/PRMQ
+    

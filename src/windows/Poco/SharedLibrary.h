@@ -27,10 +27,8 @@
 #include "Poco/SharedLibrary_VX.h"
 #elif defined(POCO_OS_FAMILY_UNIX)
 #include "Poco/SharedLibrary_UNIX.h"
-#elif defined(POCO_OS_FAMILY_WINDOWS) && defined(POCO_WIN32_UTF8)
-#include "Poco/SharedLibrary_WIN32U.h"
 #elif defined(POCO_OS_FAMILY_WINDOWS)
-#include "Poco/SharedLibrary_WIN32.h"
+#include "Poco/SharedLibrary_WIN32U.h"
 #endif
 
 
@@ -121,6 +119,16 @@ public:
 		/// "d" to specify the debug version of a library
 		/// (e.g., "d.so", "d.dll") unless the library has
 		/// been compiled with -DPOCO_NO_SHARED_LIBRARY_DEBUG_SUFFIX.
+
+	static bool setSearchPath(const std::string& path);
+		/// Adds the given path to the list of paths shared libraries
+		/// are searched in.
+		///
+		/// Returns true if the path was set, otherwise false.
+		///
+		/// Currently only supported on Windows, where it calls
+		/// SetDllDirectory(). On all other platforms, does not
+		/// do anything and returns false.
 
 private:
 	SharedLibrary(const SharedLibrary&);

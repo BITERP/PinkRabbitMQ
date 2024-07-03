@@ -30,9 +30,8 @@
 /**
    @file event2/bufferevent.h
 
-  @brief Functions for buffering data for network sending or receiving.
-
-  Bufferevents are higher level than evbuffers: each has an underlying evbuffer for reading
+  Functions for buffering data for network sending or receiving.  Bufferevents
+  are higher level than evbuffers: each has an underlying evbuffer for reading
   and one for writing, and callbacks that are invoked under certain
   circumstances.
 
@@ -210,7 +209,7 @@ struct bufferevent *bufferevent_socket_new(struct event_base *base, evutil_socke
    @return 0 on success, -1 on failure.
  */
 EVENT2_EXPORT_SYMBOL
-int bufferevent_socket_connect(struct bufferevent *bufev, const struct sockaddr *addr, int socklen);
+int bufferevent_socket_connect(struct bufferevent *, const struct sockaddr *, int);
 
 struct evdns_base;
 /**
@@ -228,26 +227,6 @@ struct evdns_base;
    @param port The port to connect to on the resolved address.
    @return 0 if successful, -1 on failure.
 
-   @see bufferevent_socket_connect_hostname_hints()
- */
-EVENT2_EXPORT_SYMBOL
-int bufferevent_socket_connect_hostname(struct bufferevent *bufev,
-    struct evdns_base *evdns_base, int family, const char *hostname, int port);
-
-/**
-   Resolve the hostname 'hostname' and connect to it as with
-   bufferevent_socket_connect().
-
-   @param bufev An existing bufferevent allocated with bufferevent_socket_new()
-   @param evdns_base Optionally, an evdns_base to use for resolving hostnames
-      asynchronously. May be set to NULL for a blocking resolve.
-   @param hints_in points to an addrinfo structure that specifies criteria for
-      selecting the socket address structures to be used
-   @param hostname The hostname to resolve; see below for notes on recognized
-      formats
-   @param port The port to connect to on the resolved address.
-   @return 0 if successful, -1 on failure.
-
    Recognized hostname formats are:
 
        www.example.com	(hostname)
@@ -260,9 +239,8 @@ int bufferevent_socket_connect_hostname(struct bufferevent *bufev,
    what you want.
  */
 EVENT2_EXPORT_SYMBOL
-int bufferevent_socket_connect_hostname_hints(struct bufferevent *bufev,
-    struct evdns_base *evdns_base, const struct evutil_addrinfo *hints_in, const char *hostname, int port);
-
+int bufferevent_socket_connect_hostname(struct bufferevent *,
+    struct evdns_base *, int, const char *, int);
 
 /**
    Return the error code for the last failed DNS lookup attempt made by
@@ -912,8 +890,6 @@ int bufferevent_remove_from_rate_limit_group(struct bufferevent *bev);
    Set to 0 for a reasonable default.
 
    Return 0 on success and -1 on failure.
-
-   @see evbuffer_set_max_read()
  */
 EVENT2_EXPORT_SYMBOL
 int bufferevent_set_max_single_read(struct bufferevent *bev, size_t size);

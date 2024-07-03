@@ -1,5 +1,4 @@
 #include "Connection.h"
-#include <thread>
 #include <addin/biterp/Error.hpp>
 #include <chrono>
 
@@ -23,6 +22,7 @@ Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeo
 
 Connection::~Connection() {
 	delete pimpl;
+	pimpl = nullptr;
 }
 
 void Connection::connect() {
@@ -42,7 +42,7 @@ void Connection::loop() {
 	std::unique_lock<std::mutex> lock(_mutex);
 	if (!cvBroken.wait_for(lock, std::chrono::seconds(timeout), [&] { return broken; })) {
 		broken = false;
-		channel()->close();
+		//channel()->close();
 		throw Biterp::Error("AMQP server timeout error");
 	}
 	broken = false;

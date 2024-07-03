@@ -4,6 +4,7 @@
 #include "RabbitMQClient.h"
 #include <addin/ComponentBase.h>
 #include <addin/AddInDefBase.h>
+#include <addin/biterp/Names.hpp>
 
 typedef void* VOID_PTR;
 
@@ -104,12 +105,14 @@ public:
 
 	// LocaleBase
 	virtual void ADDIN_API SetLocale(const WCHAR_T* loc);
+	virtual void ADDIN_API SetUserInterfaceLanguageCode(const WCHAR_T* lang) {}
 
 private:
 
 	RabbitMQClient impl;
 
-	long findName(const char16_t* names[], u16string name, const uint32_t size) const;
+	static Biterp::Names properties;
+	static Biterp::Names methods;
 
 };
 

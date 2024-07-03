@@ -1,181 +1,108 @@
 name: Build
 
+#on:
+#  push:
+#    paths:
+#      - '.github/**'
+#      - 'CI/config.yml'
+#      - 'src/**'
+#      - 'windows/**'
+#      - 'linux/**'
+#      - 'test/**'
+#  workflow_dispatch:
+
 on:
-  push:
-    paths:
-      - '.github/**'
-      - 'CI/config.yml'
-      - 'src/**'
-      - 'windows/**'
-      - 'linux/**'
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      postfix:
+        required: true
+        type: string
+
+env:
+  VERSION: 2.2.0.${{github.run_number}}
+  LINUX_DIR: linux/build
+  LINUX_LIB: libPinkRabbitMQ64.so
+  PKG_DIR: package
+  WIN_DIR: windows
 
 jobs:
-  configure:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      matrix_linux: ${{ steps.configure.outputs.matrix_linux }}
-      matrix_windows: ${{ steps.configure.outputs.matrix_windows }}
-    steps:
-      - uses: actions/checkout@v2.3.4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/checkout@v2
-        with:
-          repository: BITERP/ci_scripts
-          token: ${{secrets.IPALENOV_GHTOKEN}}
-          path: CI/ci_scripts
-
-      - name: configure components
-        id: configure
-        run: python3 CI/ci_scripts/build_addins.py configure -a ${{ github.event.before }} ${{ github.event.after }}
-        env:
-          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}
-
-      - name: notify error
-        if: failure()
-        run: python3 CI/ci_scripts/notify.py -g config configure_fail 
-        env:
-          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
-
-
   buildLinux:
-    runs-on: buildaddin-prmq-${{github.run_number}}
-    needs: configure
-    if: needs.configure.outputs.matrix_linux != ''
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.configure.outputs.matrix_linux)}}
-    name: Linux ${{matrix.component}} ${{matrix.version}}
-    steps:
-      - uses: actions/checkout@v2
+    runs-on: ubuntu-22.04
+    name: Linux ${{inputs.postfix}}
+    services:
+      rabbitmq:
+        image: rabbitmq
+        ports:
+          - 5672:5672
 
-      - run: mkdir ${{matrix.buildDir}}
+    steps:
+      - uses: actions/checkout@v4.1.5
+
+      - run: mkdir $LINUX_DIR
 
       - name: Configure CMake.
-        working-directory: ${{matrix.buildDir}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{matrix.version}} ..
+        working-directory: ${{env.LINUX_DIR}}
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
 
       - name: Build
-        working-directory: ${{matrix.buildDir}}
+        working-directory: ${{env.LINUX_DIR}}
         run: cmake --build .
 
-      - name: base64-to-file
-        uses: narcodico/base64-to-path@v1
-        with:
-          filePath: ${{matrix.buildDir}}/test.conf
-          encodedString: ${{secrets.TEST_CONF}}
+      - if: ${{ inputs.postfix == '' }}
+        run: python3 -m pip install pytest
 
       - name: Test
-        working-directory: ${{matrix.buildDir}}
+        if: ${{ inputs.postfix == '' }}
+        working-directory: ${{env.LINUX_DIR}}
         run: ctest . -V
 
-      - name: Rename Library
-        if: matrix.sourceLinuxLibrary != ''
-        working-directory: ${{matrix.buildDir}}
-        run: mv ${{matrix.sourceLinuxLibrary}} ${{matrix.linuxLibrary}}
-
-      # Build component replicas
-      - name: Loading ci_scripts
-        uses: actions/checkout@v2
-        with:
-          repository: BITERP/ci_scripts
-          token: ${{secrets.IPALENOV_GHTOKEN}}
-          path: CI/ci_scripts
-
-      - name: Build and pack component replicas
-        run: python3 CI/ci_scripts/build_replicas_linux.py ${{matrix.buildDir}}
-      # Build component replicas finished
-
       - name: Upload Linux Library
-        uses: actions/upload-artifact@v2.2.3
+        uses: actions/upload-artifact@v4.3.3
         with:
-          name: ${{matrix.linuxLibrary}}
-          path: ${{matrix.buildDir}}/transfer.zip
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
+          path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
           if-no-files-found: error
           retention-days: 1
 
 
   buildWindows:
     runs-on: windows-latest
-    needs: [configure, buildLinux]
-    if: always() && needs.configure.outputs.matrix_windows != ''
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.configure.outputs.matrix_windows)}}
-    name: Windows ${{matrix.component}} ${{matrix.version}}
-    steps:
-      - uses: actions/checkout@v2
+    needs: [buildLinux]
+    name: Windows ${{inputs.postfix}}
 
-      - uses: actions/checkout@v2
-        with:
-          repository: BITERP/ci_scripts
-          token: ${{secrets.IPALENOV_GHTOKEN}}
-          path: CI/ci_scripts
+    steps:
+      - uses: actions/checkout@v4.1.5
 
       - name: Download Linux Library
-        if: matrix.linuxLibrary != ''
-        uses: actions/download-artifact@v2.0.9
+        uses: actions/download-artifact@v4.1.7
         with:
-          name: ${{matrix.linuxLibrary}}
-          path: ${{matrix.packagePath}}/
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
+          path: ${{env.PKG_DIR}}/
 
       - name: Remove Linux Artifact
-        if: matrix.linuxLibrary != ''
-        uses: geekyeggo/delete-artifact@v1
+        uses: GeekyEggo/delete-artifact@v5.0.0
         with:
-          name: ${{matrix.linuxLibrary}}
-
-      - name: Unzip
-        working-directory: ${{matrix.packagePath}}
-        run: |
-          md ..\PinkRabbitMQ_so_arch
-          move transfer.zip ..\PinkRabbitMQ_so_arch
-          cd ..\PinkRabbitMQ_so_arch
-          unzip transfer.zip
-          move PinkRabbitMQ.so ${{matrix.linuxLibrary}}
-          move ${{matrix.linuxLibrary}} ..\${{matrix.packagePath}}
-          cd ..\${{matrix.packagePath}}
-          dir
+          name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
     
-      - name: Setup VSTest Path
-        uses: darenm/Setup-VSTest@v1
-
-      - name: base64-to-file
-        uses: narcodico/base64-to-path@v1
-        with:
-          filePath: ${{matrix.buildDir}}/tests/test.conf
-          encodedString: ${{secrets.TEST_CONF}}
-
-      - name: Test
-        working-directory: ${{matrix.buildDir}}
-        run: msbuild ${{matrix.buildFile}} -t:${{matrix.testTarget}}
-
       - name: Build
-        working-directory: ${{matrix.buildDir}}
-        run: msbuild ${{matrix.buildFile}} -t:${{matrix.releaseTarget}} -p:VERSION=${{matrix.version}}
+        working-directory: ${{env.WIN_DIR}}
+        run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:NAME_POSTFIX=${{inputs.postfix}}
 
-        # Build component replicas
-      - name: Build replicas
-        run: |
-          python3 -m pip install PyYAML requests
-          python3 CI/ci_scripts/build_replicas_windows.py --buildDir ${{matrix.buildDir}} --buildFile ${{matrix.buildFile}} --release ${{matrix.releaseTarget}} --version ${{matrix.version}}
+      - name: Rename Build
+        run: ren PinkRabbitMQ_v${{env.VERSION}}.zip PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
 
       - name: Release
-        if: matrix.release
         id: release
         uses: ncipollo/release-action@v1
         with:
-          tag: addins_${{matrix.component}}_${{github.run_number}}
-          name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}${{matrix.component}} v${{matrix.version}}
+          tag: prmq_${{github.run_number}}
+          allowUpdates: true
+          name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}PinkRabbitMQ v${{env.VERSION}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
-          artifacts: ${{matrix.location}}/*.zip
+          artifacts: '*.zip'
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
@@ -185,29 +112,3 @@ jobs:
 
             [Лог сборки](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
 
-      - name: Notify
-        if: always() && matrix.release
-        run: python3 CI/ci_scripts/notify.py -g windows ${{steps.release.outcome}} ${{steps.release.outputs.html_url}}
-        env:
-          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
-  
-
-  cleanLinux:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [configure, buildLinux]
-    if: always()
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/checkout@v2
-        with:
-          repository: BITERP/ci_scripts
-          token: ${{secrets.IPALENOV_GHTOKEN}}
-          path: CI/ci_scripts
-
-      - name: Clean Linux VM
-        run: python3 CI/ci_scripts/build_addins.py clean
-        env:
-          YC_TOKEN: ${{ secrets.YC_DEVOPS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.IPALENOV_GHTOKEN }}

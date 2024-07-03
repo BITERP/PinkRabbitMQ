@@ -29,7 +29,7 @@
 
 /** @file event2/dns_compat.h
 
-  @brief Potentially non-threadsafe versions of the functions in dns.h: provided
+  Potentially non-threadsafe versions of the functions in dns.h: provided
   only for backwards compatibility.
 
 

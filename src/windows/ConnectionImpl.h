@@ -13,14 +13,14 @@ public:
 	AMQP::Channel* readChannel();
 
 private:
-	void openChannel(unique_ptr<AMQP::Channel>& channel);
-	void closeChannel(unique_ptr<AMQP::Channel>& channel);
+	void openChannel(std::unique_ptr<AMQP::Channel>& channel);
+	void closeChannel(std::unique_ptr<AMQP::Channel>& channel);
 
 private:
 	SimplePocoHandler handler;
-	AMQP::Connection* connection;
-	unique_ptr<AMQP::Channel> trChannel;
-	unique_ptr<AMQP::Channel> rcChannel;
+	std::unique_ptr<AMQP::Connection> connection;
+	std::unique_ptr<AMQP::Channel> trChannel;
+	std::unique_ptr<AMQP::Channel> rcChannel;
 	std::thread thread;
 };
 

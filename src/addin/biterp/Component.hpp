@@ -6,10 +6,8 @@
 #define COMPONENT_HPP
 
 #include <string>
-#include <iostream>
 #include "../AddInDefBase.h"
 #include "MemoryManager.hpp"
-#include "Error.hpp"
 #include "CallContext.hpp"
 #include <codecvt>
 #include <locale>
@@ -20,13 +18,11 @@
 #define DO_QUOTE(...) #__VA_ARGS__
 #define QUOTE(X)  "" DO_QUOTE(X)
 
-#define LOGD(M) Biterp::Logger::debug(M)
-#define LOGI(M) Biterp::Logger::info(M)
-#define LOGW(M) Biterp::Logger::warning(M)
-#define LOGE(M) Biterp::Logger::error(M)
+#define LOGD(M) getLogger().debug(M)
+#define LOGI(M) getLogger().info(M)
+#define LOGW(M) getLogger().warning(M)
+#define LOGE(M) getLogger().error(M)
 
-
-using namespace std;
 
 namespace Biterp {
 
@@ -37,7 +33,7 @@ namespace Biterp {
     public:
         Component(const char *className) : addin(nullptr), skipAddError(false) {
             this->className = u16Converter.from_bytes(className);
-            this->version = u16Converter.from_bytes(QUOTE(VERSION));
+            this->version = QUOTE(VERSION);
         }
 
         virtual ~Component() {}
@@ -48,7 +44,7 @@ namespace Biterp {
         * @return
         */
         virtual bool init(IAddInDefBase *addin) {
-            Biterp::Logger::init(className, addin);
+            logger = Biterp::Logging::getLogger(u16Converter.to_bytes(className), version, addin, this);
             LOGD("init");
             this->addin = addin;
             return true;
@@ -80,7 +76,7 @@ namespace Biterp {
             return memManager.variantFromString(pvarRetValue, lastError);
         }
 
-        void setLastError(u16string error) { lastError = error; }
+        void setLastError(std::u16string error) { lastError = error; }
 
         /**
         * Return component version
@@ -88,8 +84,11 @@ namespace Biterp {
         * @return
         */
         inline bool getVersion(tVariant *pvarRetValue) {
-            return memManager.variantFromString(pvarRetValue, version);
+            std::u16string uver = u16Converter.from_bytes(version);
+            return memManager.variantFromString(pvarRetValue, uver);
         }
+
+        inline const Biterp::Logging::Logger& getLogger(){ return logger; }
 
     protected:
         //---- utils
@@ -101,7 +100,7 @@ namespace Biterp {
         * @param wcode - internal code.
         * @param scode - hresult.
         */
-        void addError(const u16string &descr, u16string source = u"",
+        void addError(const std::u16string &descr, std::u16string source = u"",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
             setLastError(descr);
@@ -123,17 +122,19 @@ namespace Biterp {
         * @param wcode
         * @param scode
         */
-        void addError(const string &descr, const string &source = "",
+        void addError(const std::string &descr, const std::string &source = "",
                       unsigned short wcode = NATIVE_ERROR,
                       long scode = E_FAIL) {
+            std::u16string wdescr;
+            std::u16string wsource;
             try {
-                u16string wdescr = u16Converter.from_bytes(descr);
-                u16string wsource = u16Converter.from_bytes(source);
-                addError(move(wdescr), move(wsource), wcode, scode);
+                wdescr = u16Converter.from_bytes(descr);
+                wsource = u16Converter.from_bytes(source);
             }
-            catch (const std::exception&) {
-                addError(u"NativeLibrary", u"Invalid error message");
+            catch (const std::exception &) {
+                wdescr = u"Invalid error message";
             }
+            addError(move(wdescr), move(wsource), wcode, scode);
         }
 
         /**
@@ -168,8 +169,8 @@ namespace Biterp {
                 result = true;
             }
             catch (std::exception &e) {
-                string who = typeid(e).name();
-                string what = e.what();
+                std::string who = typeid(e).name();
+                std::string what = e.what();
                 LOGE(who + ": " + what);
                 addError(what, who);
             }
@@ -179,12 +180,13 @@ namespace Biterp {
 
     protected:
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> u16Converter;
-        u16string className;
-        u16string version;
+        std::u16string className;
+        std::string version;
         IAddInDefBase *addin;
-        u16string lastError;
+        std::u16string lastError;
         MemoryManager memManager;
         bool skipAddError;
+        Biterp::Logging::Logger logger;
     };
 
 }

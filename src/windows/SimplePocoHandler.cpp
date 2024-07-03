@@ -7,6 +7,7 @@
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/SecureStreamSocket.h>
 #include <Poco/Net/RejectCertificateHandler.h>
+#include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/Net/SSLManager.h>
 #include <Poco/Net/NetException.h>
 
@@ -82,9 +83,9 @@ struct SimplePocoHandlerImpl
 		if (ssl) 
 		{
 			// Replace with AcceptCertificateHandler to skip cert verification 
-			Poco::SharedPtr<InvalidCertificateHandler> pCert = new RejectCertificateHandler(false);
-			Context::Ptr pContext = new Poco::Net::Context(Context::TLSV1_2_CLIENT_USE, "");
-			SSLManager::instance().initializeClient(0, pCert, pContext);
+			Poco::SharedPtr<InvalidCertificateHandler> pInvHandler = new AcceptCertificateHandler(false);
+			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
+			SSLManager::instance().initializeClient(nullptr, pInvHandler, pContext);
 			SecureStreamSocket* sslSocket = new SecureStreamSocket();
 			sslSocket->setPeerHostName(host);
 			sslSocket->setLazyHandshake(true);
@@ -108,7 +109,7 @@ struct SimplePocoHandlerImpl
 	Poco::Timespan pollTimeout;
 };
 SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl) :
-	m_impl(new SimplePocoHandlerImpl(ssl, host))
+	m_impl(new SimplePocoHandlerImpl(ssl, host)), stop(false)
 {
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket->connect(address);
@@ -135,21 +136,20 @@ void SimplePocoHandler::loopThread(SimplePocoHandler* obj)
 
 void SimplePocoHandler::loopRead()
 {
-
-	while (m_impl->connection->usable())
+	while (!stop)
 	{
 		try
 		{
 			loopIteration();
 		}
 		catch (const Poco::Net::ConnectionResetException& exc) {
-			LOGE(exc.displayText());
+			Biterp::Logging::error(exc.displayText());
 			m_impl->connection->close();
 		}
 		catch (const Poco::Exception& exc)
 		{
-			std::string err = typeid(exc).name() +string(": ") + exc.displayText() + string(". ") + exc.what();
-			LOGE(err);
+			std::string err = typeid(exc).name() + std::string(": ") + exc.displayText() + std::string(". ") + exc.what();
+			Biterp::Logging::error(err);
 			std::cerr << err << std::endl;
 		}
 	}
@@ -220,10 +220,8 @@ void SimplePocoHandler::onReady(AMQP::Connection* connection)
 void SimplePocoHandler::onError(
 	AMQP::Connection* connection, const char* message)
 {
-	std::string err = "AMQP error: ";
-	err += message;
-	LOGE(err);
-	//std::cerr << err << std::endl;
+	error = message;
+	Biterp::Logging::error("AMQP error: " + error);
 }
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)

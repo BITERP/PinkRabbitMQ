@@ -8,7 +8,7 @@
  *  Compile with: "g++ -std=c++11 libev.cpp -lamqpcpp -lev -lpthread"
  *
  *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
- *  @copyright 2015 - 2018 Copernica BV
+ *  @copyright 2015 - 2023 Copernica BV
  */
 
 /**
@@ -93,11 +93,15 @@ private:
          *  @param  object          The object being watched
          *  @param  fd              The filedescriptor being watched
          *  @param  events          The events that should be monitored
+         *  @param  priority        The priority for the watcher
          */
-        Watcher(struct ev_loop *loop, Watchable *object, int fd, int events) : _loop(loop)
+        Watcher(struct ev_loop *loop, Watchable *object, int fd, int events, int priority) : _loop(loop)
         {
             // initialize the libev structure
             ev_io_init(&_io, callback, fd, events);
+            
+            // install a priority
+            ev_set_priority(&_io, priority);
 
             // store the object in the data "void*"
             _io.data = object;
@@ -255,8 +259,9 @@ private:
                 // the server was inactive for a too long period of time, reset state
                 _next = _expire = 0.0; _timeout = 0;
                 
-                // close the connection because server was inactive
-                return (void)_connection->close();
+                // close the connection because server was inactive (we close it with immediate effect,
+                // because it was inactive so we cannot trust it to respect the AMQP close handshake)
+                return (void)_connection->close(true);
             }
             else if (now >= _next)
             {
@@ -267,12 +272,12 @@ private:
                 // sent only after _timout/2 seconds again _from now_ (no catching up)
                 _next = now + std::max(_timeout / 2, 1);
             }
-            
+
             // reset the timer to trigger again later
-            _timer.repeat = std::min(_next, _expire) - now;
-            
-            // restart the timer
-            ev_timer_again(_loop, &_timer);
+            ev_timer_set(&_timer, std::min(_next, _expire) - now, 0.0);
+
+            // and start it again
+            ev_timer_start(_loop, &_timer);
             
             // and because the timer is running again, we restore the refcounter
             ev_unref(_loop);
@@ -299,8 +304,9 @@ private:
          *  @param  loop            The current event loop
          *  @param  connection      The TCP connection
          *  @param  timeout         Connect timeout
+         *  @param  priority        The priority (high priorities are invoked earlier
          */
-        Wrapper(struct ev_loop *loop, AMQP::TcpConnection *connection, uint16_t timeout = 60) : 
+        Wrapper(struct ev_loop *loop, AMQP::TcpConnection *connection, uint16_t timeout, int priority) : 
             _connection(connection),
             _loop(loop),
             _next(0.0),
@@ -312,6 +318,9 @@ private:
             
             // initialize the libev structure, it should expire after the connection timeout
             ev_timer_init(&_timer, callback, timeout, 0.0);
+
+            // set a priority
+            ev_set_priority(&_timer, priority);
 
             // start the timer (this is the time that we reserve for setting up the connection)
             ev_timer_start(_loop, &_timer);
@@ -365,11 +374,16 @@ private:
             // because the server has just sent us some data, we will update the expire time too
             _expire = now + _timeout * 1.5;
 
+            // stop the existing timer (we have to stop it and restart it, because ev_timer_set() 
+            // on its own does not change the running timer) (note that we assume that the timer
+            // is already running and keeps on running, so no calls to ev_ref()/en_unref() here)
+            ev_timer_stop(_loop, &_timer);
+
             // find the earliest thing that expires
-            _timer.repeat = std::min(_next, _expire) - now;
-            
-            // restart the timer
-            ev_timer_again(_loop, &_timer);
+            ev_timer_set(&_timer, std::min(_next, _expire) - now, 0.0);
+
+            // and start it again
+            ev_timer_start(_loop, &_timer);
             
             // expose the accepted interval
             return _timeout;
@@ -416,7 +430,7 @@ private:
                 Watchable *watchable = this;
                 
                 // we should monitor a new filedescriptor
-                _watchers.emplace_back(_loop, watchable, fd, events);
+                _watchers.emplace_back(_loop, watchable, fd, events, ev_priority(&_timer));
             }
         }
     };
@@ -432,6 +446,12 @@ private:
      *  @var std::list
      */
     std::list<Wrapper> _wrappers;
+    
+    /**
+     *  The priority that watchers should have (higher prio means libev gives more prio to this eveht)
+     *  @var int
+     */
+    int _priority;
 
     /**
      *  Lookup a connection-wrapper, when the wrapper is not found, we construct one
@@ -448,25 +468,25 @@ private:
         }
         
         // add to the wrappers
-        _wrappers.emplace_back(_loop, connection);
+        _wrappers.emplace_back(_loop, connection, 60, _priority);
         
         // done
         return _wrappers.back();
     }
 
+protected:
     /**
      *  Method that is called by AMQP-CPP to register a filedescriptor for readability or writability
      *  @param  connection  The TCP connection object that is reporting
      *  @param  fd          The filedescriptor to be monitored
      *  @param  flags       Should the object be monitored for readability or writability?
      */
-    virtual void monitor(TcpConnection *connection, int fd, int flags) override final
+    virtual void monitor(TcpConnection *connection, int fd, int flags) override
     {
         // lookup the appropriate wrapper and start monitoring
         lookup(connection).monitor(fd, flags);
     }
 
-protected:
     /**
      *  Method that is called when the heartbeat timeout is negotiated between the server and the client. 
      *  @param  connection      The connection that suggested a heartbeat timeout
@@ -494,9 +514,10 @@ protected:
 public:
     /**
      *  Constructor
-     *  @param  loop    The event loop to wrap
+     *  @param  loop        The event loop to wrap
+     *  @param  priority    The libev priority (higher priorities are invoked earlier)
      */
-    LibEvHandler(struct ev_loop *loop) : _loop(loop) {}
+    LibEvHandler(struct ev_loop *loop, int priority = 0) : _loop(loop), _priority(priority) {}
 
     /**
      *  Destructor

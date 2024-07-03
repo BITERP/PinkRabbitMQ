@@ -29,7 +29,7 @@
 
 /** @file event2/event_compat.h
 
-  @brief Potentially non-threadsafe versions of the functions in event.h: provided
+  Potentially non-threadsafe versions of the functions in event.h: provided
   only for backwards compatibility.
 
   In the oldest versions of Libevent, event_base was not a first-class

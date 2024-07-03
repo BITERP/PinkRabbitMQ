@@ -5,7 +5,7 @@
  *  that has a private constructor so that it can not be used from outside
  *  the AMQP library
  *
- *  @copyright 2014 - 2020 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -133,7 +133,7 @@ private:
      *
      *  @var std::queue
      */
-    std::queue<std::pair<bool, CopiedBuffer>> _queue;
+    std::queue<CopiedBuffer> _queue;
 
     /**
      *  Are we currently operating in synchronous mode? Meaning: do we first have
@@ -207,18 +207,27 @@ public:
         // connection is gone
         _connection = nullptr;
     }
+    
+    /**
+     *  Expose the currently installed callbacks
+     *  @return ErrorCallback
+     */
+    const ErrorCallback &onError() const { return _errorCallback; }
+    const SuccessCallback &onReady() const { return _readyCallback; }
+    
 
     /**
      *  Callback that is called when the channel was succesfully created.
      *  @param  callback    the callback to execute
      */
-    void onReady(const SuccessCallback &callback)
+    inline void onReady(const SuccessCallback& callback) { return onReady(SuccessCallback(callback)); }
+    void onReady(SuccessCallback&& callback)
     {
         // store callback
-        _readyCallback = callback;
+        _readyCallback = std::move(callback);
 
         // direct call if channel is already ready
-        if (_state == state_ready && callback) callback();
+        if (_state == state_ready && _readyCallback) _readyCallback();
     }
 
     /**
@@ -229,7 +238,8 @@ public:
      *
      *  @param  callback    the callback to execute
      */
-    void onError(const ErrorCallback &callback);
+    inline void onError(const ErrorCallback& callback) { return onError(ErrorCallback(callback)); }
+    void onError(ErrorCallback&& callback);
 
     /**
      *  Pause deliveries on a channel
@@ -306,7 +316,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &declareExchange(const std::string &name, ExchangeType type, int flags, const Table &arguments);
+    Deferred &declareExchange(const std::string_view &name, ExchangeType type, int flags, const Table &arguments);
 
     /**
      *  bind two exchanges
@@ -319,7 +329,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &bindExchange(const std::string &source, const std::string &target, const std::string &routingkey, const Table &arguments);
+    Deferred &bindExchange(const std::string_view &source, const std::string_view &target, const std::string_view &routingkey, const Table &arguments);
 
     /**
      *  unbind two exchanges
@@ -332,7 +342,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &unbindExchange(const std::string &source, const std::string &target, const std::string &routingkey, const Table &arguments);
+    Deferred &unbindExchange(const std::string_view &source, const std::string_view &target, const std::string_view &routingkey, const Table &arguments);
 
     /**
      *  remove an exchange
@@ -343,7 +353,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &removeExchange(const std::string &name, int flags);
+    Deferred &removeExchange(const std::string_view &name, int flags);
 
     /**
      *  declare a queue
@@ -354,7 +364,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    DeferredQueue &declareQueue(const std::string &name, int flags, const Table &arguments);
+    DeferredQueue &declareQueue(const std::string_view &name, int flags, const Table &arguments);
 
     /**
      *  Bind a queue to an exchange
@@ -367,7 +377,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &bindQueue(const std::string &exchangeName, const std::string &queueName, const std::string &routingkey, const Table &arguments);
+    Deferred &bindQueue(const std::string_view &exchangeName, const std::string_view &queueName, const std::string_view &routingkey, const Table &arguments);
 
     /**
      *  Unbind a queue from an exchange
@@ -380,7 +390,7 @@ public:
      *  This function returns a deferred handler. Callbacks can be installed
      *  using onSuccess(), onError() and onFinalize() methods.
      */
-    Deferred &unbindQueue(const std::string &exchangeName, const std::string &queueName, const std::string &routingkey, const Table &arguments);
+    Deferred &unbindQueue(const std::string_view &exchangeName, const std::string_view &queueName, const std::string_view &routingkey, const Table &arguments);
 
     /**
      *  Purge a queue
@@ -399,7 +409,7 @@ public:
      *
      *  });
      */
-    DeferredDelete &purgeQueue(const std::string &name);
+    DeferredDelete &purgeQueue(const std::string_view &name);
 
     /**
      *  Remove a queue
@@ -419,7 +429,7 @@ public:
      *
      *  });
      */
-    DeferredDelete &removeQueue(const std::string &name, int flags);
+    DeferredDelete &removeQueue(const std::string_view &name, int flags);
 
     /**
      *  Publish a message to an exchange
@@ -435,7 +445,7 @@ public:
      *  @param  flags       optional flags
      *  @return bool
      */
-    bool publish(const std::string &exchange, const std::string &routingKey, const Envelope &envelope, int flags);
+    bool publish(const std::string_view &exchange, const std::string_view &routingKey, const Envelope &envelope, int flags);
 
     /**
      *  Set the Quality of Service (QOS) of the entire connection
@@ -469,7 +479,7 @@ public:
      *
      *  });
      */
-    DeferredConsumer& consume(const std::string &queue, const std::string &tag, int flags, const Table &arguments);
+    DeferredConsumer& consume(const std::string_view &queue, const std::string_view &tag, int flags, const Table &arguments);
 
     /**
      *  Tell that you are prepared to recall/take back messages that could not be
@@ -499,7 +509,7 @@ public:
      *
      *  });
      */
-    DeferredCancel &cancel(const std::string &tag);
+    DeferredCancel &cancel(const std::string_view &tag);
 
     /**
      *  Retrieve a single message from RabbitMQ
@@ -533,7 +543,7 @@ public:
      *
      *  });
      */
-    DeferredGet &get(const std::string &queue, int flags = 0);
+    DeferredGet &get(const std::string_view &queue, int flags = 0);
 
     /**
      *  Acknowledge a message
@@ -609,28 +619,23 @@ public:
     /**
      *  Signal the channel that a synchronous operation was completed, and that any
      *  queued frames can be sent out.
+     *  @return false if an error on the connection level occurred, true if not
      */
-    void flush();
+    bool flush();
 
     /**
      *  Report to the handler that the channel is opened
      */
     void reportReady()
     {
-        // callbacks could destroy us, so monitor it
-        Monitor monitor(this);
-
         // if we are still in connected state we are now ready
         if (_state == state_connected) _state = state_ready;
         
-        // the last (possibly synchronous) operation was received, so we're no longer in synchronous mode
-        if (_synchronous && _queue.empty()) _synchronous = false;
+        // send out more instructions if there is a queue
+        flush();
 
         // inform handler
         if (_readyCallback) _readyCallback();
-
-        // if the monitor is still valid, we flush any waiting operations 
-        if (monitor.valid()) flush();
     }
 
     /**
@@ -678,15 +683,21 @@ public:
         // skip if there is no oldest callback
         if (!_oldestCallback) return true;
 
-        // flush the queue, which will send the next operation if the current operation was synchronous
-        flush();
-        
         // we are going to call callbacks that could destruct the channel
         Monitor monitor(this);
+
+        // flush the queue, which will send the next operation if the current operation was synchronous
+        flush();
+
+        // the call to flush may have resulted in a call to reportError
+        if (!monitor.valid()) return false;
 
         // copy the callback (so that it will not be destructed during
         // the "reportSuccess" call, if the channel is destructed during the call)
         auto cb = _oldestCallback;
+
+        // the call to flush might have caused the callback to have been invoked; check once more
+        if (!cb) return true;
 
         // call the callback
         auto next = cb->reportSuccess(std::forward<Arguments>(parameters)...);
@@ -708,6 +719,13 @@ public:
         // we are still valid
         return true;
     }
+
+    /**
+     *  Report that a consumer was cancelled by the server (for example because the 
+     *  queue was removed or the node on which the queue was stored was terminated)
+     *  @param  tag                 the consumer tag
+     */
+    void reportCancelled(const std::string &tag);
 
     /**
      *  Report an error message on a channel

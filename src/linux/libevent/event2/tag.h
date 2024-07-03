@@ -29,7 +29,7 @@
 
 /** @file event2/tag.h
 
-  @brief Helper functions for reading and writing tagged data onto buffers.
+  Helper functions for reading and writing tagged data onto buffers.
 
  */
 

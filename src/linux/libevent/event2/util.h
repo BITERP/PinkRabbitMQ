@@ -28,7 +28,7 @@
 
 /** @file event2/util.h
 
-  @brief Common convenience functions for cross-platform portability and
+  Common convenience functions for cross-platform portability and
   related socket manipulations.
 
  */

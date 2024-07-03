@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project  xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="makeRelease">
-  <Target Name="makeRelease">
-    <MSBuild Projects="WindowsAddin\WindowsAddin.vcxproj" Targets="makeRelease" Properties="VERSION=$(VERSION)"/>
+  <Target Name="FullRebuild">
+    <ItemGroup>
+      <Configurations Include="Release"/>
+      <Platforms Include="x86;x64"/>
+      <ConfigAndPlatform Include="@(Configurations)">
+        <Platform>%(Platforms.Identity)</Platform>
+      </ConfigAndPlatform>
+    </ItemGroup>
+    <MSBuild Projects="WindowsAddin\WindowsAddin.vcxproj" Targets="Build"
+             Properties="Configuration=%(ConfigAndPlatform.Identity);Platform=%(ConfigAndPlatform.Platform);VersionDef=$(VERSION);CompName=$(NAME_POSTFIX)"/>
+  </Target>
+  <Target Name="makeRelease" DependsOnTargets="FullRebuild">
+	<WriteLinesToFile File="..\package\version.txt" Lines="version=$(VERSION)" Overwrite="true"/>
+	<ZipDirectory SourceDirectory="..\package" DestinationFile="..\PinkRabbitMQ_v$(VERSION).zip"/>
   </Target>
   <Target Name="runTests">
-    <MSBuild Projects="WindowsAddin.sln" Targets="Build" Properties="Configuration=Release;Platform=x64;VersionDef=test" 
+    <MSBuild Projects="WindowsAddin.sln" Targets="Build" Properties="Configuration=Release;Platform=x64;VersionDef=test;" 
 		/>
-	<Exec Command="vstest.console x64\Release\tests.dll"/>
+    <Exec Command="cd x64\Release &amp;&amp; python -m pytest ../../../test -v"/>
   </Target>
 </Project>

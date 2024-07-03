@@ -12,8 +12,6 @@
 #include "MemoryManager.hpp"
 #include "Error.hpp"
 
-using namespace std;
-
 namespace Biterp {
 
     class CallContext {
@@ -52,11 +50,11 @@ namespace Biterp {
             return result;
         }
 
-        u16string stringParam(bool nullable = true) {
+        std::u16string stringParam(bool nullable = true) {
             tVariant *param = currentParam();
             if (param->vt == VTYPE_PWSTR) {
                 index++;
-                return u16string((char16_t *) param->pwstrVal, param->wstrLen);
+                return std::u16string((char16_t *) param->pwstrVal, param->wstrLen);
             }
             if (nullable && (param->vt == VTYPE_EMPTY || param->vt == VTYPE_NULL)) {
                 index++;
@@ -65,8 +63,8 @@ namespace Biterp {
             throw TypeError(index, "string", param->vt);
         }
 
-        string stringParamUtf8(bool nullable = true) {
-            u16string value = stringParam(nullable);
+        std::string stringParamUtf8(bool nullable = true) {
+            std::u16string value = stringParam(nullable);
             return u16Converter.to_bytes(value);
         }
 
@@ -129,7 +127,7 @@ namespace Biterp {
             param->lVal = value;
         }
 
-        void setStringResult(u16string value, tVariant *param = nullptr, bool nullable = false) {
+        void setStringResult(std::u16string value, tVariant *param = nullptr, bool nullable = false) {
             param = checkResultParam(param);
             if (!value.length() && nullable) {
                 return;
@@ -139,7 +137,7 @@ namespace Biterp {
             }
         }
 
-        inline void setStringOrEmptyResult(u16string value, tVariant *param = nullptr) {
+        inline void setStringOrEmptyResult(std::u16string value, tVariant *param = nullptr) {
             return setStringResult(value, param, true);
         }
 
@@ -172,12 +170,12 @@ namespace Biterp {
         }
 
     protected:
-        wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t> u16Converter;
         tVariant *params;
         tVariant *retValue;
         int index;
         long paramsCount;
         MemoryManager &memManager;
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> u16Converter;
     };
 }
 

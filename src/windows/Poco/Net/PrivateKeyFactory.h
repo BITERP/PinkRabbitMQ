@@ -1,13 +1,13 @@
 //
 // PrivateKeyFactory.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  PrivateKeyFactory
 //
 // Definition of the PrivateKeyFactory class.
 //
-// Copyright (c) 2006-214, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -28,11 +28,11 @@ namespace Net {
 class PrivateKeyPassphraseHandler;
 
 
-class NetSSL_Win_API PrivateKeyFactory
+class NetSSL_API PrivateKeyFactory
 	/// A PrivateKeyFactory is responsible for creating PrivateKeyPassphraseHandlers.
 	///
 	/// You don't need to access this class directly. Use the macro
-	///     POCO_REGISTER_KEYFACTORY(namespace, PrivateKeyPassphraseHandlerName) 
+	///     POCO_REGISTER_KEYFACTORY(namespace, PrivateKeyPassphraseHandlerName)
 	/// instead (see the documentation of PrivateKeyPassphraseHandler for an example).
 {
 public:
@@ -47,11 +47,11 @@ public:
 };
 
 
-class NetSSL_Win_API PrivateKeyFactoryRegistrar
+class NetSSL_API PrivateKeyFactoryRegistrar
 	/// Registrar class which automatically registers PrivateKeyFactories at the PrivateKeyFactoryMgr.
 	///
 	/// You don't need to access this class directly. Use the macro
-	///     POCO_REGISTER_KEYFACTORY(namespace, PrivateKeyPassphraseHandlerName) 
+	///     POCO_REGISTER_KEYFACTORY(namespace, PrivateKeyPassphraseHandlerName)
 	/// instead (see the documentation of PrivateKeyPassphraseHandler for an example).
 
 {

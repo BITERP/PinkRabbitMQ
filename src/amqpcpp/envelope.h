@@ -4,7 +4,7 @@
  *  When you send or receive a message to the rabbitMQ server, it is encapsulated
  *  in an envelope that contains additional meta information as well.
  *
- *  @copyright 2014 - 2020 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -53,6 +53,18 @@ public:
      *  @param  size
      */
     Envelope(const char *body, uint64_t size) : MetaData(), _body(body), _bodySize(size) {}
+    Envelope(const std::string_view &body) : Envelope(body.data(), body.size()) {}
+    Envelope(const char *body) : Envelope(body, strlen(body)) {}
+    
+    /**
+     *  Constructor that preserves meta-data, but installs different body
+     *  @param  metadata
+     *  @param  body
+     *  @param  size
+     */
+    Envelope(const MetaData &metadata, const char *body, uint64_t size) : MetaData(metadata), _body(body), _bodySize(size) {}
+    Envelope(const MetaData &metadata, const std::string_view &body) : Envelope(metadata, body.data(), body.size()) {}
+    Envelope(const MetaData &metadata, const char *body) : Envelope(metadata, body, strlen(body)) {}
 
     /**
      *  Read envelope frmo an input-buffer

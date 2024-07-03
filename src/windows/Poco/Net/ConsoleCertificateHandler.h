@@ -1,13 +1,13 @@
 //
 // ConsoleCertificateHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  ConsoleCertificateHandler
 //
 // Definition of the ConsoleCertificateHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,9 +26,9 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API ConsoleCertificateHandler: public InvalidCertificateHandler
+class NetSSL_API ConsoleCertificateHandler: public InvalidCertificateHandler
 	/// A ConsoleCertificateHandler is invoked whenever an error occurs verifying the certificate.
-	/// 
+	///
 	/// The certificate is printed to stdout and the user is asked via console if he wants to accept it.
 {
 public:

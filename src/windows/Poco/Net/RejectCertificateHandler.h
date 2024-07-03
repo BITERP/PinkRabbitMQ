@@ -1,13 +1,13 @@
 //
 // RejectCertificateHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  RejectCertificateHandler
 //
 // Definition of the RejectCertificateHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2010, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,8 +26,8 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API RejectCertificateHandler: public InvalidCertificateHandler
-	/// A RejectCertificateHandler is invoked whenever an error 
+class NetSSL_API RejectCertificateHandler: public InvalidCertificateHandler
+	/// A RejectCertificateHandler is invoked whenever an error
 	/// occurs verifying the certificate. It always rejects
 	/// the certificate.
 {

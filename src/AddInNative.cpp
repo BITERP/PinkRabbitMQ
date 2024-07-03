@@ -1,5 +1,6 @@
 
 #include "RabbitMQClientNative.h"
+#include <addin/ComponentBase.h>
 
 #pragma warning( disable : 4267)
 #pragma warning( disable : 4311)
@@ -43,11 +44,6 @@ EXPORT AppCapabilities SetPlatformCapabilities(const AppCapabilities capabilitie
 }
 
 //---------------------------------------------------------------------------//
-EXPORT long GetAttachType() {
-    return 3;//eCanAttachAny = 3 - any connection type.
-}    
-    
-//---------------------------------------------------------------------------//
 EXPORT long DestroyObject(IComponentBase **pInterface) {
     if (!*pInterface)
         return -1;
@@ -60,6 +56,10 @@ EXPORT long DestroyObject(IComponentBase **pInterface) {
 //---------------------------------------------------------------------------//
 EXPORT const WCHAR_T *GetClassNames() {
     return RabbitMQClientNative::componentName;
+}
+
+EXPORT AttachType GetAttachType(){
+    return AttachType::eCanAttachAny;
 }
 
 #if defined(__ANDROID__)

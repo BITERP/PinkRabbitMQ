@@ -3,7 +3,7 @@
  *
  *  Deferred callback for consumers
  *
- *  @copyright 2014 - 2018 Copernica BV
+ *  @copyright 2014 - 2022 Copernica BV
  */
 
 /**
@@ -39,6 +39,12 @@ private:
     ConsumeCallback _consumeCallback;
 
     /**
+     *  Callback to excute when the server has cancelled the consumer
+     *  @var    CancelCallback
+     */
+    CancelCallback _cancelCallback;
+
+    /**
      *  Process a delivery frame
      *
      *  @param  frame   The frame to process
@@ -51,6 +57,16 @@ private:
      *  @return Deferred
      */
     virtual const std::shared_ptr<Deferred> &reportSuccess(const std::string &name) override;
+
+    /**
+     *  Report that the server has cancelled this consumer
+     *  @param  namae           The consumer tag
+     */
+    void reportCancelled(const std::string &name)
+    {
+        // report
+        if (_cancelCallback) _cancelCallback(name);
+    }
 
     /**
      *  Get reference to self to prevent that object falls out of scope
@@ -87,10 +103,11 @@ public:
      *  that you need to later stop the consumer
      *  @param  callback
      */
-    DeferredConsumer &onSuccess(const ConsumeCallback &callback)
+    inline DeferredConsumer &onSuccess(const ConsumeCallback& callback) { return onSuccess(ConsumeCallback(callback)); }
+    DeferredConsumer &onSuccess(ConsumeCallback&& callback)
     {
         // store the callback
-        _consumeCallback = callback;
+        _consumeCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -102,10 +119,11 @@ public:
      *  since that will also pass the consumer-tag as parameter.
      *  @param  callback
      */
-    DeferredConsumer &onSuccess(const SuccessCallback &callback)
+    inline DeferredConsumer &onSuccess(const SuccessCallback& callback) { return onSuccess(SuccessCallback(callback)); }
+    DeferredConsumer &onSuccess(SuccessCallback&& callback)
     {
         // call base
-        Deferred::onSuccess(callback);
+        Deferred::onSuccess(std::move(std::move(callback)));
 
         // allow chaining
         return *this;
@@ -115,10 +133,11 @@ public:
      *  Register a function to be called when a full message is received
      *  @param  callback    the callback to execute
      */
-    DeferredConsumer &onReceived(const MessageCallback &callback)
+    inline DeferredConsumer &onReceived(const MessageCallback& callback) { return onReceived(MessageCallback(callback)); }
+    DeferredConsumer &onReceived(MessageCallback&& callback)
     {
         // store callback
-        _messageCallback = callback;
+        _messageCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -128,10 +147,11 @@ public:
      *  Alias for onReceived() (see above)
      *  @param  callback    the callback to execute
      */
-    DeferredConsumer &onMessage(const MessageCallback &callback)
+    inline DeferredConsumer &onMessage(const MessageCallback& callback) { return onMessage(MessageCallback(callback)); }
+    DeferredConsumer &onMessage(MessageCallback&& callback)
     {
         // store callback
-        _messageCallback = callback;
+        _messageCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -166,10 +186,11 @@ public:
      *  @param  callback    The callback to invoke
      *  @return Same object for chaining
      */
-    DeferredConsumer &onBegin(const StartCallback &callback)
+    inline DeferredConsumer &onBegin(const StartCallback& callback) { return onBegin(StartCallback(callback)); }
+    DeferredConsumer &onBegin(StartCallback&& callback)
     {
         // store callback
-        _startCallback = callback;
+        _startCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -182,10 +203,11 @@ public:
      *  @param  callback    The callback to invoke
      *  @return Same object for chaining
      */
-    DeferredConsumer &onStart(const StartCallback &callback)
+    inline DeferredConsumer &onStart(const StartCallback& callback) { return onStart(StartCallback(callback)); }
+    DeferredConsumer &onStart(StartCallback&& callback)
     {
         // store callback
-        _startCallback = callback;
+        _startCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -197,10 +219,11 @@ public:
      *  @param  callback    The callback to invoke for message headers
      *  @return Same object for chaining
      */
-    DeferredConsumer &onSize(const SizeCallback &callback)
+    inline DeferredConsumer &onSize(const SizeCallback& callback) { return onSize(SizeCallback(callback)); }
+    DeferredConsumer &onSize(SizeCallback&& callback)
     {
         // store callback
-        _sizeCallback = callback;
+        _sizeCallback = std::move(callback);
         
         // allow chaining
         return *this;
@@ -212,10 +235,11 @@ public:
      *  @param  callback    The callback to invoke for message headers
      *  @return Same object for chaining
      */
-    DeferredConsumer &onHeaders(const HeaderCallback &callback)
+    inline DeferredConsumer &onHeaders(const HeaderCallback& callback) { return onHeaders(HeaderCallback(callback)); }
+    DeferredConsumer &onHeaders(HeaderCallback&& callback)
     {
         // store callback
-        _headerCallback = callback;
+        _headerCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -234,10 +258,11 @@ public:
      *  @param  callback    The callback to invoke for chunks of message data
      *  @return Same object for chaining
      */
-    DeferredConsumer &onData(const DataCallback &callback)
+    inline DeferredConsumer &onData(const DataCallback& callback) { return onData(DataCallback(callback)); }
+    DeferredConsumer &onData(DataCallback&& callback)
     {
         // store callback
-        _dataCallback = callback;
+        _dataCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -249,10 +274,11 @@ public:
      *  @param  callback    The callback to invoke
      *  @return Same object for chaining
      */
-    DeferredConsumer &onComplete(const DeliveredCallback &callback)
+    inline DeferredConsumer &onComplete(const DeliveredCallback& callback) { return onComplete(DeliveredCallback(callback)); }
+    DeferredConsumer &onComplete(DeliveredCallback&& callback)
     {
         // store callback
-        _deliveredCallback = callback;
+        _deliveredCallback = std::move(callback);
 
         // allow chaining
         return *this;
@@ -264,10 +290,27 @@ public:
      *  @param  callback    The callback to invoke
      *  @return Same object for chaining
      */
-    DeferredConsumer &onDelivered(const DeliveredCallback &callback)
+    inline DeferredConsumer &onDelivered(const DeliveredCallback& callback) { return onDelivered(DeliveredCallback(callback)); }
+    DeferredConsumer &onDelivered(DeliveredCallback&& callback)
     {
         // store callback
-        _deliveredCallback = callback;
+        _deliveredCallback = std::move(callback);
+
+        // allow chaining
+        return *this;
+    }
+    
+    /**
+     *  Register a funtion to be called when the server cancelled the consumer
+     *
+     *  @param  callback    The callback to invoke
+     *  @return Same object for chaining
+     */
+    inline DeferredConsumer &onCancelled(const CancelCallback& callback) { return onCancelled(CancelCallback(callback)); }
+    DeferredConsumer &onCancelled(CancelCallback&& callback)
+    {
+        // store callback
+        _cancelCallback = std::move(callback);
 
         // allow chaining
         return *this;

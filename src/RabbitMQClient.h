@@ -9,8 +9,6 @@
 #include <condition_variable>
 
 
-using namespace std;
-
 class RabbitMQClient : public Biterp::Component {
 public:
 	// Transiting properties
@@ -25,9 +23,12 @@ public:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 public:
-	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0), inConsume(false) {};
+	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
 
-	virtual ~RabbitMQClient() { clear(); };
+	virtual ~RabbitMQClient() { 
+		clear(); 
+		connection.reset(nullptr);
+	};
 
 	inline bool connect(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::connectImpl, paParams, lSizeArray);
@@ -123,32 +124,32 @@ private:
 	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum])); }
 	inline void setMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { msgProps[propNum] = ctx.stringParamUtf8(); }
 
-	AMQP::Table headersFromJson(const string& json, bool forConsume=false);
+	AMQP::Table headersFromJson(const std::string& json, bool forConsume=false);
 	void checkConnection();
-	string lastMessageHeaders();
+	std::string lastMessageHeaders();
 
 	void clear();
 
 private:
 	struct MessageObject {
-		string body;
+		std::string body;
 		uint64_t messageTag = 0;
 		int priority = 0;
-		string routingKey;
-		map<int, std::string> msgProps;
+		std::string routingKey;
+		std::map<int, std::string> msgProps;
 		AMQP::Table headers;
 	};
 
 private:
-	map<int, string> msgProps;
-	unique_ptr<Connection> connection;
+	std::map<int, std::string> msgProps;
+	std::unique_ptr<Connection> connection;
 	int priority;
 	MessageObject lastMessage;
-	vector<string> consumers;
-	queue<MessageObject> messageQueue;
-	mutex _mutex;
-	volatile bool inConsume;
-	condition_variable cvDataArrived;
+	std::string consumerError;
+	std::vector<std::string> consumers;
+	std::queue<MessageObject> messageQueue;
+	std::mutex _mutex;
+	std::condition_variable cvDataArrived;
 
 private:
 
@@ -164,8 +165,8 @@ private:
 			result = true;
 		}
 		catch (std::exception& e) {
-			string who = typeid(e).name();
-			string what = e.what();
+			std::string who = typeid(e).name();
+			std::string what = e.what();
 			LOGE(who + ": " + what);
 			addError(what, who);
 		}

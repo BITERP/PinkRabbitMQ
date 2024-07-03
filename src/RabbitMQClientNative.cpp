@@ -3,9 +3,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <time.h>
-#include <errno.h>
 #include <iconv.h>
 #include <sys/time.h>
 
@@ -15,96 +13,62 @@
 #include <wchar.h>
 #include "RabbitMQClientNative.h"
 #include <string>
-#include <codecvt>
 
-static const char16_t* g_PropNames[] = {
-	u"Version",
-	u"CorrelationId",
-	u"Type",
-	u"MessageId",
-	u"AppId",
-	u"ContentEncoding",
-	u"ContentType",
-	u"UserId",
-	u"ClusterId",
-	u"Expiration",
-	u"ReplyTo",
-};
-static const char16_t* g_MethodNames[] = {
-	u"GetLastError",
-	u"Connect",
-	u"DeclareQueue",
-	u"BasicPublish",
-	u"BasicConsume",
-	u"BasicConsumeMessage",
-	u"BasicCancel",
-	u"BasicAck",
-	u"DeleteQueue",
-	u"BindQueue",
-	u"BasicReject",
-	u"DeclareExchange",
-	u"DeleteExchange",
-	u"UnbindQueue",
-	u"SetPriority",
-	u"GetPriority",
-	u"GetRoutingKey",
-	u"GetHeaders",
-	u"SleepNative",
-};
+Biterp::Names RabbitMQClientNative::properties{{
+	{RabbitMQClientNative::ePropVersion, {u"Version"}},
+	{RabbitMQClientNative::ePropCorrelationId, {u"CorrelationId"}},
+	{RabbitMQClientNative::ePropType, {u"Type"}},
+	{RabbitMQClientNative::ePropMessageId, {u"MessageId"}},
+	{RabbitMQClientNative::ePropAppId, {u"AppId"}},
+	{RabbitMQClientNative::ePropContentEncoding, {u"ContentEncoding"}},
+	{RabbitMQClientNative::ePropContentType, {u"ContentType"}},
+	{RabbitMQClientNative::ePropUserId, {u"UserId"}},
+	{RabbitMQClientNative::ePropClusterId, {u"ClusterId"}},
+	{RabbitMQClientNative::ePropExpiration, {u"Expiration"}},
+	{RabbitMQClientNative::ePropReplyTo, {u"ReplyTo"}},
+}};
 
-static const char16_t* g_PropNamesRu[] = {
-	u"Version",
-	u"CorrelationId",
-	u"Type",
-	u"MessageId",
-	u"AppId",
-	u"ContentEncoding",
-	u"ContentType",
-	u"UserId",
-	u"ClusterId",
-	u"Expiration",
-	u"ReplyTo",
-};
-static const char16_t* g_MethodNamesRu[] = {
-	u"GetLastError",
-	u"Connect",
-	u"DeclareQueue",
-	u"BasicPublish",
-	u"BasicConsume",
-	u"BasicConsumeMessage",
-	u"BasicCancel",
-	u"BasicAck",
-	u"DeleteQueue",
-	u"BindQueue",
-	u"BasicReject",
-	u"DeclareExchange",
-	u"DeleteExchange",
-	u"UnbindQueue",
-	u"SetPriority",
-	u"GetPriority",
-	u"GetRoutingKey",
-	u"GetHeaders",
-	u"SleepNative",
-};
+Biterp::Names RabbitMQClientNative::methods{{
+	{RabbitMQClientNative::eMethGetLastError, {u"GetLastError"}},
+	{RabbitMQClientNative::eMethConnect, {u"Connect"}},
+	{RabbitMQClientNative::eMethDeclareQueue, {u"DeclareQueue"}},
+	{RabbitMQClientNative::eMethBasicPublish, {u"BasicPublish"}},
+	{RabbitMQClientNative::eMethBasicConsume, {u"BasicConsume"}},
+	{RabbitMQClientNative::eMethBasicConsumeMessage, {u"BasicConsumeMessage"}},
+	{RabbitMQClientNative::eMethBasicCancel, {u"BasicCancel"}},
+	{RabbitMQClientNative::eMethBasicAck, {u"BasicAck"}},
+	{RabbitMQClientNative::eMethDeleteQueue, {u"DeleteQueue"}},
+	{RabbitMQClientNative::eMethBindQueue, {u"BindQueue"}},
+	{RabbitMQClientNative::eMethBasicReject, {u"BasicReject"}},
+	{RabbitMQClientNative::eMethDeclareExchange, {u"DeclareExchange"}},
+	{RabbitMQClientNative::eMethDeleteExchange, {u"DeleteExchange"}},
+	{RabbitMQClientNative::eMethUnbindQueue, {u"UnbindQueue"}},
+	{RabbitMQClientNative::eMethSetPriority, {u"SetPriority"}},
+	{RabbitMQClientNative::eMethGetPriority, {u"GetPriority"}},
+	{RabbitMQClientNative::eMethGetRoutingKey, {u"GetRoutingKey"}},
+	{RabbitMQClientNative::eMethGetHeaders, {u"GetHeaders"}},
+	{RabbitMQClientNative::eMethSleepNative, {u"SleepNative"}},
+}};
 
-const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ";
+
+const char16_t* RabbitMQClientNative::componentName = u"PinkRabbitMQ" QUOTE(NAME_POSTFIX);
 
 // CAddInNative
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::RabbitMQClientNative() {
-	LOGD("construct");
+	impl.LOGD("construct");
 }
 
 //---------------------------------------------------------------------------//
 RabbitMQClientNative::~RabbitMQClientNative() {
-	LOGD("destruct");
+	impl.LOGD("destruct");
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::Init(VOID_PTR pConnection) {
-	LOGD("init start");
+	impl.LOGD("init start");
 	bool ret = impl.init(static_cast<IAddInDefBase*>(pConnection));
-	LOGD("init end");
+	impl.LOGD("init end");
 	return ret;
 }
 
@@ -117,9 +81,9 @@ long RabbitMQClientNative::GetInfo() {
 
 //---------------------------------------------------------------------------//
 void RabbitMQClientNative::Done() {
-	LOGD("done start");
+	impl.LOGD("done start");
 	impl.done();
-	LOGD("done end");
+	impl.LOGD("done end");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -132,47 +96,31 @@ bool RabbitMQClientNative::RegisterExtensionAs(WCHAR_T** wsExtensionName) {
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::GetNProps() {
 	// You may delete next lines and add your own implementation code here
-	return ePropLast;
+	return properties.size();//ePropLast;
 }
 
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::FindProp(const WCHAR_T* wsPropName) {
-	long plPropNum = -1;
-	plPropNum = findName(g_PropNames, (char16_t*)wsPropName, ePropLast);
-
+	long plPropNum = properties.find((char16_t*)wsPropName);
 	if (plPropNum == -1)
-		plPropNum = findName(g_PropNamesRu, (char16_t*)wsPropName, ePropLast);
-
-	if (plPropNum == -1)
-		impl.setLastError(u"Property not found: " + u16string((char16_t*)wsPropName));
+		impl.setLastError(u"Property not found: " + std::u16string((char16_t*)wsPropName));
 
 	return plPropNum;
 }
 
 //---------------------------------------------------------------------------//
 const WCHAR_T* RabbitMQClientNative::GetPropName(long lPropNum, long lPropAlias) {
-	if (lPropNum >= ePropLast)
+	const std::u16string& name = properties.name(lPropNum, lPropAlias);
+	if (name.empty()){
 		return NULL;
-
-	const char16_t* wsCurrentName = NULL;
-
-	switch (lPropAlias) {
-	case 0: // First language
-		wsCurrentName = g_PropNames[lPropNum];
-		break;
-	case 1: // Second language
-		wsCurrentName = g_PropNamesRu[lPropNum];
-		break;
-	default:
-		return 0;
 	}
+	return (WCHAR_T*)impl.memoryManager().allocString(name.c_str());
 
-	return (WCHAR_T*)impl.memoryManager().allocString(wsCurrentName);
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal) {
-	LOGD("1C get prop start " + to_string(lPropNum));
+	impl.LOGD("1C get prop start " + properties.utf8(lPropNum));
 	bool ret = false;
 	switch (lPropNum) {
 	case ePropVersion:
@@ -194,13 +142,13 @@ bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal
 		ret = false;
 		break;
 	}
-	LOGD("1C get prop end " + to_string(lPropNum));
+	impl.LOGD("1C get prop end " + properties.utf8(lPropNum));
 	return ret;
 }
 
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal) {
-	LOGD("1C set prop start " + to_string(lPropNum));
+	impl.LOGD("1C set prop start " + properties.utf8(lPropNum));
 	bool ret = false;
 	switch (lPropNum) {
 	case ePropCorrelationId:
@@ -219,7 +167,7 @@ bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal)
 		ret = false;
 		break;
 	}
-	LOGD("1C set prop end " + to_string(lPropNum));
+	impl.LOGD("1C set prop end " + properties.utf8(lPropNum));
 	return ret;
 }
 
@@ -240,36 +188,20 @@ long RabbitMQClientNative::GetNMethods() {
 
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::FindMethod(const WCHAR_T* wsMethodName) {
-	long plMethodNum = -1;
-	plMethodNum = findName(g_MethodNames, (char16_t*)wsMethodName, eMethLast);
-
+	long plMethodNum = methods.find((char16_t*)wsMethodName);
 	if (plMethodNum == -1)
-		plMethodNum = findName(g_MethodNamesRu, (char16_t*)wsMethodName, eMethLast);
-
-	if (plMethodNum == -1)
-		impl.setLastError(u"Method not found: " + u16string((char16_t*)wsMethodName));
+		impl.setLastError(u"Method not found: " + std::u16string((char16_t*)wsMethodName));
 
 	return plMethodNum;
 }
 
 //---------------------------------------------------------------------------//
 const WCHAR_T* RabbitMQClientNative::GetMethodName(const long lMethodNum, const long lMethodAlias) {
-	if (lMethodNum >= eMethLast)
+	const std::u16string& name = methods.name(lMethodNum, lMethodAlias);
+	if (name.empty()){
 		return NULL;
-
-	const char16_t* wsCurrentName = NULL;
-
-	switch (lMethodAlias) {
-	case 0: // First language
-		wsCurrentName = g_MethodNames[lMethodNum];
-		break;
-	case 1: // Second language
-		wsCurrentName = g_MethodNamesRu[lMethodNum];
-		break;
-	default:
-		return 0;
 	}
-	return (WCHAR_T*)impl.memoryManager().allocString(wsCurrentName);
+	return (WCHAR_T*)impl.memoryManager().allocString(name.c_str());
 }
 
 //---------------------------------------------------------------------------//
@@ -380,7 +312,7 @@ bool RabbitMQClientNative::HasRetVal(const long lMethodNum) {
 //---------------------------------------------------------------------------//
 bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 	tVariant* paParams, const long lSizeArray) {
-	LOGD("1C call proc start " + to_string(lMethodNum));
+	impl.LOGD("1C call proc start " + methods.utf8(lMethodNum));
 	bool ret = false;
 	switch (lMethodNum) {
 	case eMethConnect:
@@ -423,7 +355,7 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 		ret = false;
 		break;
 	}
-	LOGD("1C call proc end " + to_string(lMethodNum));
+	impl.LOGD("1C call proc end " + methods.utf8(lMethodNum));
 	return ret;
 }
 
@@ -431,7 +363,7 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 	tVariant* pvarRetValue, tVariant* paParams,
 	const long lSizeArray) {
-	LOGD("1C call func start " + to_string(lMethodNum));
+	impl.LOGD("1C call func start " + methods.utf8(lMethodNum));
 	bool ret = false;
 	switch (lMethodNum) {
 	case eMethGetLastError:
@@ -459,7 +391,7 @@ bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 		ret = false;
 		break;
 	}
-	LOGD("1C call func end " + to_string(lMethodNum));
+	impl.LOGD("1C call func end " + methods.utf8(lMethodNum));
 	return ret;
 }
 
@@ -483,14 +415,3 @@ bool RabbitMQClientNative::setMemManager(void* mem) {
 	return mem != 0;
 }
 
-//---------------------------------------------------------------------------//
-long RabbitMQClientNative::findName(const char16_t* names[], u16string name, const uint32_t size) const {
-	long ret = -1;
-	for (uint32_t i = 0; i < size; i++) {
-		if (name == names[i]) {
-			ret = i;
-			break;
-		}
-	}
-	return ret;
-}

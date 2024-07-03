@@ -1,13 +1,13 @@
 //
 // AcceptCertificateHandler.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  AcceptCertificateHandler
 //
 // Definition of the AcceptCertificateHandler class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,8 +26,8 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API AcceptCertificateHandler: public InvalidCertificateHandler
-	/// A AcceptCertificateHandler is invoked whenever an error 
+class NetSSL_API AcceptCertificateHandler: public InvalidCertificateHandler
+	/// A AcceptCertificateHandler is invoked whenever an error
 	/// occurs verifying the certificate. It always accepts
 	/// the certificate.
 	///

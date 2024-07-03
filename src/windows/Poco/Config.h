@@ -18,16 +18,6 @@
 #define Foundation_Config_INCLUDED
 
 
-// Define to enable Windows Unicode (UTF-8) support
-// NOTE: As of POCO C++ Libraries release 1.6.0, compiling POCO
-// without POCO_WIN32_UTF8 defined on Windows is deprecated.
-#define POCO_WIN32_UTF8
-
-
-// Define to enable C++11 support
-// #define POCO_ENABLE_CPP11
-
-
 // Define to disable implicit linking
 // #define POCO_NO_AUTOMATIC_LIBS
 
@@ -52,7 +42,7 @@
 // #define POCO_NO_SHAREDMEMORY
 
 
-// Define if no <locale> header is available (such as on WinCE)
+// Define if no <locale> header is available
 // #define POCO_NO_LOCALE
 
 
@@ -60,6 +50,11 @@
 // Zero means OS default
 #ifndef POCO_THREAD_STACK_SIZE
 	#define POCO_THREAD_STACK_SIZE 0
+#endif
+
+// Defined to desired max thread name length
+#ifndef POCO_MAX_THREAD_NAME_LEN
+#define POCO_MAX_THREAD_NAME_LEN 15
 #endif
 
 
@@ -81,30 +76,24 @@
 // cases when value holder fits into POCO_SMALL_OBJECT_SIZE
 // (see below).
 //
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!! NOTE: Any/Dynamic::Var SOO will NOT work reliably   !!!
-// !!! without C++11 (std::aligned_storage in particular). !!!
-// !!! Only comment this out if your compiler has support  !!!
-// !!! for std::aligned_storage.                           !!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//
-#ifndef POCO_ENABLE_SOO
-#define POCO_NO_SOO
-#endif
+// #define POCO_NO_SOO
 
 
 // Small object size in bytes. When assigned to Any or Var,
 // objects larger than this value will be alocated on the heap,
 // while those smaller will be placement new-ed into an
-// internal buffer.
-#if !defined(POCO_SMALL_OBJECT_SIZE) && !defined(POCO_NO_SOO)
-	#define POCO_SMALL_OBJECT_SIZE 32
+// internal stack-auto-allocated buffer.
+#if !defined(POCO_SMALL_OBJECT_SIZE)
+	#define POCO_SMALL_OBJECT_SIZE 64
 #endif
 
 
 // Define to disable compilation of DirectoryWatcher
 // on platforms with no inotify.
 // #define POCO_NO_INOTIFY
+
+// Define to force the use of PollingDirectoryWatcher
+// #define POCO_DW_FORCE_POLLING
 
 
 // Following are options to remove certain features
@@ -158,9 +147,21 @@
 // #define POCO_NET_NO_IPv6
 
 
-// Windows CE has no locale support
-#if defined(_WIN32_WCE)
-	#define POCO_NO_LOCALE
+// No UNIX socket support
+// Define to disable unix sockets
+// UNIX local sockets are default-enabled on
+// all UNIX systems, on Windows if available
+// See Net/SocketDefs.h
+// See https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
+// #define POCO_NET_NO_UNIX_SOCKET
+
+
+// Define to nonzero to enable move semantics
+// on classes where it introduces a new state.
+// For explanation, see:
+// https://github.com/pocoproject/poco/wiki/Move-Semantics-in-POCO
+#ifndef POCO_NEW_STATE_ON_MOVE
+// #define POCO_NEW_STATE_ON_MOVE 1
 #endif
 
 
@@ -168,25 +169,6 @@
 // even if the _DEBUG variable is not set.
 // This allows the use of these macros in a release version.
 // #define POCO_LOG_DEBUG
-
-
-//
-// OpenSSL options
-//
-
-// Poco has its own OpenSSL build system.
-// See https://github.com/pocoproject/openssl/blob/master/README.md
-// for details
-//
-// These options are Windows only.
-
-// Disable the use of Poco OpenSSL binaries
-// (external OpenSSL libraries must be provided).
-// #define POCO_EXTERNAL_OPENSSL
-
-//
-// End OpenSSL options
-//
 
 
 // Define to prevent changing the suffix for shared libraries
@@ -197,5 +179,15 @@
 // Disarm POCO_DEPRECATED macro.
 // #define POCO_NO_DEPRECATED
 
+// Enable usage of Poco::Mutex and Poco::FastMutex
+// as wrappers for std::recursive_mutex and std::mutex
+#ifndef POCO_ENABLE_STD_MUTEX
+//	#define POCO_ENABLE_STD_MUTEX
+#endif
+
+#define POCO_HAVE_CPP17_COMPILER (__cplusplus >= 201703L)
+
+// Uncomment to explicitly disable SQLParser
+// #define POCO_DATA_NO_SQL_PARSER
 
 #endif // Foundation_Config_INCLUDED

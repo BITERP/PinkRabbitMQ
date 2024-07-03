@@ -1,7 +1,7 @@
 /**
  *  String field types for amqp
  *
- *  @copyright 2014 - 2020 Copernica BV
+ *  @copyright 2014 - 2023 Copernica BV
  */
 
 /**
@@ -51,6 +51,12 @@ public:
      *  Construct based on a std::string
      *  @param  value   string value
      */
+    StringField(const std::string_view &value) : _data(value) {}
+
+    /**
+     *  Construct based on a std::string
+     *  @param  value   string value
+     */
     StringField(std::string &&value) : _data(std::move(value)) {}
     
     /**
@@ -86,12 +92,12 @@ public:
 
     /**
      *  Create a new instance of this object
-     *  @return Field*
+     *  @return std::unique_ptr<Field>
      */
-    virtual std::shared_ptr<Field> clone() const override
+    virtual std::unique_ptr<Field> clone() const override
     {
         // create a new copy of ourselves and return it
-        return std::make_shared<StringField>(_data);
+        return std::unique_ptr<Field>(new StringField(_data));
     }
 
     /**
@@ -185,6 +191,19 @@ public:
         // overwrite data
         _data.assign(value, size);
 
+        // allow chaining
+        return *this;
+    }
+    
+    /**
+     *  Make the field empty
+     *  @return StringField
+     */
+    StringField &clear()
+    {
+        // clear internal dta
+        _data.clear();
+        
         // allow chaining
         return *this;
     }

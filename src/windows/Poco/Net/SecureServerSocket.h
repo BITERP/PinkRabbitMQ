@@ -1,13 +1,13 @@
 //
 // SecureServerSocket.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLSockets
 // Module:  SecureServerSocket
 //
 // Definition of the SecureServerSocket class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -27,7 +27,7 @@ namespace Poco {
 namespace Net {
 
 
-class NetSSL_Win_API SecureServerSocket: public ServerSocket
+class NetSSL_API SecureServerSocket: public ServerSocket
 	/// A server socket for secure SSL connections.
 {
 public:
@@ -91,7 +91,7 @@ public:
 		///
 		/// Releases the socket's SocketImpl and
 		/// attaches the SocketImpl from the other socket and
-		/// increments the reference count of the SocketImpl.	
+		/// increments the reference count of the SocketImpl.
 
 	StreamSocket acceptConnection(SocketAddress& clientAddr);
 		/// Get the next completed connection from the

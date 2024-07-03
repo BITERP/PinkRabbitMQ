@@ -1,13 +1,13 @@
 //
 // SSLException.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: SSLCore
 // Module:  SSLException
 //
 // Definition of the SSLException class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -26,13 +26,11 @@ namespace Poco {
 namespace Net {
 
 
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, SSLException, NetException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, SSLContextException, SSLException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, CertificateException, SSLException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, NoCertificateException, CertificateException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, InvalidCertificateException, CertificateException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, CertificateValidationException, CertificateException)
-POCO_DECLARE_EXCEPTION(NetSSL_Win_API, SSLConnectionUnexpectedlyClosedException, SSLException)
+POCO_DECLARE_EXCEPTION(NetSSL_API, SSLException, NetException)
+POCO_DECLARE_EXCEPTION(NetSSL_API, SSLContextException, SSLException)
+POCO_DECLARE_EXCEPTION(NetSSL_API, InvalidCertificateException, SSLException)
+POCO_DECLARE_EXCEPTION(NetSSL_API, CertificateValidationException, SSLException)
+POCO_DECLARE_EXCEPTION(NetSSL_API, SSLConnectionUnexpectedlyClosedException, SSLException)
 
 
 } } // namespace Poco::Net

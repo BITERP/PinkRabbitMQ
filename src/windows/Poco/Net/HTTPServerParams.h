@@ -33,8 +33,8 @@ class Net_API HTTPServerParams: public TCPServerParams
 	/// Subclasses may add new parameters to the class.
 {
 public:
-	typedef Poco::AutoPtr<HTTPServerParams> Ptr;
-	
+	using Ptr = Poco::AutoPtr<HTTPServerParams>;
+
 	HTTPServerParams();
 		/// Creates the HTTPServerParams.
 		///
@@ -43,13 +43,13 @@ public:
 		///   - keepAlive:            true
 		///   - maxKeepAliveRequests: 0
 		///   - keepAliveTimeout:     10 seconds
-		
+
 	void setServerName(const std::string& serverName);
 		/// Sets the name and port (name:port) that the server uses to identify itself.
 		///
 		/// If this is not set to valid DNS name for your host, server-generated
 		/// redirections will not work.
-		
+
 	const std::string& getServerName() const;
 		/// Returns the name and port (name:port) that the server uses to identify itself.
 
@@ -68,32 +68,41 @@ public:
 
 	void setTimeout(const Poco::Timespan& timeout);
 		/// Sets the connection timeout for HTTP connections.
-		
+
 	const Poco::Timespan& getTimeout() const;
 		/// Returns the connection timeout for HTTP connections.
-		
+
 	void setKeepAlive(bool keepAlive);
 		/// Enables (keepAlive == true) or disables (keepAlive == false)
 		/// persistent connections.
-		
+
 	bool getKeepAlive() const;
-		/// Returns true iff persistent connections are enabled.
-		
+		/// Returns true if persistent connections are enabled.
+
 	void setKeepAliveTimeout(const Poco::Timespan& timeout);
-		/// Sets the connection timeout for HTTP connections.
-		
+		/// Sets the keep-alive timeout for persistent HTTP connections.
+
 	const Poco::Timespan& getKeepAliveTimeout() const;
-		/// Returns the connection timeout for HTTP connections.
-	
+		/// Returns the keep-alive timeout for persistent HTTP connections.
+
 	void setMaxKeepAliveRequests(int maxKeepAliveRequests);
 		/// Specifies the maximum number of requests allowed
 		/// during a persistent connection. 0 means unlimited
 		/// connections.
-		
+
 	int getMaxKeepAliveRequests() const;
 		/// Returns the maximum number of requests allowed
 		/// during a persistent connection, or 0 if
 		/// unlimited connections are allowed.
+
+	void setAutoDecodeHeaders(bool autoDecode);
+		/// Enables or disables automatic HTTP header value conversions, for example
+		/// RFC2047.
+		/// Default is true: convert header values when reading HTTP header.
+
+	bool getAutoDecodeHeaders() const;
+		/// Returns true if automatic conversion of HTTP header values
+		/// when reading HTTP header.
 
 protected:
 	virtual ~HTTPServerParams();
@@ -106,6 +115,7 @@ private:
 	bool           _keepAlive;
 	int            _maxKeepAliveRequests;
 	Poco::Timespan _keepAliveTimeout;
+	bool           _autoDecodeHeaders;
 };
 
 
@@ -145,6 +155,12 @@ inline int HTTPServerParams::getMaxKeepAliveRequests() const
 inline const Poco::Timespan& HTTPServerParams::getKeepAliveTimeout() const
 {
 	return _keepAliveTimeout;
+}
+
+
+inline bool HTTPServerParams::getAutoDecodeHeaders() const
+{
+	return _autoDecodeHeaders;
 }
 
 

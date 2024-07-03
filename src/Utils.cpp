@@ -3,8 +3,8 @@
 #include <date/date.h>
 
 
-time_t Utils::parseDateTime(const string& value) {
-	stringstream ss(value);
+time_t Utils::parseDateTime(const std::string& value) {
+	std::stringstream ss(value);
 	date::sys_seconds duration;
 	date::from_stream(ss, "%FT%T%Ez", duration);
 	if (ss.fail()) {

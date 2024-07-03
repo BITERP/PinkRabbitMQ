@@ -1,10 +1,11 @@
 #include "ConnectionImpl.h"
 #include <addin/biterp/Component.hpp>
+#include <addin/biterp/Logger.hpp>
 #include <mutex>
 #include <condition_variable>
 
 ConnectionImpl::ConnectionImpl(const AMQP::Address& address) : 
-    trChannel(nullptr)
+    trChannel(nullptr), stop(false)
 {
     static bool sslInited = false;
     if (!sslInited){
@@ -12,28 +13,30 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
         sslInited = true;
     } 
     eventLoop = event_base_new();
-    handler = new AMQP::LibEventHandler(eventLoop);
-    connection = new AMQP::TcpConnection(handler, address);
+    handler.reset(new TCPHandler(eventLoop));
+    connection.reset(new AMQP::TcpConnection(handler.get(), address));
     thread = std::thread(ConnectionImpl::loopThread, this);
 }
 
 ConnectionImpl::~ConnectionImpl() {
     closeChannel(trChannel);
-    while (connection->usable()) {
-        connection->close();
-    }
+    stop = true;
     event_base_loopbreak(eventLoop);
     thread.join();
-    delete connection;
-    delete handler;
+    connection.reset(nullptr);
+    handler.reset(nullptr);
 
     event_base_free(eventLoop);
 }
 
 void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
-    while(!thiz->connection->closed()) {
-        event_base_loop(loop, EVLOOP_NONBLOCK);
+    while(!thiz->stop) {
+        try{
+            event_base_loop(loop, EVLOOP_NONBLOCK);
+        }catch(std::exception& ex){
+            Biterp::Logging::error("Channel loop error: " + std::string(ex.what()));
+        }
     }
 }
 
@@ -49,15 +52,18 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     std::condition_variable cv;
     bool ready = false;
 
-    channel.reset(new AMQP::TcpChannel(connection));
+    channel.reset(new AMQP::TcpChannel(connection.get()));
     channel->onReady([&]() {
         std::unique_lock<std::mutex> lock(m);
         ready = true;
         cv.notify_all();
         });
-    channel->onError([this, &channel](const char* message) {
-        LOGW("Channel closed with reason: " + std::string(message));
+    channel->onError([&](const char* message) {
+        Biterp::Logging::error("Channel closed with reason: " + std::string(message));
         channel.reset(nullptr);
+        std::unique_lock<std::mutex> lock(m);
+        ready = true;
+        cv.notify_all();
         });
     std::unique_lock<std::mutex> lock(m);
     cv.wait(lock, [&] { return ready; });
@@ -67,22 +73,25 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
 }
 
 void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
-    if (channel && channel->usable()) {
-        channel->close();
-    }
+    //if (channel && channel->usable()) {
+    //    channel->close();
+    //}
     channel.reset(nullptr);
 }
 
 
 void ConnectionImpl::connect() {    
-    const uint16_t timeout = 5000;
+    const uint16_t timeout = 15000;
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
-    while (!connection->ready() &&  !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
-        this_thread::sleep_for(chrono::milliseconds(100));
+    while (!connection->ready() && !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     if (!connection->ready()) {
-        throw Biterp::Error("Wrong login, password or vhost");
+        if (!handler->getError().empty()){
+            throw Biterp::Error(handler->getError());
+        }
+        throw Biterp::Error("Connection timeout.");
     }
 }
 

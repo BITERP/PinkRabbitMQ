@@ -1,13 +1,13 @@
 //
 // HTTPSClientSession.h
 //
-// Library: NetSSL_Win
+// Library: NetSSL_OpenSSL
 // Package: HTTPSClient
 // Module:  HTTPSClientSession
 //
 // Definition of the HTTPSClientSession class.
 //
-// Copyright (c) 2006-2014, Applied Informatics Software Engineering GmbH.
+// Copyright (c) 2006-2009, Applied Informatics Software Engineering GmbH.
 // and Contributors.
 //
 // SPDX-License-Identifier:	BSL-1.0
@@ -35,7 +35,7 @@ class HTTPRequest;
 class HTTPResponse;
 
 
-class NetSSL_Win_API HTTPSClientSession: public HTTPClientSession
+class NetSSL_API HTTPSClientSession: public HTTPClientSession
 	/// This class implements the client-side of
 	/// a HTTPS session.
 	///
@@ -44,7 +44,7 @@ class NetSSL_Win_API HTTPSClientSession: public HTTPClientSession
 	/// specify the server's host name and port number.
 	///
 	/// Then create a HTTPRequest object, fill it accordingly,
-	/// and pass it as argument to the sendRequst() method.
+	/// and pass it as argument to the sendRequest() method.
 	///
 	/// sendRequest() will return an output stream that can
 	/// be used to send the request body, if there is any.
@@ -74,7 +74,7 @@ public:
 	{
 		HTTPS_PORT = 443
 	};
-	
+
 	HTTPSClientSession();
 		/// Creates an unconnected HTTPSClientSession.
 
@@ -122,25 +122,25 @@ public:
 	~HTTPSClientSession();
 		/// Destroys the HTTPSClientSession and closes
 		/// the underlying socket.
-	
+
 	bool secure() const;
 		/// Return true iff the session uses SSL or TLS,
 		/// or false otherwise.
-		
+
 	X509Certificate serverCertificate();
 		/// Returns the server's certificate.
 		///
 		/// The certificate is available after the first request has been sent.
-		
+
 	Session::Ptr sslSession();
-		/// Returns the SSL Session object for the current 
+		/// Returns the SSL Session object for the current
 		/// connection, if session caching has been enabled for
-		/// the HTTPSClientSession's Context. A null pointer is 
+		/// the HTTPSClientSession's Context. A null pointer is
 		/// returned otherwise.
 		///
 		/// The Session object can be obtained after the first request has
 		/// been sent.
-		
+
 	// HTTPSession
 	void abort();
 
@@ -153,7 +153,7 @@ protected:
 private:
 	HTTPSClientSession(const HTTPSClientSession&);
 	HTTPSClientSession& operator = (const HTTPSClientSession&);
-	
+
 	Context::Ptr _pContext;
 	Session::Ptr _pSession;
 };
