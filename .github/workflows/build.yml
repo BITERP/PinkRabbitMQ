@@ -27,7 +27,7 @@ env:
 
 jobs:
   buildLinux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     name: Linux ${{inputs.postfix}}
     services:
       rabbitmq:
