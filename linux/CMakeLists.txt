@@ -36,7 +36,7 @@ find_library(LIBSSL NAMES ssl PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 find_library(LIBCRYPTO NAMES crypto PATHS ${LIB_DIR} NO_DEFAULT_PATH)
 
 
-target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl)
+target_link_libraries(${PROJECT_NAME} ${LIBSSL} ${LIBCRYPTO} ${LIBAMQP} ${LIBEVENT} -lpthread -ldl -lc_nonshared)
 
 #tests
 
