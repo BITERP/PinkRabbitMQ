@@ -99,7 +99,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: prmq_${{github.run_number}}
-          allowUpdates: true
+          allowUpdates: "true"
           name: ${{ github.ref != 'refs/heads/master' && '[DEV] ' || '' }}PinkRabbitMQ v${{env.VERSION}}
           prerelease: ${{ github.ref != 'refs/heads/master' }}
           artifacts: '*.zip'
