@@ -1,6 +1,6 @@
 # Cmake script for background building 64 bit release project library PinkRabbitMQLinux
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.22 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.16 FATAL_ERROR)
 
 
 PROJECT(PinkRabbitMQ64)
@@ -12,7 +12,7 @@ set (LIB_DIR ${ROOT_DIR}/lib/linux)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -fPIC")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden -fPIC")
 
-SET(AddInNative_SRC 
+SET(AddInNative_SRC
     ${CMAKE_SOURCE_DIR}/linux/ConnectionImpl.cpp
     ${CMAKE_SOURCE_DIR}/Connection.cpp
     ${CMAKE_SOURCE_DIR}/RabbitMQClient.cpp
@@ -46,4 +46,3 @@ target_link_libraries(python_test ${PROJECT_NAME})
 enable_testing()
 
 add_test(AllTests python3 -m pytest ../../test -v)
-
