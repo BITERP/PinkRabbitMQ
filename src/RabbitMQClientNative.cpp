@@ -48,6 +48,7 @@ Biterp::Names RabbitMQClientNative::methods{{
 	{RabbitMQClientNative::eMethGetRoutingKey, {u"GetRoutingKey"}},
 	{RabbitMQClientNative::eMethGetHeaders, {u"GetHeaders"}},
 	{RabbitMQClientNative::eMethSleepNative, {u"SleepNative"}},
+	{RabbitMQClientNative::eMethBatchPublish, {u"BatchPublish"}},
 }};
 
 
@@ -74,7 +75,7 @@ bool RabbitMQClientNative::Init(VOID_PTR pConnection) {
 
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::GetInfo() {
-	// Component should put supported component technology version 
+	// Component should put supported component technology version
 	// This component supports 2.0 version
 	return 2000;
 }
@@ -221,6 +222,7 @@ long RabbitMQClientNative::GetNParams(const long lMethodNum) {
 		return 4;
 	case eMethDeleteQueue:
 	case eMethUnbindQueue:
+	case eMethBatchPublish:
 		return 3;
 	case eMethDeleteExchange:
 		return 2;
@@ -351,6 +353,9 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 	case eMethSleepNative:
 		ret = impl.sleepNative(paParams, lSizeArray);
 		break;
+	case eMethBatchPublish:
+		ret = impl.batchPublish(paParams, lSizeArray);
+		break;
 	default:
 		ret = false;
 		break;
@@ -414,4 +419,3 @@ bool RabbitMQClientNative::setMemManager(void* mem) {
 	impl.memoryManager().setHandle((IMemoryManager*)mem);
 	return mem != 0;
 }
-

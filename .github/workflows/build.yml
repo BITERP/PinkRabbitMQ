@@ -19,7 +19,7 @@ on:
         type: string
 
 env:
-  VERSION: 2.2.0.${{github.run_number}}
+  VERSION: 2.3.0.${{github.run_number}}
   LINUX_DIR: linux/build
   LINUX_LIB: libPinkRabbitMQ64.so
   PKG_DIR: package
@@ -27,7 +27,7 @@ env:
 
 jobs:
   buildLinux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     name: Linux ${{inputs.postfix}}
     services:
       rabbitmq:
@@ -86,7 +86,7 @@ jobs:
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
-    
+
       - name: Build
         working-directory: ${{env.WIN_DIR}}
         run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:NAME_POSTFIX=${{inputs.postfix}}
@@ -111,4 +111,3 @@ jobs:
             ${{ github.event.head_commit.message }}
 
             [Лог сборки](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-
