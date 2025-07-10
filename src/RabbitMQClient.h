@@ -142,7 +142,7 @@ private:
 	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum])); }
 	inline void setMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { msgProps[propNum] = ctx.stringParamUtf8(); }
 
-	void fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, const std::map<int, std::string>& props);
+	void fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, std::map<int, std::string>& props);
 	std::map<int, std::string> propsFromJson(const json& object);
 	AMQP::Table headersFromJson(const std::string& json, bool forConsume=false);
 	AMQP::Table headersFromJson(const json& object, bool forConsume=false);

@@ -20,14 +20,14 @@ on:
 
 env:
   VERSION: 2.3.0.${{github.run_number}}
-  LINUX_DIR: linux/build
+  LINUX_DIR: linux/
   LINUX_LIB: libPinkRabbitMQ64.so
   PKG_DIR: package
   WIN_DIR: windows
 
 jobs:
   buildLinux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Linux ${{inputs.postfix}}
     services:
       rabbitmq:
@@ -38,29 +38,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.5
 
-      - run: mkdir $LINUX_DIR
-
-      - name: Configure CMake.
-        working-directory: ${{env.LINUX_DIR}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
-
-      - name: Build
-        working-directory: ${{env.LINUX_DIR}}
-        run: cmake --build .
-
       - if: ${{ inputs.postfix == '' }}
-        run: python3 -m pip install pytest
-
-      - name: Test
-        if: ${{ inputs.postfix == '' }}
+        run: docker compose run --rm prmq-build /build.sh
         working-directory: ${{env.LINUX_DIR}}
-        run: ctest . -V
+
+      - run: docker compose run --rm prmq-build /build.sh ${{env.VERSION}} ${{inputs.postfix}}
+        working-directory: ${{env.LINUX_DIR}}
 
       - name: Upload Linux Library
         uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
-          path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
+          path: ${{env.LINUX_DIR}}/tmp/${{env.LINUX_LIB}}
           if-no-files-found: error
           retention-days: 1
 

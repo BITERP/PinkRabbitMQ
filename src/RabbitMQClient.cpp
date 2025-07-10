@@ -213,19 +213,19 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 }
 
 
-void RabbitMQClient::fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, const std::map<int, std::string>& props) {
+void RabbitMQClient::fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, std::map<int, std::string>& props) {
 	if (priority != 0) envelope.setPriority(priority);
 	if (persistent) { envelope.setDeliveryMode(2); }
-	if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
-	if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
-	if (!msgProps[TYPE_NAME].empty()) envelope.setTypeName(msgProps[TYPE_NAME]);
-	if (!msgProps[APP_ID].empty()) envelope.setAppID(msgProps[APP_ID]);
-	if (!msgProps[CONTENT_ENCODING].empty()) envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
-	if (!msgProps[CONTENT_TYPE].empty()) envelope.setContentType(msgProps[CONTENT_TYPE]);
-	if (!msgProps[USER_ID].empty()) envelope.setUserID(msgProps[USER_ID]);
-	if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
-	if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
-	if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
+	if (!props[CORRELATION_ID].empty()) envelope.setCorrelationID(props[CORRELATION_ID]);
+	if (!props[MESSAGE_ID].empty()) envelope.setMessageID(props[MESSAGE_ID]);
+	if (!props[TYPE_NAME].empty()) envelope.setTypeName(props[TYPE_NAME]);
+	if (!props[APP_ID].empty()) envelope.setAppID(props[APP_ID]);
+	if (!props[CONTENT_ENCODING].empty()) envelope.setContentEncoding(props[CONTENT_ENCODING]);
+	if (!props[CONTENT_TYPE].empty()) envelope.setContentType(props[CONTENT_TYPE]);
+	if (!props[USER_ID].empty()) envelope.setUserID(props[USER_ID]);
+	if (!props[CLUSTER_ID].empty()) envelope.setClusterID(props[CLUSTER_ID]);
+	if (!props[EXPIRATION].empty()) envelope.setExpiration(props[EXPIRATION]);
+	if (!props[REPLY_TO].empty()) envelope.setReplyTo(props[REPLY_TO]);
 	envelope.setHeaders(headers);
 }
 
@@ -277,7 +277,8 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 			json empty = json::object();
 			json& headers = it.contains("headers") ? it["headers"] : empty;
 			json& props = it.contains("properties") ? it["properties"] : empty;
-			fillEnvelope(envelope, persistent, headersFromJson(headers), propsFromJson(props));
+			auto propmap = propsFromJson(props);
+			fillEnvelope(envelope, persistent, headersFromJson(headers), propmap);
 			ch->publish(exchange, routingKey, envelope);
 		}
 		ch->commitTransaction()
