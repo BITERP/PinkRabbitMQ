@@ -33,11 +33,12 @@ def test_bind_queue():
 def test_unbind_queue():
     com = connect()
     bind_queue(com, "ubind_queue")
-    res = com.call_proc("UnbindQueue", "ubind_queue", "ubind_queue", "#")
+    com.call_proc("UnbindQueue", "ubind_queue", "ubind_queue", "#")
 
 def test_publish(com):
     res = com.call_proc("BasicPublish", QUEUE, QUEUE, "Test Message", 0, False, None)
     assert res
+
 
 def test_consume(com):
     bind_queue(com, QUEUE)
@@ -58,7 +59,7 @@ def test_nack(com):
     res = com.call_proc("BasicReject", tag)
     assert res
 
-def test_cancel(com):    
+def test_cancel(com):
     ctag = consume(com, QUEUE)
     assert len(ctag) > 0
     res = com.call_proc("BasicCancel", ctag)
@@ -84,6 +85,36 @@ def test_consume_nomsg(com):
         if not ret:
             break
     assert res
-    assert msg[0] == None
+    assert msg[0] is None
     assert mtag[0] == 0
 
+def test_batch_publish(com):
+    Q = "batch"
+    msgs = [
+        {"routingKey":"#", "body":"message1"},
+        {"routingKey":"#", "body":"message2", "properties":{"AppId":"MYAPP","MessageId":"message2"}, "headers":{"some-header":13}},
+        {"routingKey":"#", "body":"message3", "properties":{"AppId":"MYAPP","MessageId":"message3"}, "headers":{"some-header":13}},
+    ]
+    bind_queue(com, Q)
+    res = com.call_proc("BatchPublish", Q, False, json.dumps(msgs))
+    assert res
+    ctag = consume(com, Q)
+    for i in range(3):
+        msg = [""]
+        mtag = [-1]
+        res, ret = com.call_func("BasicConsumeMessage", ctag, msg, mtag, 10000)
+        assert res
+        assert ret
+        assert msg[0] == "message" + str(i+1)
+        res, val = com.get_prop("MessageId")
+        assert res
+        assert i==0 or val == msg[0]
+        res, val = com.get_prop("AppId")
+        assert res
+        assert i==0 or val == "MYAPP"
+        if i > 0:
+            res, ret = com.call_func("GetHeaders")
+            assert res
+            hdr = json.loads(ret)
+            assert hdr['some-header'] == 13
+        com.call_proc("BasicAck", mtag[0])

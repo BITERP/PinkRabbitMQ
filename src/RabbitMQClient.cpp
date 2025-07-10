@@ -1,7 +1,8 @@
 #include "RabbitMQClient.h"
 #include "Utils.h"
+#include "amqpcpp/envelope.h"
+#include "amqpcpp/table.h"
 #include <mutex>
-#include <nlohmann/json.hpp>
 #if defined(__linux__)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -212,6 +213,23 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 }
 
 
+void RabbitMQClient::fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, std::map<int, std::string>& props) {
+	if (priority != 0) envelope.setPriority(priority);
+	if (persistent) { envelope.setDeliveryMode(2); }
+	if (!props[CORRELATION_ID].empty()) envelope.setCorrelationID(props[CORRELATION_ID]);
+	if (!props[MESSAGE_ID].empty()) envelope.setMessageID(props[MESSAGE_ID]);
+	if (!props[TYPE_NAME].empty()) envelope.setTypeName(props[TYPE_NAME]);
+	if (!props[APP_ID].empty()) envelope.setAppID(props[APP_ID]);
+	if (!props[CONTENT_ENCODING].empty()) envelope.setContentEncoding(props[CONTENT_ENCODING]);
+	if (!props[CONTENT_TYPE].empty()) envelope.setContentType(props[CONTENT_TYPE]);
+	if (!props[USER_ID].empty()) envelope.setUserID(props[USER_ID]);
+	if (!props[CLUSTER_ID].empty()) envelope.setClusterID(props[CLUSTER_ID]);
+	if (!props[EXPIRATION].empty()) envelope.setExpiration(props[EXPIRATION]);
+	if (!props[REPLY_TO].empty()) envelope.setReplyTo(props[REPLY_TO]);
+	envelope.setHeaders(headers);
+}
+
+
 
 void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	checkConnection();
@@ -223,26 +241,46 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	bool persistent = ctx.boolParam();
 	std::string propsJson = ctx.stringParamUtf8();
 
-	AMQP::Table args = headersFromJson(propsJson);
-
 	AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
-	if (!msgProps[CORRELATION_ID].empty()) envelope.setCorrelationID(msgProps[CORRELATION_ID]);
-	if (!msgProps[MESSAGE_ID].empty()) envelope.setMessageID(msgProps[MESSAGE_ID]);
-	if (!msgProps[TYPE_NAME].empty()) envelope.setTypeName(msgProps[TYPE_NAME]);
-	if (!msgProps[APP_ID].empty()) envelope.setAppID(msgProps[APP_ID]);
-	if (!msgProps[CONTENT_ENCODING].empty()) envelope.setContentEncoding(msgProps[CONTENT_ENCODING]);
-	if (!msgProps[CONTENT_TYPE].empty()) envelope.setContentType(msgProps[CONTENT_TYPE]);
-	if (!msgProps[USER_ID].empty()) envelope.setUserID(msgProps[USER_ID]);
-	if (!msgProps[CLUSTER_ID].empty()) envelope.setClusterID(msgProps[CLUSTER_ID]);
-	if (!msgProps[EXPIRATION].empty()) envelope.setExpiration(msgProps[EXPIRATION]);
-	if (!msgProps[REPLY_TO].empty()) envelope.setReplyTo(msgProps[REPLY_TO]);
-	if (priority != 0) envelope.setPriority(priority);
-	if (persistent) { envelope.setDeliveryMode(2); }
-	envelope.setHeaders(headersFromJson(propsJson));
+	fillEnvelope(envelope, persistent, headersFromJson(propsJson), msgProps);
+
 	{
 		AMQP::Channel* ch = connection->channel();
 		ch->startTransaction();
 		ch->publish(exchange, routingKey, envelope);
+		ch->commitTransaction()
+			.onSuccess([this]()
+				{
+					connection->loopbreak();
+				})
+			.onError([this](const char* message)
+				{
+					connection->loopbreak(message);
+				});
+	}
+	connection->loop();
+}
+
+void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
+	checkConnection();
+
+	std::string exchange = ctx.stringParamUtf8();
+	bool persistent = ctx.boolParam();
+	auto messages = json::parse(ctx.stringParamUtf8());
+	{
+		AMQP::Channel* ch = connection->channel();
+		ch->startTransaction();
+		for (auto& it : messages) {
+			std::string routingKey = it["routingKey"];
+			std::string message = it["body"];
+			AMQP::Envelope envelope(message.c_str(), strlen(message.c_str()));
+			json empty = json::object();
+			json& headers = it.contains("headers") ? it["headers"] : empty;
+			json& props = it.contains("properties") ? it["properties"] : empty;
+			auto propmap = propsFromJson(props);
+			fillEnvelope(envelope, persistent, headersFromJson(headers), propmap);
+			ch->publish(exchange, routingKey, envelope);
+		}
 		ch->commitTransaction()
 			.onSuccess([this]()
 				{
@@ -360,7 +398,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		messageQueue.pop();
 	}
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
-	ctx.setIntResult(lastMessage.messageTag, outMessageTag); 
+	ctx.setIntResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
 }
 
@@ -409,14 +447,29 @@ void RabbitMQClient::sleepNativeImpl(Biterp::CallContext& ctx) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(amount));
 }
 
+std::map<int, std::string> RabbitMQClient::propsFromJson(const json& object){
+	std::map<int, std::string> ret;
+	int prop = CORRELATION_ID;
+	for(const std::string& nm: PROP_NAMES){
+		ret[prop++] = object.contains(nm) ? object[nm].get<std::string>() : "";
+	}
+	return ret;
+}
+
+
 AMQP::Table RabbitMQClient::headersFromJson(const std::string& propsJson, bool forConsume)
 {
-	AMQP::Table headers;
-	if (!propsJson.length()) {
-		return headers;
+	if (propsJson.empty()) {
+		return AMQP::Table();
 	}
 	auto object = json::parse(propsJson);
+	return headersFromJson(object, forConsume);
+}
 
+AMQP::Table RabbitMQClient::headersFromJson(const json& object, bool forConsume)
+{
+
+	AMQP::Table headers;
 	for (auto& it : object.items()) {
 		auto& value = it.value();
 		std::string name = it.key();
@@ -428,7 +481,7 @@ AMQP::Table RabbitMQClient::headersFromJson(const std::string& propsJson, bool f
 		{
 			headers.set(name, value.get<int64_t>());
 		}
-		else if (forConsume && name == "x-stream-offset") 
+		else if (forConsume && name == "x-stream-offset")
 		{
 			headers.set(name, AMQP::Timestamp(Utils::parseDateTime(value)));
 		}

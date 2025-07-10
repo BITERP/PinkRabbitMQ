@@ -7,7 +7,9 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 
 class RabbitMQClient : public Biterp::Component {
 public:
@@ -22,11 +24,23 @@ public:
 	const int CLUSTER_ID = 8;
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
+	const std::vector<std::string> PROP_NAMES = {
+		"CorrelationId",
+		"TypeName",
+		"MessageId",
+		"AppId",
+		"ContentEncoding",
+		"ContentType",
+		"UserId",
+		"ClusterId",
+		"Expiration",
+		"ReplyTo",
+	};
 public:
 	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
 
-	virtual ~RabbitMQClient() { 
-		clear(); 
+	virtual ~RabbitMQClient() {
+		clear();
 		connection.reset(nullptr);
 	};
 
@@ -35,6 +49,9 @@ public:
 	}
 	inline bool basicPublish(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::basicPublishImpl, paParams, lSizeArray);
+	}
+	inline bool batchPublish(tVariant* paParams, const long lSizeArray) {
+		return wrapCall(this, &RabbitMQClient::batchPublishImpl, paParams, lSizeArray);
 	}
 	inline bool basicCancel(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::basicCancelImpl, paParams, lSizeArray);
@@ -107,6 +124,7 @@ private:
 	void unbindQueueImpl(Biterp::CallContext& ctx);
 
 	void basicPublishImpl(Biterp::CallContext& ctx);
+	void batchPublishImpl(Biterp::CallContext& ctx);
 
 	void basicConsumeImpl(Biterp::CallContext& ctx);
 	void basicConsumeMessageImpl(Biterp::CallContext& ctx);
@@ -115,7 +133,7 @@ private:
 	void basicRejectImpl(Biterp::CallContext& ctx);
 
 	void sleepNativeImpl(Biterp::CallContext& ctx);
-	
+
 	inline void getRoutingKeyImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.routingKey)); }
 	inline void getHeadersImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessageHeaders())); }
 	inline void setPriorityImpl(Biterp::CallContext& ctx) { priority = ctx.intParam(); }
@@ -124,7 +142,10 @@ private:
 	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum])); }
 	inline void setMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { msgProps[propNum] = ctx.stringParamUtf8(); }
 
+	void fillEnvelope(AMQP::Envelope &envelope, bool persistent, const AMQP::Table& headers, std::map<int, std::string>& props);
+	std::map<int, std::string> propsFromJson(const json& object);
 	AMQP::Table headersFromJson(const std::string& json, bool forConsume=false);
+	AMQP::Table headersFromJson(const json& object, bool forConsume=false);
 	void checkConnection();
 	std::string lastMessageHeaders();
 
@@ -174,4 +195,3 @@ private:
 	}
 
 };
-

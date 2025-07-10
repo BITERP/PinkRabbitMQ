@@ -19,8 +19,8 @@ on:
         type: string
 
 env:
-  VERSION: 2.2.0.${{github.run_number}}
-  LINUX_DIR: linux/build
+  VERSION: 2.3.0.${{github.run_number}}
+  LINUX_DIR: linux/
   LINUX_LIB: libPinkRabbitMQ64.so
   PKG_DIR: package
   WIN_DIR: windows
@@ -29,38 +29,22 @@ jobs:
   buildLinux:
     runs-on: ubuntu-22.04
     name: Linux ${{inputs.postfix}}
-    services:
-      rabbitmq:
-        image: rabbitmq
-        ports:
-          - 5672:5672
 
     steps:
       - uses: actions/checkout@v4.1.5
 
-      - run: mkdir $LINUX_DIR
-
-      - name: Configure CMake.
-        working-directory: ${{env.LINUX_DIR}}
-        run: cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=${{env.VERSION}} -DNAME_POSTFIX=${{inputs.postfix}} ..
-
-      - name: Build
-        working-directory: ${{env.LINUX_DIR}}
-        run: cmake --build .
-
       - if: ${{ inputs.postfix == '' }}
-        run: python3 -m pip install pytest
-
-      - name: Test
-        if: ${{ inputs.postfix == '' }}
+        run: docker compose run --rm prmq-build Debug
         working-directory: ${{env.LINUX_DIR}}
-        run: ctest . -V
+
+      - run: docker compose run --rm prmq-build Release ${{env.VERSION}} ${{inputs.postfix}}
+        working-directory: ${{env.LINUX_DIR}}
 
       - name: Upload Linux Library
         uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
-          path: ${{env.LINUX_DIR}}/${{env.LINUX_LIB}}
+          path: ${{env.LINUX_DIR}}/tmp/${{env.LINUX_LIB}}
           if-no-files-found: error
           retention-days: 1
 
@@ -86,7 +70,7 @@ jobs:
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
-    
+
       - name: Build
         working-directory: ${{env.WIN_DIR}}
         run: msbuild msbuild.xml -t:makeRelease -p:VERSION=${{env.VERSION}} -p:NAME_POSTFIX=${{inputs.postfix}}
@@ -111,4 +95,3 @@ jobs:
             ${{ github.event.head_commit.message }}
 
             [Лог сборки](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-
