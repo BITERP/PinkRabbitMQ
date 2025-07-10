@@ -8,10 +8,8 @@ mkdir tmp
 cd tmp
 echo build $1 $2 $3
 if [ "$1" == "Debug" ]; then
-    echo Debug
     cmake -DCMAKE_BUILD_TYPE=Debug ..
 else
-    echo Release
     cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=$2 -DNAME_POSTFIX=$3 ..
 fi
 cmake --build .
