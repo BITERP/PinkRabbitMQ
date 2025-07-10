@@ -29,20 +29,15 @@ jobs:
   buildLinux:
     runs-on: ubuntu-22.04
     name: Linux ${{inputs.postfix}}
-    services:
-      rabbitmq:
-        image: rabbitmq
-        ports:
-          - 5672:5672
 
     steps:
       - uses: actions/checkout@v4.1.5
 
       - if: ${{ inputs.postfix == '' }}
-        run: docker compose run --rm prmq-build /build.sh
+        run: docker compose run --rm prmq-build Debug
         working-directory: ${{env.LINUX_DIR}}
 
-      - run: docker compose run --rm prmq-build /build.sh ${{env.VERSION}} ${{inputs.postfix}}
+      - run: docker compose run --rm prmq-build Release ${{env.VERSION}} ${{inputs.postfix}}
         working-directory: ${{env.LINUX_DIR}}
 
       - name: Upload Linux Library

@@ -1,15 +1,21 @@
+#!/bin/bash
+
 set -e
 
 cd /PRMQ/linux
 rm -r ./tmp | true
 mkdir tmp
 cd tmp
-if [[ "$1" == "" ]]; then
-    echo build Debug
+echo build $1 $2 $3
+if [ "$1" == "Debug" ]; then
+    echo Debug
     cmake -DCMAKE_BUILD_TYPE=Debug ..
 else
-    echo build Release $2 $1
-    cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=$1 -DNAME_POSTFIX=$2 ..
+    echo Release
+    cmake -DCMAKE_BUILD_TYPE=Release -DVERSION=$2 -DNAME_POSTFIX=$3 ..
 fi
 cmake --build .
-RMQ_HOST=rabbitmq ctest -V
+
+if [ "$1" == "Debug" ]; then
+    RMQ_HOST=rabbitmq ctest -V
+fi
