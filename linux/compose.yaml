@@ -9,4 +9,5 @@ services:
     build: .
     volumes:
       - ../:/PRMQ
-    
+    extra_hosts:
+      - "testhost:172.16.3.224"
