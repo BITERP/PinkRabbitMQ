@@ -16,13 +16,26 @@ def test_connect_ssl():
 def test_connect_ssl2():
     connect(ssl=True)
 
-def test_connect_fail():
+def failed_connect(err, **kwargs):
+    if not isinstance(err, (tuple, list)):
+        err = [err]
     try:
-        connect(login="admin")
+        connect(**kwargs)
         raise Exception("Must not be here")
     except RuntimeError as e:
-        pass
-        #assert "Login was refused" in str(e)
+        found = [x in str(e) for x in err]
+        assert True in found, f"Errors {err} not found in {e}"
+
+def test_connect_fail():
+    failed_connect("Login was refused", login="admin")
+    failed_connect("Wrong hostname", host="unexistent.internal")
+    failed_connect("Wrong hostname", host="unexistent.internal", ssl=True)
+    failed_connect(["connection timed out", "Wrong hostname"], host="testhost")
+    failed_connect(["connection timed out", "Wrong hostname"], host="testhost", ssl=True)
+    failed_connect("connection timed out", host="172.16.3.254")
+    failed_connect("connection timed out", host="172.16.3.254", ssl=True)
+    failed_connect("Connection refused", host="localhost")
+    failed_connect("Connection refused", host="localhost", ssl=True)
 
 
 def test_defparams():
@@ -61,5 +74,3 @@ def test_priority():
     res, ret = com.call_func("GetPriority")
     assert res
     assert ret == 13
-
-

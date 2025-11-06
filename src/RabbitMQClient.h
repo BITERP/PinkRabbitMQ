@@ -25,8 +25,8 @@ public:
 public:
 	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
 
-	virtual ~RabbitMQClient() { 
-		clear(); 
+	virtual ~RabbitMQClient() {
+		clear();
 		connection.reset(nullptr);
 	};
 
@@ -115,7 +115,7 @@ private:
 	void basicRejectImpl(Biterp::CallContext& ctx);
 
 	void sleepNativeImpl(Biterp::CallContext& ctx);
-	
+
 	inline void getRoutingKeyImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.routingKey)); }
 	inline void getHeadersImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessageHeaders())); }
 	inline void setPriorityImpl(Biterp::CallContext& ctx) { priority = ctx.intParam(); }
@@ -158,7 +158,7 @@ private:
 		tVariant* pvarRetValue = nullptr) {
 		bool result = false;
 		try {
-			skipAddError = false;
+			skipAddError = true;
 			lastError.clear();
 			Biterp::CallContext ctx(memManager, paParams, lSizeArray, pvarRetValue);
 			(obj->*proc)(param, ctx);
@@ -174,4 +174,3 @@ private:
 	}
 
 };
-
