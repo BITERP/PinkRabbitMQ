@@ -4,14 +4,14 @@
 #include <mutex>
 #include <condition_variable>
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address) : 
+ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
     trChannel(nullptr), stop(false)
 {
     static bool sslInited = false;
     if (!sslInited){
         SSL_library_init();
         sslInited = true;
-    } 
+    }
     eventLoop = event_base_new();
     handler.reset(new TCPHandler(eventLoop));
     connection.reset(new AMQP::TcpConnection(handler.get(), address));
@@ -50,7 +50,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     }
     std::mutex m;
     std::condition_variable cv;
-    bool ready = false;
+    volatile bool ready = false;
 
     channel.reset(new AMQP::TcpChannel(connection.get()));
     channel->onReady([&]() {
@@ -59,8 +59,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
         cv.notify_all();
         });
     channel->onError([&](const char* message) {
-        Biterp::Logging::error("Channel closed with reason: " + std::string(message));
-        channel.reset(nullptr);
+        closeChannel(channel, message);
         std::unique_lock<std::mutex> lock(m);
         ready = true;
         cv.notify_all();
@@ -70,17 +69,18 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     if (!channel) {
         throw Biterp::Error("Channel not opened");
     }
+    channel->onError([&](const char* message){closeChannel(channel, message);});
 }
 
-void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
-    //if (channel && channel->usable()) {
-    //    channel->close();
-    //}
+void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel, std::string reason) {
+    if (!reason.empty()){
+        Biterp::Logging::error("Channel closed with reason: " + reason);
+    }
     channel.reset(nullptr);
 }
 
 
-void ConnectionImpl::connect() {    
+void ConnectionImpl::connect() {
     const uint16_t timeout = 15000;
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
