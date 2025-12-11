@@ -20,6 +20,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 
 ConnectionImpl::~ConnectionImpl() {
     closeChannel(trChannel);
+    closeChannel(rcChannel);
     stop = true;
     event_base_loopbreak(eventLoop);
     thread.join();
@@ -45,8 +46,8 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     if (channel) {
         closeChannel(channel);
     }
-    if (!connection->usable()) {
-        throw Biterp::Error("Connection lost");
+    if (!connection->usable() || handler->isLost()) {
+        throw Biterp::Error("Connection lost " + handler->getError());
     }
     std::mutex m;
     std::condition_variable cv;
@@ -105,5 +106,8 @@ AMQP::Channel* ConnectionImpl::channel() {
 
 
 AMQP::Channel* ConnectionImpl::readChannel() {
-    return channel();
+    if (!rcChannel || !rcChannel->usable()) {
+        openChannel(rcChannel);
+    }
+    return rcChannel.get();
 }

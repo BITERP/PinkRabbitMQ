@@ -25,6 +25,7 @@ private:
     std::unique_ptr<AMQP::TcpConnection> connection;
 
     std::unique_ptr<AMQP::TcpChannel> trChannel;
+    std::unique_ptr<AMQP::TcpChannel> rcChannel;
     std::thread thread;
     volatile bool stop;
 };

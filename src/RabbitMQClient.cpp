@@ -272,7 +272,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 		AMQP::Channel* channel = connection->readChannel();
 		channel->setQos(selectSize);
 		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
-			.onSuccess([this, &result](const std::string& tag)
+			.onSuccess([this, &result, channel](const std::string& tag)
 				{
 					result = tag;
 					LOGI("Consumer created " + tag);
@@ -280,6 +280,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 						std::lock_guard<std::mutex> lock(_mutex);
 						consumers.push_back(tag);
 						consumerError.clear();
+						consumeChannel = channel;
 					}
 					connection->loopbreak();
 				})
@@ -330,8 +331,12 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 
 
 void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
+	checkConnection();
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
+		if (connection->readChannel() != consumeChannel){
+			consumers.clear();
+		}
 		if (consumers.empty()) {
 			throw Biterp::Error("No active consumers");
 		}
@@ -360,7 +365,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		messageQueue.pop();
 	}
 	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
-	ctx.setIntResult(lastMessage.messageTag, outMessageTag); 
+	ctx.setIntResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
 }
 
@@ -428,7 +433,7 @@ AMQP::Table RabbitMQClient::headersFromJson(const std::string& propsJson, bool f
 		{
 			headers.set(name, value.get<int64_t>());
 		}
-		else if (forConsume && name == "x-stream-offset") 
+		else if (forConsume && name == "x-stream-offset")
 		{
 			headers.set(name, AMQP::Timestamp(Utils::parseDateTime(value)));
 		}
