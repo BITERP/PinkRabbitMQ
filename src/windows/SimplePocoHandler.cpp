@@ -80,9 +80,9 @@ struct SimplePocoHandlerImpl
 		pollTimeout(0, 1)
 	{
 		initializeSSL();
-		if (ssl) 
+		if (ssl)
 		{
-			// Replace with AcceptCertificateHandler to skip cert verification 
+			// Replace with AcceptCertificateHandler to skip cert verification
 			Poco::SharedPtr<InvalidCertificateHandler> pInvHandler = new AcceptCertificateHandler(false);
 			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
 			SSLManager::instance().initializeClient(nullptr, pInvHandler, pContext);
@@ -109,7 +109,7 @@ struct SimplePocoHandlerImpl
 	Poco::Timespan pollTimeout;
 };
 SimplePocoHandler::SimplePocoHandler(const std::string& host, uint16_t port, bool ssl) :
-	m_impl(new SimplePocoHandlerImpl(ssl, host)), stop(false)
+	m_impl(new SimplePocoHandlerImpl(ssl, host)), stop(false), closed(true)
 {
 	const Poco::Net::SocketAddress address(host, port);
 	m_impl->socket->connect(address);
@@ -199,6 +199,7 @@ void SimplePocoHandler::loopIteration() {
 void SimplePocoHandler::SimplePocoHandler::close()
 {
 	m_impl->socket->close();
+	closed = true;
 }
 
 void SimplePocoHandler::onData(
@@ -215,6 +216,7 @@ void SimplePocoHandler::onData(
 
 void SimplePocoHandler::onReady(AMQP::Connection* connection)
 {
+	closed = false;
 }
 
 void SimplePocoHandler::onError(
@@ -226,6 +228,7 @@ void SimplePocoHandler::onError(
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)
 {
+	closed = true;
 }
 
 uint16_t SimplePocoHandler::onNegotiate(AMQP::Connection* connection, uint16_t interval) {
@@ -241,4 +244,3 @@ void SimplePocoHandler::sendDataFromBuffer()
 		m_impl->outBuffer.drain();
 	}
 }
-

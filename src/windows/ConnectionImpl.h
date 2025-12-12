@@ -14,7 +14,7 @@ public:
 
 private:
 	void openChannel(std::unique_ptr<AMQP::Channel>& channel);
-	void closeChannel(std::unique_ptr<AMQP::Channel>& channel);
+	void closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason="");
 
 private:
 	SimplePocoHandler handler;
@@ -23,4 +23,3 @@ private:
 	std::unique_ptr<AMQP::Channel> rcChannel;
 	std::thread thread;
 };
-
