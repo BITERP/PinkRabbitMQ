@@ -49,7 +49,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 
 void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason) {
 	if (!reason.empty()){
-		Biterp::Logging::error("Channel closed with reason: " + std::string(message));
+		Biterp::Logging::error("Channel closed with reason: " + reason);
 	}
 	if (channel && channel->usable()) {
 		channel->close();
