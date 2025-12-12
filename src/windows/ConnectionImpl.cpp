@@ -44,7 +44,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (!channel) {
 		throw Biterp::Error("Channel not opened");
 	}
-	channel->onError([&](const char* message){closeChannel(channel, std::sring(message));});
+	channel->onError([&](const char* message){closeChannel(channel, std::string(message));});
 }
 
 void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason) {
