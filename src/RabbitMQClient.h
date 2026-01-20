@@ -23,10 +23,10 @@ public:
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
 public:
-	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0) {};
+	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0), consumeChannel(nullptr) {};
 
-	virtual ~RabbitMQClient() { 
-		clear(); 
+	virtual ~RabbitMQClient() {
+		clear();
 		connection.reset(nullptr);
 	};
 
@@ -115,7 +115,7 @@ private:
 	void basicRejectImpl(Biterp::CallContext& ctx);
 
 	void sleepNativeImpl(Biterp::CallContext& ctx);
-	
+
 	inline void getRoutingKeyImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.routingKey)); }
 	inline void getHeadersImpl(Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessageHeaders())); }
 	inline void setPriorityImpl(Biterp::CallContext& ctx) { priority = ctx.intParam(); }
@@ -150,6 +150,7 @@ private:
 	std::queue<MessageObject> messageQueue;
 	std::mutex _mutex;
 	std::condition_variable cvDataArrived;
+	AMQP::Channel* consumeChannel;
 
 private:
 
@@ -174,4 +175,3 @@ private:
 	}
 
 };
-

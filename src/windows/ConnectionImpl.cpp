@@ -1,6 +1,6 @@
 #include "ConnectionImpl.h"
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address) : 
+ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
 	handler(address.hostname(), address.port(), address.secure()),
 	trChannel(nullptr)
 {
@@ -21,8 +21,8 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (channel) {
 		closeChannel(channel);
 	}
-	if (!connection->usable()) {
-		throw Biterp::Error("Connection lost");
+	if (!connection->usable() || handler.isClosed()) {
+		throw Biterp::Error("Connection lost " + handler.getError());
 	}
 	std::mutex m;
 	std::condition_variable cv;
@@ -34,8 +34,7 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 		cv.notify_all();
 		});
 	channel->onError([&](const char* message) {
-		Biterp::Logging::error("Channel closed with reason: " + std::string(message));
-		channel.reset(nullptr);
+		closeChannel(channel, std::string(message));
 		std::unique_lock<std::mutex> lock(m);
 		ready = true;
 		cv.notify_all();
@@ -45,9 +44,13 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (!channel) {
 		throw Biterp::Error("Channel not opened");
 	}
+	channel->onError([&](const char* message){closeChannel(channel, std::string(message));});
 }
 
-void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel) {
+void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason) {
+	if (!reason.empty()){
+		Biterp::Logging::error("Channel closed with reason: " + reason);
+	}
 	if (channel && channel->usable()) {
 		channel->close();
 	}

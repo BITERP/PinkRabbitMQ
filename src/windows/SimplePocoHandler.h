@@ -22,6 +22,7 @@ public:
 	static void loopThread(SimplePocoHandler* clazz);
 	void loopIteration();
     inline const std::string& getError(){ return error;}
+    inline bool isClosed(){ return closed;}
 
 private:
 
@@ -45,6 +46,7 @@ private:
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
     std::string error;
     volatile bool stop;
+    bool closed;
 
 };
 

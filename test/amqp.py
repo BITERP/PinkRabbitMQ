@@ -86,4 +86,3 @@ def receive(com, queue, message):
         if msg[0] == message:
             return (msg[0], mtag[0])
         com.call_proc("BasicAck", mtag[0])
-
