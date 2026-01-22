@@ -125,14 +125,20 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
+	string result;
 	if (maxPriority != 0) {
 		args.set("x-max-priority", maxPriority);
 	}
 	{
 		connection->channel()
 			->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
-			.onSuccess([this]()
+			.onSuccess([this, &result](const std::string& name, uint64_t messageCount, uint64_t consumerCount)
 				{
+					json queueInfo = json::object();
+					queueInfo["name"] = name;
+					queueInfo["messageCount"] = messageCount;
+					queueInfo["consumerCount"] = consumerCount;
+					result = queueInfo.dump();
 					connection->loopbreak();
 				})
 			.onError([this](const char* message)
@@ -141,7 +147,7 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 				});
 	}
 	connection->loop();
-	ctx.setStringResult(u16Converter.from_bytes(name));
+	ctx.setStringResult(u16Converter.from_bytes(result));
 }
 
 
