@@ -42,21 +42,18 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	std::mutex m;
 	std::condition_variable cv;
 	bool ready = false;
-	{
-		std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
-		channel.reset(new AMQP::Channel(connection.get()));
-		channel->onReady([&]() {
-			std::unique_lock<std::mutex> lock(m);
-			ready = true;
-			cv.notify_all();
-			});
-		channel->onError([&](const char* message) {
-			closeChannel(channel, std::string(message));
-			std::unique_lock<std::mutex> lock(m);
-			ready = true;
-			cv.notify_all();
-			});
-	}
+	channel.reset(new AMQP::Channel(connection.get()));
+	channel->onReady([&]() {
+		std::unique_lock<std::mutex> lock(m);
+		ready = true;
+		cv.notify_all();
+		});
+	channel->onError([&](const char* message) {
+		closeChannel(channel, std::string(message));
+		std::unique_lock<std::mutex> lock(m);
+		ready = true;
+		cv.notify_all();
+		});
 	std::unique_lock<std::mutex> lock(m);
 	cv.wait(lock, [&] { return ready; });
 	if (!channel) {

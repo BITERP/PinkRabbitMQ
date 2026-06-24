@@ -48,11 +48,7 @@ void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
     while(!thiz->stop) {
         try{
-            int result = 0;
-            {
-                std::lock_guard<std::recursive_mutex> lock(thiz->owner.ioMutex());
-                result = event_base_loop(loop, EVLOOP_NONBLOCK);
-            }
+            const int result = event_base_loop(loop, EVLOOP_NONBLOCK);
             if (result == 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
@@ -75,21 +71,18 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
     std::condition_variable cv;
     volatile bool ready = false;
 
-    {
-        std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
-        channel.reset(new AMQP::TcpChannel(connection.get()));
-        channel->onReady([&]() {
-            std::unique_lock<std::mutex> lock(m);
-            ready = true;
-            cv.notify_all();
-            });
-        channel->onError([&](const char* message) {
-            closeChannel(channel, message);
-            std::unique_lock<std::mutex> lock(m);
-            ready = true;
-            cv.notify_all();
-            });
-    }
+    channel.reset(new AMQP::TcpChannel(connection.get()));
+    channel->onReady([&]() {
+        std::unique_lock<std::mutex> lock(m);
+        ready = true;
+        cv.notify_all();
+        });
+    channel->onError([&](const char* message) {
+        closeChannel(channel, message);
+        std::unique_lock<std::mutex> lock(m);
+        ready = true;
+        cv.notify_all();
+        });
     std::unique_lock<std::mutex> lock(m);
     cv.wait(lock, [&] { return ready; });
     if (!channel) {
