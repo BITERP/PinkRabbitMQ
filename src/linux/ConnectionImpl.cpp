@@ -48,13 +48,7 @@ void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
     while(!thiz->stop) {
         try{
-            int result = 0;
-            {
-                std::unique_lock<std::recursive_mutex> lock(thiz->owner.ioMutex(), std::try_to_lock);
-                if (lock.owns_lock()) {
-                    result = event_base_loop(loop, EVLOOP_NONBLOCK);
-                }
-            }
+            const int result = event_base_loop(loop, EVLOOP_NONBLOCK);
             if (result == 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }

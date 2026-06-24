@@ -5,7 +5,6 @@
 * Безопасное закрытие соединения и каналов при `clear()`/деструкторе ([#95](https://github.com/BITERP/PinkRabbitMQ/issues/95), [#79](https://github.com/BITERP/PinkRabbitMQ/issues/79), [#94](https://github.com/BITERP/PinkRabbitMQ/issues/94)).
 * Linux: `closeChannel` теперь вызывает `channel->close()` как на Windows.
 * Валидация типа параметра порта в `Connect` — ошибка вместо падения ([#24](https://github.com/BITERP/PinkRabbitMQ/issues/24)).
-* Linux: синхронизация `event_base_loop` с main thread через `ioMutex` (try-lock) ([#51](https://github.com/BITERP/PinkRabbitMQ/issues/51)).
 * `clear()` отменяет активных consumers на брокере перед закрытием ([#94](https://github.com/BITERP/PinkRabbitMQ/issues/94)).
 
 ## Фаза 1 — ошибки без падений
