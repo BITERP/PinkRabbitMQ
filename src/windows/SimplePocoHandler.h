@@ -1,6 +1,7 @@
 #ifndef SRC_SIMPLEPOCOHANDLER_H_
 #define SRC_SIMPLEPOCOHANDLER_H_
 
+#include <chrono>
 #include <memory>
 #include <amqpcpp.h>
 #include "RabbitMQClient.h"
@@ -43,10 +44,16 @@ private:
 
     virtual uint16_t onNegotiate(AMQP::Connection* connection, uint16_t interval) override;
 
+    virtual void onHeartbeat(AMQP::Connection* connection) override;
+
+    void sendHeartbeatsIfNeeded();
+
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
     std::string error;
     volatile bool stop;
     bool closed;
+    uint16_t heartbeatInterval = 0;
+    std::chrono::steady_clock::time_point lastHeartbeatSent;
 
 };
 

@@ -110,6 +110,18 @@ namespace Biterp {
             throw TypeError(index, "bool", param->vt);
         }
 
+        bool boolParamOptional(bool defaultValue = false) {
+            if (index >= paramsCount) {
+                return defaultValue;
+            }
+            tVariant *param = currentParam();
+            if (param->vt == VTYPE_EMPTY || param->vt == VTYPE_NULL) {
+                index++;
+                return defaultValue;
+            }
+            return boolParam();
+        }
+
     public:
         inline void setEmptyResult(tVariant *param = nullptr) {
             checkResultParam(param);

@@ -49,6 +49,8 @@ public:
 		eMethGetRoutingKey,
 		eMethGetHeaders,
 		eMethSleepNative,
+		eMethBatchPublish,
+		eMethGetQueueMessageCount,
 		eMethLast      // Always last
 	};
 

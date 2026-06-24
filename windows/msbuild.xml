@@ -16,8 +16,7 @@
 	<ZipDirectory SourceDirectory="..\package" DestinationFile="..\PinkRabbitMQ_v$(VERSION).zip"/>
   </Target>
   <Target Name="runTests">
-    <MSBuild Projects="WindowsAddin.sln" Targets="Build" Properties="Configuration=Release;Platform=x64;VersionDef=test;" 
-		/>
-    <Exec Command="cd x64\Release &amp;&amp; python -m pytest ../../../test -v"/>
+    <MSBuild Projects="WindowsAddin.sln" Targets="Build" Properties="Configuration=Release;Platform=x64;VersionDef=ci;" />
+    <Exec Command="python -m pytest ..\..\..\test -v" WorkingDirectory="x64\Release" />
   </Target>
 </Project>

@@ -1,8 +1,9 @@
 #include "ConnectionImpl.h"
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
+ConnectionImpl::ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec) :
 	handler(address.hostname(), address.port(), address.secure()),
-	trChannel(nullptr)
+	trChannel(nullptr),
+	connectTimeoutSec(connectTimeoutSec > 0 ? connectTimeoutSec : 5)
 {
 	connection.reset(new AMQP::Connection(&handler, address.login(), address.vhost()));
 	handler.setConnection(connection.get());
@@ -59,7 +60,7 @@ void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::
 
 
 void ConnectionImpl::connect() {
-	const uint16_t timeout = 15000;
+	const uint16_t timeout = static_cast<uint16_t>(connectTimeoutSec * 1000);
 	std::chrono::milliseconds timeoutMs{ timeout };
 	auto end = std::chrono::system_clock::now() + timeoutMs;
 	while (connection->waiting() && (end - std::chrono::system_clock::now()).count() > 0) {

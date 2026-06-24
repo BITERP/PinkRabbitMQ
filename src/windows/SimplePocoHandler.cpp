@@ -77,7 +77,7 @@ struct SimplePocoHandlerImpl
 		inputBuffer(SimplePocoHandler::BUFFER_SIZE),
 		outBuffer(SimplePocoHandler::BUFFER_SIZE),
 		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE),
-		pollTimeout(0, 1)
+		pollTimeout(0, 100000)
 	{
 		initializeSSL();
 		if (ssl)
@@ -141,23 +141,33 @@ void SimplePocoHandler::loopRead()
 		try
 		{
 			loopIteration();
+			if (closed) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
 		}
 		catch (const Poco::Net::ConnectionResetException& exc) {
 			Biterp::Logging::error(exc.displayText());
-			m_impl->connection->close();
+			if (m_impl->connection) {
+				m_impl->connection->close();
+			}
+			closed = true;
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 		catch (const Poco::Exception& exc)
 		{
 			std::string err = typeid(exc).name() + std::string(": ") + exc.displayText() + std::string(". ") + exc.what();
 			Biterp::Logging::error(err);
 			std::cerr << err << std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
 }
 
 void SimplePocoHandler::loopIteration() {
+	sendDataFromBuffer();
+	sendHeartbeatsIfNeeded();
 
-	if (m_impl->socket->poll(m_impl->pollTimeout, 1)) {
+	if (m_impl->socket->poll(m_impl->pollTimeout, Poco::Net::Socket::SELECT_READ)) {
 		int avail = m_impl->connection->expected();
 		if (!avail) { avail = 4; }
 		while (avail > 0)
@@ -196,7 +206,7 @@ void SimplePocoHandler::loopIteration() {
 	sendDataFromBuffer();
 }
 
-void SimplePocoHandler::SimplePocoHandler::close()
+void SimplePocoHandler::close()
 {
 	m_impl->socket->close();
 	closed = true;
@@ -232,7 +242,28 @@ void SimplePocoHandler::onClosed(AMQP::Connection* connection)
 }
 
 uint16_t SimplePocoHandler::onNegotiate(AMQP::Connection* connection, uint16_t interval) {
+	heartbeatInterval = interval;
+	lastHeartbeatSent = std::chrono::steady_clock::now();
 	return interval;
+}
+
+void SimplePocoHandler::onHeartbeat(AMQP::Connection* connection)
+{
+	lastHeartbeatSent = std::chrono::steady_clock::now();
+}
+
+void SimplePocoHandler::sendHeartbeatsIfNeeded()
+{
+	if (heartbeatInterval == 0 || !m_impl->connection || closed) {
+		return;
+	}
+
+	const auto now = std::chrono::steady_clock::now();
+	const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - lastHeartbeatSent).count();
+	if (elapsed >= heartbeatInterval / 2) {
+		m_impl->connection->heartbeat();
+		lastHeartbeatSent = now;
+	}
 }
 
 

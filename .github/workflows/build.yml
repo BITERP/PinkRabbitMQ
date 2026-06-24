@@ -95,6 +95,7 @@ jobs:
         run: ren PinkRabbitMQ_v${{env.VERSION}}.zip PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
 
       - name: Release
+        if: github.repository == 'BITERP/PinkRabbitMQ'
         id: release
         uses: ncipollo/release-action@v1
         with:

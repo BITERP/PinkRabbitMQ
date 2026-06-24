@@ -1,3 +1,16 @@
+# Новое в версии 2.3 (fork)
+
+* Исправлена высокая загрузка CPU на Windows и Linux при ожидании соединения (busy-wait в event loop).
+* Добавлена отправка AMQP heartbeat на Windows.
+* BasicCancel теперь отменяет consumer на брокере, а не только очищает локальный кеш.
+* BasicPublish и BatchPublish используют publisher confirms вместо транзакций.
+* BasicReject: добавлен необязательный параметр requeue.
+* Добавлены методы BatchPublish и GetQueueMessageCount.
+* Исправлена работа с большими сообщениями (корректная длина тела).
+* GetHeaders возвращает вложенные array/table заголовки.
+* Таймаут Connect берётся из параметра метода (по умолчанию 5 секунд).
+* Добавлен CI workflow с тестами на Linux и Windows.
+
 # Новое в версии 2.2
 * Обновлены библиотеки POCO и AMQP-CPP.
 * Добавлена поддержка TLS 1.3

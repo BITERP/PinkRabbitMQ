@@ -1,11 +1,13 @@
 #include "ConnectionImpl.h"
 #include <addin/biterp/Component.hpp>
 #include <addin/biterp/Logger.hpp>
+#include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
-    trChannel(nullptr), stop(false)
+ConnectionImpl::ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec) :
+    trChannel(nullptr), stop(false), connectTimeoutSec(connectTimeoutSec > 0 ? connectTimeoutSec : 5)
 {
     static bool sslInited = false;
     if (!sslInited){
@@ -34,9 +36,13 @@ void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
     while(!thiz->stop) {
         try{
-            event_base_loop(loop, EVLOOP_NONBLOCK);
+            const int result = event_base_loop(loop, EVLOOP_NONBLOCK);
+            if (result == 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }catch(std::exception& ex){
             Biterp::Logging::error("Channel loop error: " + std::string(ex.what()));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
 }
@@ -82,7 +88,7 @@ void ConnectionImpl::closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel, st
 
 
 void ConnectionImpl::connect() {
-    const uint16_t timeout = 15000;
+    const uint16_t timeout = static_cast<uint16_t>(connectTimeoutSec * 1000);
     std::chrono::milliseconds timeoutMs{ timeout };
     auto end = std::chrono::system_clock::now() + timeoutMs;
     while (!connection->ready() && !connection->closed() && (end - std::chrono::system_clock::now()).count() > 0) {

@@ -6,7 +6,7 @@
 
 class ConnectionImpl{
 public:
-	ConnectionImpl(const AMQP::Address& address);
+	ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec);
 	virtual ~ConnectionImpl();
 	void connect();
 	AMQP::Channel* channel();
@@ -22,4 +22,5 @@ private:
 	std::unique_ptr<AMQP::Channel> trChannel;
 	std::unique_ptr<AMQP::Channel> rcChannel;
 	std::thread thread;
+	int connectTimeoutSec;
 };
