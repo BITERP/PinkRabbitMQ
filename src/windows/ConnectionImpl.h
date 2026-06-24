@@ -4,11 +4,14 @@
 #include <thread>
 #include "SimplePocoHandler.h"
 
+class Connection;
+
 class ConnectionImpl{
 public:
-	ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec);
+	ConnectionImpl(Connection& owner, const AMQP::Address& address, int connectTimeoutSec);
 	virtual ~ConnectionImpl();
 	void connect();
+	void shutdown();
 	AMQP::Channel* channel();
 	AMQP::Channel* readChannel();
 
@@ -17,6 +20,7 @@ private:
 	void closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason="");
 
 private:
+	Connection& owner;
 	SimplePocoHandler handler;
 	std::unique_ptr<AMQP::Connection> connection;
 	std::unique_ptr<AMQP::Channel> trChannel;

@@ -17,12 +17,19 @@
 
 
 Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeout), broken(false) {
-	pimpl = new ConnectionImpl(address, timeout);
+	pimpl = new ConnectionImpl(*this, address, timeout);
 }
 
 Connection::~Connection() {
+	shutdown();
 	delete pimpl;
 	pimpl = nullptr;
+}
+
+void Connection::shutdown() {
+	if (pimpl) {
+		pimpl->shutdown();
+	}
 }
 
 void Connection::connect() {

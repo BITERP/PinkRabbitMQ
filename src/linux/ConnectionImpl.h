@@ -5,11 +5,14 @@
 #include <memory>
 #include "TCPHandler.h"
 
+class Connection;
+
 class ConnectionImpl{
 public:
-    ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec);
+    ConnectionImpl(Connection& owner, const AMQP::Address& address, int connectTimeoutSec);
     virtual ~ConnectionImpl();
     void connect();
+    void shutdown();
     AMQP::Channel* channel();
     AMQP::Channel* readChannel();
 
@@ -20,6 +23,7 @@ private:
     static void loopThread(ConnectionImpl* thiz);
 
 private:
+    Connection& owner;
     event_base* eventLoop;
     std::unique_ptr<TCPHandler> handler;
     std::unique_ptr<AMQP::TcpConnection> connection;

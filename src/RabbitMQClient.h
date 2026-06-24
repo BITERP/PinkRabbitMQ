@@ -160,8 +160,11 @@ private:
 	void checkConnection();
 	std::string lastMessageHeaders();
 	void ensurePublisherConfirms(AMQP::Channel* channel);
+	void ensurePublishReturnHandler(AMQP::Channel* channel);
 	void waitPublishConfirm(AMQP::Channel* channel);
 	void waitBatchPublishConfirm(AMQP::Channel* channel, size_t publishCount);
+	void verifyExchangeExists(const std::string& exchange);
+	void verifyQueueExists(const std::string& queue);
 
 	void activateLoopCallbacks();
 	void deactivateLoopCallbacks();
@@ -190,6 +193,7 @@ private:
 	std::condition_variable cvDataArrived;
 	AMQP::Channel* consumeChannel;
 	bool trChannelConfirmEnabled = false;
+	bool publishReturnHandlerEnabled = false;
 	size_t batchPublishAckCount = 0;
 	size_t batchPublishAckTarget = 0;
 	uint32_t queueMessageCount = 0;

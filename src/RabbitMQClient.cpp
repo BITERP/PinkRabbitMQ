@@ -121,7 +121,7 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 	}
 
 	AMQP::Table args = headersFromJson(propsJson);
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
 			.onSuccess([this]()
@@ -132,7 +132,7 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 }
 
@@ -142,7 +142,7 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
 			.onSuccess([this]()
@@ -153,7 +153,7 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 }
 
@@ -172,7 +172,7 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 	if (maxPriority != 0) {
 		args.set("x-max-priority", maxPriority);
 	}
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
 			.onSuccess([this]()
@@ -183,7 +183,7 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 	ctx.setStringResult(u16Converter.from_bytes(name));
 }
@@ -195,7 +195,7 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
 	bool ifempty = ctx.boolParam();
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
 			.onSuccess([this]()
@@ -206,7 +206,7 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 }
 
@@ -219,7 +219,7 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->bindQueue(exchange, queue, routingKey, args)
 			.onSuccess([this]()
@@ -230,7 +230,7 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 }
 
@@ -240,7 +240,7 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 	std::string queue = ctx.stringParamUtf8();
 	std::string exchange = ctx.stringParamUtf8();
 	std::string routingKey = ctx.stringParamUtf8();
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->unbindQueue(exchange, queue, routingKey)
 			.onSuccess([this]()
@@ -251,7 +251,7 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 }
 
@@ -285,15 +285,21 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	bool persistent = ctx.boolParam();
 	std::string propsJson = ctx.stringParamUtf8();
 
+	verifyExchangeExists(exchange);
+
 	AMQP::Envelope envelope(message.data(), message.size());
 	fillEnvelope(envelope, persistent, headersFromJson(propsJson), msgProps);
 	activateLoopCallbacks();
-	{
-		AMQP::Channel* ch = connection->channel();
-		ensurePublisherConfirms(ch);
+	AMQP::Channel* ch = nullptr;
+	connection->withIoLock([&]() {
+		ch = connection->channel();
+	});
+	ensurePublisherConfirms(ch);
+	connection->withIoLock([&]() {
+		ensurePublishReturnHandler(ch);
 		waitPublishConfirm(ch);
-		ch->publish(exchange, routingKey, envelope);
-	}
+		ch->publish(exchange, routingKey, envelope, AMQP::mandatory);
+	});
 	connection->loop();
 	deactivateLoopCallbacks();
 }
@@ -315,85 +321,91 @@ void RabbitMQClient::ensurePublisherConfirms(AMQP::Channel* channel) {
 		return;
 	}
 	const auto active = loopCallbackActive;
-	channel->confirmSelect()
-		.onSuccess([this, active]()
-			{
-				if (!active || !*active) {
-					return;
-				}
-				trChannelConfirmEnabled = true;
-				connection->loopbreak();
-			})
-		.onError([this, active](const char* message)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak(message);
-			});
+	connection->withIoLock([&]() {
+		channel->confirmSelect()
+			.onSuccess([this, active]()
+				{
+					if (!active || !*active) {
+						return;
+					}
+					trChannelConfirmEnabled = true;
+					connection->loopbreak();
+				})
+			.onError([this, active](const char* message)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak(message);
+				});
+	});
 	connection->loop();
 }
 
 void RabbitMQClient::waitPublishConfirm(AMQP::Channel* channel) {
 	const auto active = loopCallbackActive;
-	channel->confirmSelect()
-		.onAck([this, active](uint64_t, bool)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak();
-			})
-		.onNack([this, active](uint64_t, bool, bool)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak("Publish rejected by broker");
-			})
-		.onError([this, active](const char* message)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak(message);
-			});
+	connection->withIoLock([&]() {
+		channel->confirmSelect()
+			.onAck([this, active](uint64_t, bool)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak();
+				})
+			.onNack([this, active](uint64_t, bool, bool)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak("Publish rejected by broker");
+				})
+			.onError([this, active](const char* message)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak(message);
+				});
+	});
 }
 
 void RabbitMQClient::waitBatchPublishConfirm(AMQP::Channel* channel, size_t publishCount) {
 	batchPublishAckCount = 0;
 	batchPublishAckTarget = publishCount;
 	const auto active = loopCallbackActive;
-	channel->confirmSelect()
-		.onAck([this, active](uint64_t, bool multiple)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				if (multiple) {
-					batchPublishAckCount = batchPublishAckTarget;
-				}
-				else {
-					++batchPublishAckCount;
-				}
-				if (batchPublishAckCount >= batchPublishAckTarget) {
-					connection->loopbreak();
-				}
-			})
-		.onNack([this, active](uint64_t, bool, bool)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak("Publish rejected by broker");
-			})
-		.onError([this, active](const char* message)
-			{
-				if (!active || !*active) {
-					return;
-				}
-				connection->loopbreak(message);
-			});
+	connection->withIoLock([&]() {
+		channel->confirmSelect()
+			.onAck([this, active](uint64_t, bool multiple)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					if (multiple) {
+						batchPublishAckCount = batchPublishAckTarget;
+					}
+					else {
+						++batchPublishAckCount;
+					}
+					if (batchPublishAckCount >= batchPublishAckTarget) {
+						connection->loopbreak();
+					}
+				})
+			.onNack([this, active](uint64_t, bool, bool)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak("Publish rejected by broker");
+				})
+			.onError([this, active](const char* message)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak(message);
+				});
+	});
 }
 
 void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
@@ -428,37 +440,112 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 		return;
 	}
 
-	AMQP::Channel* ch = connection->channel();
+	AMQP::Channel* ch = nullptr;
+	connection->withIoLock([&]() {
+		ch = connection->channel();
+	});
 	activateLoopCallbacks();
 	ensurePublisherConfirms(ch);
-	waitBatchPublishConfirm(ch, messages.size());
+	connection->withIoLock([&]() {
+		ensurePublishReturnHandler(ch);
+		waitBatchPublishConfirm(ch, messages.size());
 
-	json empty = json::object();
-	for (auto& item : messages) {
-		if (!item.is_object()) {
-			throw Biterp::Error("Each batch message must be a JSON object");
-		}
-		if (!item.contains("routingKey") || !item.contains("body")) {
-			throw Biterp::Error("Each batch message must have routingKey and body");
-		}
-		if (!item["routingKey"].is_string() || !item["body"].is_string()) {
-			throw Biterp::Error("routingKey and body must be strings");
-		}
+		json empty = json::object();
+		for (auto& item : messages) {
+			if (!item.is_object()) {
+				throw Biterp::Error("Each batch message must be a JSON object");
+			}
+			if (!item.contains("routingKey") || !item.contains("body")) {
+				throw Biterp::Error("Each batch message must have routingKey and body");
+			}
+			if (!item["routingKey"].is_string() || !item["body"].is_string()) {
+				throw Biterp::Error("routingKey and body must be strings");
+			}
 
-		std::string routingKey = item["routingKey"].get<std::string>();
-		std::string message = item["body"].get<std::string>();
-		AMQP::Envelope envelope(message.data(), message.size());
+			std::string routingKey = item["routingKey"].get<std::string>();
+			std::string message = item["body"].get<std::string>();
+			AMQP::Envelope envelope(message.data(), message.size());
 
-		json& headers = item.contains("headers") ? item["headers"] : empty;
-		json& props = item.contains("properties") ? item["properties"] : empty;
-		if (!headers.is_object() || !props.is_object()) {
-			throw Biterp::Error("headers and properties must be JSON objects");
+			json& headers = item.contains("headers") ? item["headers"] : empty;
+			json& props = item.contains("properties") ? item["properties"] : empty;
+			if (!headers.is_object() || !props.is_object()) {
+				throw Biterp::Error("headers and properties must be JSON objects");
+			}
+
+			auto propmap = propsFromJson(props);
+			fillEnvelope(envelope, persistent, headersFromJson(headers), propmap);
+			ch->publish(exchange, routingKey, envelope, AMQP::mandatory);
 		}
+	});
+	connection->loop();
+	deactivateLoopCallbacks();
+}
 
-		auto propmap = propsFromJson(props);
-		fillEnvelope(envelope, persistent, headersFromJson(headers), propmap);
-		ch->publish(exchange, routingKey, envelope);
+
+void RabbitMQClient::ensurePublishReturnHandler(AMQP::Channel* channel) {
+	if (publishReturnHandlerEnabled) {
+		return;
 	}
+	const auto active = loopCallbackActive;
+	channel->recall().onReturned([this, active](const AMQP::Message&, int16_t code, const std::string& description)
+		{
+			if (!active || !*active) {
+				return;
+			}
+			connection->loopbreak("Message returned (code " + std::to_string(code) + "): " + description);
+		});
+	publishReturnHandlerEnabled = true;
+}
+
+void RabbitMQClient::verifyExchangeExists(const std::string& exchange) {
+	if (exchange.empty()) {
+		return;
+	}
+	activateLoopCallbacks();
+	const auto active = loopCallbackActive;
+	connection->withIoLock([&]() {
+		connection->channel()
+			->declareExchange(exchange, AMQP::ExchangeType::topic, AMQP::passive)
+			.onSuccess([this, active]()
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak();
+				})
+			.onError([this, active](const char* message)
+				{
+					if (!active || !*active) {
+						return;
+					}
+					connection->loopbreak(message);
+				});
+	});
+	connection->loop();
+	deactivateLoopCallbacks();
+}
+
+void RabbitMQClient::verifyQueueExists(const std::string& queue) {
+	activateLoopCallbacks();
+	const auto active = loopCallbackActive;
+	connection->withIoLock([&]() {
+		connection->readChannel()
+			->declareQueue(queue, AMQP::passive)
+		.onSuccess([this, active](const std::string&, uint32_t, uint32_t)
+			{
+				if (!active || !*active) {
+					return;
+				}
+				connection->loopbreak();
+			})
+		.onError([this, active](const char* message)
+			{
+				if (!active || !*active) {
+					return;
+				}
+				connection->loopbreak(message);
+			});
+	});
 	connection->loop();
 	deactivateLoopCallbacks();
 }
@@ -473,11 +560,13 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	int selectSize = ctx.intParam();
 	std::string propsJson = ctx.stringParamUtf8();
 
+	verifyQueueExists(queue);
+
 	AMQP::Table args = headersFromJson(propsJson, true);
 	consumeTagResult.clear();
 	activateLoopCallbacks();
 	const auto active = loopCallbackActive;
-	{
+	connection->withIoLock([&]() {
 		AMQP::Channel* channel = connection->readChannel();
 		consumeChannel = channel;
 		channel->setQos(selectSize);
@@ -540,7 +629,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 					}
 					connection->loopbreak(consumerError);
 				});
-	}
+	});
 	connection->loop();
 	deactivateLoopCallbacks();
 	if (consumeTagResult.empty()) {
@@ -555,7 +644,9 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (consumers.empty()) {
-			throw Biterp::Error("No active consumers");
+			setLastError(u16Converter.from_bytes("No active consumers"));
+			ctx.setBoolResult(false);
+			return;
 		}
 	}
 	ctx.skipParam();
@@ -568,14 +659,18 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		std::unique_lock<std::mutex> lock(_mutex);
 		if (messageQueue.empty()){
 			if (!consumerError.empty()){
-				throw Biterp::Error(consumerError);
+				setLastError(u16Converter.from_bytes(consumerError));
+				ctx.setBoolResult(false);
+				return;
 			}
 			if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
 				ctx.setBoolResult(false);
 				return;
 			}
 			if (messageQueue.empty()) {
-				throw Biterp::Error("Empty consume message");
+				setLastError(u16Converter.from_bytes("Empty consume message"));
+				ctx.setBoolResult(false);
+				return;
 			}
 		}
 		lastMessage = messageQueue.front();
@@ -587,10 +682,16 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 }
 
 void RabbitMQClient::clear() {
+	deactivateLoopCallbacks();
+	if (connection) {
+		connection->loopbreak();
+		connection->shutdown();
+	}
 	std::lock_guard<std::mutex> lock(_mutex);
 	consumers.clear();
 	consumeChannel = nullptr;
 	trChannelConfirmEnabled = false;
+	publishReturnHandlerEnabled = false;
 	std::queue<MessageObject> empty;
 	messageQueue.swap(empty);
 	cvDataArrived.notify_all();
@@ -618,16 +719,18 @@ void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
 	}
 
 	for (const std::string& tag : tagsToCancel) {
-		connection->readChannel()->cancel(tag)
-			.onSuccess([this](const std::string& cancelledTag)
-				{
-					LOGI("Consumer cancelled on broker: " + cancelledTag);
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
+		connection->withIoLock([&]() {
+			connection->readChannel()->cancel(tag)
+				.onSuccess([this](const std::string& cancelledTag)
+					{
+						LOGI("Consumer cancelled on broker: " + cancelledTag);
+						connection->loopbreak();
+					})
+				.onError([this](const char* message)
+					{
+						connection->loopbreak(message);
+					});
+		});
 		connection->loop();
 	}
 
@@ -656,7 +759,9 @@ void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
 	if (tag == 0) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
-	connection->readChannel()->ack(tag);
+	connection->withIoLock([&]() {
+		connection->readChannel()->ack(tag);
+	});
 	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
@@ -668,7 +773,9 @@ void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
 	}
 	bool requeue = ctx.boolParamOptional(false);
 	int flags = requeue ? AMQP::requeue : 0;
-	connection->readChannel()->reject(tag, flags);
+	connection->withIoLock([&]() {
+		connection->readChannel()->reject(tag, flags);
+	});
 	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
@@ -677,7 +784,7 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 
 	std::string name = ctx.stringParamUtf8();
 	queueMessageCount = 0;
-	{
+	connection->withIoLock([&]() {
 		connection->channel()
 			->declareQueue(name, AMQP::passive)
 			.onSuccess([this](const std::string&, uint32_t count, uint32_t)
@@ -689,7 +796,7 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
+	});
 	connection->loop();
 	ctx.setIntResult(queueMessageCount);
 }

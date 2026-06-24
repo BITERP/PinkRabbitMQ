@@ -1,21 +1,35 @@
 #include "ConnectionImpl.h"
+#include "Connection.h"
 
-ConnectionImpl::ConnectionImpl(const AMQP::Address& address, int connectTimeoutSec) :
+ConnectionImpl::ConnectionImpl(Connection& owner, const AMQP::Address& address, int connectTimeoutSec) :
+	owner(owner),
 	handler(address.hostname(), address.port(), address.secure()),
 	trChannel(nullptr),
 	connectTimeoutSec(connectTimeoutSec > 0 ? connectTimeoutSec : 5)
 {
+	handler.setIoMutex(&owner.ioMutex());
 	connection.reset(new AMQP::Connection(&handler, address.login(), address.vhost()));
 	handler.setConnection(connection.get());
 	thread = std::thread(SimplePocoHandler::loopThread, &handler);
 }
 
 ConnectionImpl::~ConnectionImpl() {
-	closeChannel(trChannel);
-	closeChannel(rcChannel);
+	shutdown();
 	handler.stopLoop();
 	thread.join();
-	connection.reset(nullptr);
+	{
+		std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
+		connection.reset(nullptr);
+	}
+}
+
+void ConnectionImpl::shutdown() {
+	closeChannel(rcChannel);
+	closeChannel(trChannel);
+	if (connection && connection->usable()) {
+		std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
+		connection->close();
+	}
 }
 
 void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
@@ -28,18 +42,21 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	std::mutex m;
 	std::condition_variable cv;
 	bool ready = false;
-	channel.reset(new AMQP::Channel(connection.get()));
-	channel->onReady([&]() {
-		std::unique_lock<std::mutex> lock(m);
-		ready = true;
-		cv.notify_all();
-		});
-	channel->onError([&](const char* message) {
-		closeChannel(channel, std::string(message));
-		std::unique_lock<std::mutex> lock(m);
-		ready = true;
-		cv.notify_all();
-		});
+	{
+		std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
+		channel.reset(new AMQP::Channel(connection.get()));
+		channel->onReady([&]() {
+			std::unique_lock<std::mutex> lock(m);
+			ready = true;
+			cv.notify_all();
+			});
+		channel->onError([&](const char* message) {
+			closeChannel(channel, std::string(message));
+			std::unique_lock<std::mutex> lock(m);
+			ready = true;
+			cv.notify_all();
+			});
+	}
 	std::unique_lock<std::mutex> lock(m);
 	cv.wait(lock, [&] { return ready; });
 	if (!channel) {

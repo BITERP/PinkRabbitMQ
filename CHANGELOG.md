@@ -1,3 +1,15 @@
+# Новое в версии 2.4 (fork)
+
+## Фаза 2 — стабильность и большие сообщения
+* Синхронизация AMQP I/O: mutex между потоком чтения и вызовами publish/consume ([#51](https://github.com/BITERP/PinkRabbitMQ/issues/51), [#103](https://github.com/BITERP/PinkRabbitMQ/issues/103), [#104](https://github.com/BITERP/PinkRabbitMQ/issues/104)).
+* Безопасное закрытие соединения и каналов при `clear()`/деструкторе ([#95](https://github.com/BITERP/PinkRabbitMQ/issues/95), [#79](https://github.com/BITERP/PinkRabbitMQ/issues/79), [#94](https://github.com/BITERP/PinkRabbitMQ/issues/94)).
+* Linux: `closeChannel` теперь вызывает `channel->close()` как на Windows.
+
+## Фаза 1 — ошибки без падений
+* BasicConsume: проверка существования очереди перед подпиской ([#107](https://github.com/BITERP/PinkRabbitMQ/issues/107)).
+* BasicPublish/BatchPublish: проверка существования exchange, флаг mandatory и обработка returned messages ([#12](https://github.com/BITERP/PinkRabbitMQ/issues/12)).
+* BasicConsumeMessage: ошибки без исключений — возврат Ложь + GetLastError ([#54](https://github.com/BITERP/PinkRabbitMQ/issues/54), [#98](https://github.com/BITERP/PinkRabbitMQ/issues/98)).
+
 # Новое в версии 2.3 (fork)
 
 * Исправлена высокая загрузка CPU на Windows и Linux при ожидании соединения (busy-wait в event loop).

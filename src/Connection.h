@@ -16,6 +16,15 @@ public:
 	AMQP::Channel* readChannel();
 	void loop();
 	void loopbreak(std::string error = "");
+	void shutdown();
+
+	std::recursive_mutex& ioMutex() { return _ioMutex; }
+
+	template<typename F>
+	void withIoLock(F&& f) {
+		std::lock_guard<std::recursive_mutex> lock(_ioMutex);
+		f();
+	}
 
 private:
 	ConnectionImpl* pimpl;
@@ -24,4 +33,5 @@ private:
 	std::string error;
 	std::mutex _mutex;
 	std::condition_variable cvBroken;
+	std::recursive_mutex _ioMutex;
 };

@@ -11,6 +11,9 @@ on:
       - 'test/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   versions:
     strategy:

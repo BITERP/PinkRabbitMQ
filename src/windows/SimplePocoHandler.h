@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <memory>
+#include <mutex>
+#include <memory>
 #include <amqpcpp.h>
 #include "RabbitMQClient.h"
 
@@ -18,6 +20,7 @@ public:
     virtual ~SimplePocoHandler();
 
     void setConnection(AMQP::Connection* connection);
+    void setIoMutex(std::recursive_mutex* mutex);
  	void loopRead();
  	inline void stopLoop() {stop=true;}
 	static void loopThread(SimplePocoHandler* clazz);
@@ -49,6 +52,7 @@ private:
     void sendHeartbeatsIfNeeded();
 
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
+    std::recursive_mutex* ioMutex = nullptr;
     std::string error;
     volatile bool stop;
     bool closed;

@@ -12,6 +12,7 @@
 #include <Poco/Net/NetException.h>
 
 #include "SimplePocoHandler.h"
+#include <mutex>
 
 using namespace Poco::Net;
 
@@ -129,6 +130,11 @@ void SimplePocoHandler::setConnection(AMQP::Connection* connection)
 	m_impl->connection = connection;
 }
 
+void SimplePocoHandler::setIoMutex(std::recursive_mutex* mutex)
+{
+	ioMutex = mutex;
+}
+
 void SimplePocoHandler::loopThread(SimplePocoHandler* obj)
 {
 	obj->loopRead();
@@ -192,6 +198,10 @@ void SimplePocoHandler::loopIteration() {
 
 	if (m_impl->connection && m_impl->inputBuffer.available())
 	{
+		std::unique_lock<std::recursive_mutex> ioLock;
+		if (ioMutex) {
+			ioLock = std::unique_lock<std::recursive_mutex>(*ioMutex);
+		}
 		size_t count = m_impl->connection->parse(m_impl->inputBuffer.data(),
 			m_impl->inputBuffer.available());
 
@@ -216,6 +226,10 @@ void SimplePocoHandler::onData(
 	AMQP::Connection* connection, const char* data, size_t size)
 {
 	m_impl->connection = connection;
+	std::unique_lock<std::recursive_mutex> ioLock;
+	if (ioMutex) {
+		ioLock = std::unique_lock<std::recursive_mutex>(*ioMutex);
+	}
 	size_t written = m_impl->outBuffer.write(data, size);
 	while (written != size)
 	{
