@@ -256,3 +256,16 @@ def test_reconnect():
     assert res
     res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
     assert res
+
+def test_connect_immediate_declare():
+    """Regression for #65: DeclareExchange right after Connect without pause."""
+    from amqp import get_config
+    cfg = get_config(None, None, None, None, None, False)
+    for i in range(10):
+        com = Component("PinkRabbitMQ")
+        res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
+        assert res
+        name = f"imm_exch_{i}"
+        res = com.call_proc("DeclareExchange", name, "topic", False, True, False, None)
+        assert res
+        com.call_proc("DeleteExchange", name, False)

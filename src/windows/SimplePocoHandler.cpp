@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+#include <mutex>
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/SecureStreamSocket.h>
 #include <Poco/Net/RejectCertificateHandler.h>
@@ -18,6 +19,17 @@ using namespace Poco::Net;
 
 namespace
 {
+	void ensureSslInitialized()
+	{
+		static std::once_flag once;
+		std::call_once(once, []() {
+			Poco::Net::initializeSSL();
+			Poco::SharedPtr<InvalidCertificateHandler> pInvHandler = new AcceptCertificateHandler(false);
+			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
+			SSLManager::instance().initializeClient(nullptr, pInvHandler, pContext);
+		});
+	}
+
 	class Buffer
 	{
 	public:
@@ -80,13 +92,9 @@ struct SimplePocoHandlerImpl
 		tmpBuff(SimplePocoHandler::TEMP_BUFFER_SIZE),
 		pollTimeout(0, 100000)
 	{
-		initializeSSL();
 		if (ssl)
 		{
-			// Replace with AcceptCertificateHandler to skip cert verification
-			Poco::SharedPtr<InvalidCertificateHandler> pInvHandler = new AcceptCertificateHandler(false);
-			Context::Ptr pContext = new Poco::Net::Context(Context::TLS_CLIENT_USE, "");
-			SSLManager::instance().initializeClient(nullptr, pInvHandler, pContext);
+			ensureSslInitialized();
 			SecureStreamSocket* sslSocket = new SecureStreamSocket();
 			sslSocket->setPeerHostName(host);
 			sslSocket->setLazyHandshake(true);
@@ -98,9 +106,7 @@ struct SimplePocoHandlerImpl
 		}
 	}
 
-	~SimplePocoHandlerImpl() {
-		uninitializeSSL();
-	}
+	~SimplePocoHandlerImpl() = default;
 
 	std::unique_ptr<Poco::Net::StreamSocket> socket;
 	AMQP::Connection* connection;
@@ -135,6 +141,22 @@ void SimplePocoHandler::setIoMutex(std::recursive_mutex* mutex)
 	ioMutex = mutex;
 }
 
+void SimplePocoHandler::setLostCallback(std::function<void(const std::string&)> callback)
+{
+	lostCallback = std::move(callback);
+}
+
+void SimplePocoHandler::notifyLost(const std::string& message)
+{
+	if (!message.empty()) {
+		error = message;
+	}
+	closed = true;
+	if (lostCallback) {
+		lostCallback(error.empty() ? "Connection lost" : error);
+	}
+}
+
 void SimplePocoHandler::loopThread(SimplePocoHandler* obj)
 {
 	obj->loopRead();
@@ -156,7 +178,12 @@ void SimplePocoHandler::loopRead()
 			if (m_impl->connection) {
 				m_impl->connection->close();
 			}
-			closed = true;
+			notifyLost(exc.displayText());
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+		catch (const Poco::Net::NetException& exc) {
+			Biterp::Logging::error(exc.displayText());
+			notifyLost(exc.displayText());
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 		catch (const Poco::Exception& exc)
@@ -170,22 +197,27 @@ void SimplePocoHandler::loopRead()
 }
 
 void SimplePocoHandler::loopIteration() {
+	bool receivedData = false;
 	sendDataFromBuffer();
 	sendHeartbeatsIfNeeded();
 
 	if (m_impl->socket->poll(m_impl->pollTimeout, Poco::Net::Socket::SELECT_READ)) {
-		int avail = m_impl->connection->expected();
+		int avail = m_impl->connection ? m_impl->connection->expected() : 0;
 		if (!avail) { avail = 4; }
 		while (avail > 0)
 		{
-			if (m_impl->tmpBuff.size() < avail)
+			if (m_impl->tmpBuff.size() < static_cast<size_t>(avail))
 			{
 				m_impl->tmpBuff.resize(avail, 0);
 			}
 			int received = m_impl->socket->receiveBytes(&m_impl->tmpBuff[0], avail);
-			if (received < 0) {
+			if (received <= 0) {
+				if (received == 0) {
+					notifyLost("Connection closed by peer");
+				}
 				break;
 			}
+			receivedData = true;
 			m_impl->inputBuffer.write(m_impl->tmpBuff.data(), received);
 			avail = m_impl->socket->available();
 		}
@@ -193,7 +225,7 @@ void SimplePocoHandler::loopIteration() {
 
 	if (m_impl->socket->available() < 0)
 	{
-		std::cerr << "SOME socket error!!!" << std::endl;
+		notifyLost("Socket error");
 	}
 
 	if (m_impl->connection && m_impl->inputBuffer.available())
@@ -214,6 +246,9 @@ void SimplePocoHandler::loopIteration() {
 		}
 	}
 	sendDataFromBuffer();
+	if (!receivedData && !closed) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
 }
 
 void SimplePocoHandler::close()
@@ -246,13 +281,14 @@ void SimplePocoHandler::onReady(AMQP::Connection* connection)
 void SimplePocoHandler::onError(
 	AMQP::Connection* connection, const char* message)
 {
-	error = message;
+	error = message ? message : "";
 	Biterp::Logging::error("AMQP error: " + error);
+	notifyLost(error.empty() ? "AMQP connection error" : error);
 }
 
 void SimplePocoHandler::onClosed(AMQP::Connection* connection)
 {
-	closed = true;
+	notifyLost(error.empty() ? "Connection closed" : error);
 }
 
 uint16_t SimplePocoHandler::onNegotiate(AMQP::Connection* connection, uint16_t interval) {

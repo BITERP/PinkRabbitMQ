@@ -17,7 +17,7 @@ ConnectionImpl::ConnectionImpl(Connection& owner, const AMQP::Address& address, 
         sslInited = true;
     }
     eventLoop = event_base_new();
-    handler.reset(new TCPHandler(eventLoop));
+    handler.reset(new TCPHandler(owner, eventLoop));
     connection.reset(new AMQP::TcpConnection(handler.get(), address));
     thread = std::thread(ConnectionImpl::loopThread, this);
 }
@@ -42,12 +42,19 @@ void ConnectionImpl::shutdown() {
         std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
         connection->close();
     }
+    if (connection) {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while (!connection->closed() && std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    }
 }
 
 void ConnectionImpl::loopThread(ConnectionImpl* thiz) {
     event_base* loop = thiz->eventLoop;
     while(!thiz->stop) {
         try{
+            thiz->handler->sendHeartbeatsIfNeeded();
             const int result = event_base_loop(loop, EVLOOP_NONBLOCK);
             if (result == 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -84,7 +91,10 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::TcpChannel>& channel) {
         cv.notify_all();
         });
     std::unique_lock<std::mutex> lock(m);
-    cv.wait(lock, [&] { return ready; });
+    if (!cv.wait_for(lock, std::chrono::seconds(connectTimeoutSec), [&] { return ready; })) {
+        channel.reset(nullptr);
+        throw Biterp::Error("Channel open timeout");
+    }
     if (!channel) {
         throw Biterp::Error("Channel not opened");
     }

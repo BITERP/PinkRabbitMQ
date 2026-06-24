@@ -166,6 +166,8 @@ private:
 	void verifyExchangeExists(const std::string& exchange);
 	void verifyQueueExists(const std::string& queue);
 
+	void onConnectionLost(const std::string& error);
+
 	void activateLoopCallbacks();
 	void deactivateLoopCallbacks();
 
@@ -201,6 +203,7 @@ private:
 	uint32_t queueMessageCount = 0;
 	std::string consumeTagResult;
 	std::shared_ptr<bool> loopCallbackActive;
+	bool shuttingDown = false;
 
 private:
 

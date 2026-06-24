@@ -1,3 +1,16 @@
+# Новое в версии 2.5 (fork)
+
+## Фаза 3 — обрыв связи и стабильность соединения
+* При потере TCP/AMQP-соединения вызывается `notifyLost`: разблокируется `loop()`, `BasicConsumeMessage` получает ошибку через `GetLastError` ([#88](https://github.com/BITERP/PinkRabbitMQ/issues/88)).
+* Linux: AMQP heartbeat — `onNegotiate`/`onHeartbeat` и периодическая отправка `heartbeat()` в event-loop ([#49](https://github.com/BITERP/PinkRabbitMQ/issues/49)).
+* `Connect` прогревает транзакционный канал до возврата управления — устраняет гонку «Connect → DeclareExchange» на Linux ([#65](https://github.com/BITERP/PinkRabbitMQ/issues/65)).
+* Корректное закрытие: `shutdown()` ждёт AMQP close handshake до разрыва TCP ([#26](https://github.com/BITERP/PinkRabbitMQ/issues/26)).
+* Windows: однократная инициализация SSL (`std::call_once`) вместо init/uninit на каждое подключение ([#89](https://github.com/BITERP/PinkRabbitMQ/issues/89)).
+* Windows: снижена нагрузка на CPU в фоновом цикле чтения сокета (пауза 1 мс при отсутствии данных).
+* Windows: обрыв сокета (`ConnectionReset`, `receiveBytes == 0`) и `onClosed`/`onError` AMQP пробрасываются наверх.
+* CI Linux: сборка на `ubuntu-20.04` для совместимости с GLIBC 2.31 ([#100](https://github.com/BITERP/PinkRabbitMQ/issues/100)).
+* Таймаут открытия канала вместо бесконечного ожидания.
+
 # Новое в версии 2.4 (fork)
 
 ## Фаза 2 — стабильность и большие сообщения

@@ -16,7 +16,7 @@
 
 
 
-Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeout), broken(false) {
+Connection::Connection(const AMQP::Address& address, int timeout): timeout(timeout), broken(false), _lost(false) {
 	pimpl = new ConnectionImpl(*this, address, timeout);
 }
 
@@ -33,7 +33,31 @@ void Connection::shutdown() {
 }
 
 void Connection::connect() {
+	_lost = false;
+	error.clear();
 	pimpl->connect();
+}
+
+void Connection::setLostCallback(std::function<void(const std::string&)> callback) {
+	lostCallback = std::move(callback);
+}
+
+void Connection::notifyLost(std::string lostError) {
+	if (lostError.empty()) {
+		lostError = "Connection lost";
+	}
+	bool firstLost = false;
+	std::function<void(const std::string&)> callback;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		firstLost = !_lost;
+		_lost = true;
+		callback = lostCallback;
+	}
+	loopbreak(lostError);
+	if (firstLost && callback) {
+		callback(lostError);
+	}
 }
 
 AMQP::Channel* Connection::channel() {

@@ -2,9 +2,10 @@
 #define SRC_SIMPLEPOCOHANDLER_H_
 
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <mutex>
-#include <memory>
+#include <string>
 #include <amqpcpp.h>
 #include "RabbitMQClient.h"
 
@@ -21,6 +22,7 @@ public:
 
     void setConnection(AMQP::Connection* connection);
     void setIoMutex(std::recursive_mutex* mutex);
+    void setLostCallback(std::function<void(const std::string&)> callback);
  	void loopRead();
  	inline void stopLoop() {stop=true;}
 	static void loopThread(SimplePocoHandler* clazz);
@@ -51,8 +53,11 @@ private:
 
     void sendHeartbeatsIfNeeded();
 
+    void notifyLost(const std::string& message);
+
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
     std::recursive_mutex* ioMutex = nullptr;
+    std::function<void(const std::string&)> lostCallback;
     std::string error;
     volatile bool stop;
     bool closed;

@@ -1,5 +1,6 @@
 #include "ConnectionImpl.h"
 #include "Connection.h"
+#include <chrono>
 
 ConnectionImpl::ConnectionImpl(Connection& owner, const AMQP::Address& address, int connectTimeoutSec) :
 	owner(owner),
@@ -8,6 +9,9 @@ ConnectionImpl::ConnectionImpl(Connection& owner, const AMQP::Address& address, 
 	connectTimeoutSec(connectTimeoutSec > 0 ? connectTimeoutSec : 5)
 {
 	handler.setIoMutex(&owner.ioMutex());
+	handler.setLostCallback([&owner](const std::string& message) {
+		owner.notifyLost(message);
+	});
 	connection.reset(new AMQP::Connection(&handler, address.login(), address.vhost()));
 	handler.setConnection(connection.get());
 	thread = std::thread(SimplePocoHandler::loopThread, &handler);
@@ -29,6 +33,12 @@ void ConnectionImpl::shutdown() {
 	if (connection && connection->usable()) {
 		std::lock_guard<std::recursive_mutex> lock(owner.ioMutex());
 		connection->close();
+	}
+	if (connection) {
+		const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+		while (!connection->closed() && std::chrono::steady_clock::now() < deadline) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
 	}
 }
 
@@ -55,7 +65,10 @@ void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 		cv.notify_all();
 		});
 	std::unique_lock<std::mutex> lock(m);
-	cv.wait(lock, [&] { return ready; });
+	if (!cv.wait_for(lock, std::chrono::seconds(connectTimeoutSec), [&] { return ready; })) {
+		channel.reset(nullptr);
+		throw Biterp::Error("Channel open timeout");
+	}
 	if (!channel) {
 		throw Biterp::Error("Channel not opened");
 	}

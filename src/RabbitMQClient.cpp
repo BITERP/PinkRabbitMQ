@@ -91,7 +91,15 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	trChannelConfirmEnabled = false;
 	connection.reset(new Connection(address, timeout));
 	try {
+		connection->setLostCallback([this](const std::string& err) {
+			onConnectionLost(err);
+		});
 		connection->connect();
+		connection->channel();
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
+			consumerError.clear();
+		}
 	}
 	catch (std::exception&) {
 		connection.reset(nullptr);
@@ -308,6 +316,16 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	deactivateLoopCallbacks();
 }
 
+
+void RabbitMQClient::onConnectionLost(const std::string& error) {
+	if (shuttingDown) {
+		return;
+	}
+	deactivateLoopCallbacks();
+	std::lock_guard<std::mutex> lock(_mutex);
+	consumerError = error.empty() ? "Connection lost" : error;
+	cvDataArrived.notify_all();
+}
 
 void RabbitMQClient::activateLoopCallbacks() {
 	loopCallbackActive = std::make_shared<bool>(true);
@@ -667,7 +685,24 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 				ctx.setBoolResult(false);
 				return;
 			}
-			if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] { return !messageQueue.empty(); })) {
+			if (connection && connection->isLost()) {
+				setLastError(u16Converter.from_bytes("Connection lost"));
+				ctx.setBoolResult(false);
+				return;
+			}
+			if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] {
+				return !messageQueue.empty() || !consumerError.empty() || (connection && connection->isLost());
+			})) {
+				ctx.setBoolResult(false);
+				return;
+			}
+			if (!consumerError.empty()) {
+				setLastError(u16Converter.from_bytes(consumerError));
+				ctx.setBoolResult(false);
+				return;
+			}
+			if (connection && connection->isLost()) {
+				setLastError(u16Converter.from_bytes("Connection lost"));
 				ctx.setBoolResult(false);
 				return;
 			}
@@ -719,6 +754,7 @@ void RabbitMQClient::cancelAllConsumers() {
 }
 
 void RabbitMQClient::clear() {
+	shuttingDown = true;
 	deactivateLoopCallbacks();
 	cancelAllConsumers();
 	if (connection) {
@@ -728,11 +764,13 @@ void RabbitMQClient::clear() {
 	std::lock_guard<std::mutex> lock(_mutex);
 	consumers.clear();
 	consumeChannel = nullptr;
+	consumerError.clear();
 	trChannelConfirmEnabled = false;
 	publishReturnHandlerEnabled = false;
 	std::queue<MessageObject> empty;
 	messageQueue.swap(empty);
 	cvDataArrived.notify_all();
+	shuttingDown = false;
 }
 
 void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
@@ -841,6 +879,9 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 void RabbitMQClient::checkConnection() {
 	if (!connection) {
 		throw Biterp::Error("Connection is not established! Use the method Connect() first");
+	}
+	if (connection->isLost()) {
+		throw Biterp::Error(consumerError.empty() ? "Connection lost" : consumerError);
 	}
 }
 
