@@ -62,7 +62,11 @@ json amqpFieldToJson(const AMQP::Field& field)
 
 void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 	std::string host = ctx.stringParamUtf8();
-	uint16_t port = ctx.intParam();
+	const int portVal = ctx.intParam();
+	if (portVal < 0 || portVal > 65535) {
+		throw Biterp::Error("Port number out of range");
+	}
+	const uint16_t port = static_cast<uint16_t>(portVal);
 	std::string user = ctx.stringParamUtf8();
 	std::string pwd = ctx.stringParamUtf8();
 	std::string vhost = ctx.stringParamUtf8();
@@ -681,8 +685,42 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	ctx.setBoolResult(true);
 }
 
+void RabbitMQClient::cancelAllConsumers() {
+	std::vector<std::string> tagsToCancel;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		tagsToCancel = consumers;
+	}
+	if (!connection || tagsToCancel.empty()) {
+		return;
+	}
+	activateLoopCallbacks();
+	for (const std::string& tag : tagsToCancel) {
+		try {
+			connection->withIoLock([&]() {
+				connection->readChannel()->cancel(tag)
+					.onSuccess([this](const std::string& cancelledTag)
+						{
+							LOGI("Consumer cancelled on broker: " + cancelledTag);
+							connection->loopbreak();
+						})
+					.onError([this](const char* message)
+						{
+							connection->loopbreak(message);
+						});
+			});
+			connection->loop();
+		}
+		catch (std::exception&) {
+			connection->loopbreak();
+		}
+	}
+	deactivateLoopCallbacks();
+}
+
 void RabbitMQClient::clear() {
 	deactivateLoopCallbacks();
+	cancelAllConsumers();
 	if (connection) {
 		connection->loopbreak();
 		connection->shutdown();
@@ -714,7 +752,6 @@ void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
 
 	if (tagsToCancel.empty()) {
 		clear();
-		consumeChannel = nullptr;
 		return;
 	}
 

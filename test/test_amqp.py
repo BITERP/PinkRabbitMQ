@@ -216,6 +216,38 @@ def test_publish_consume_400kb(com):
     assert len(msg[0]) == 410000
     com.call_proc("BasicAck", mtag[0])
 
+def test_many_messages_manual_ack(com):
+    Q = "stress_ack"
+    bind_queue(com, Q)
+    for i in range(100):
+        res = com.call_proc("BasicPublish", Q, Q, f"msg{i}", 0, False, None)
+        assert res
+    ctag = consume(com, Q)
+    for i in range(100):
+        msg = [""]
+        mtag = [-1]
+        res, ret = com.call_func("BasicConsumeMessage", ctag, msg, mtag, 10000)
+        assert res and ret, f"failed at message {i}"
+        com.call_proc("BasicAck", mtag[0])
+    com.call_proc("BasicCancel", "")
+
+def test_many_messages_reconnect(com):
+    Q = "stress_reconnect"
+    bind_queue(com, Q)
+    for i in range(50):
+        com.call_proc("BasicPublish", Q, Q, f"body{i}", 0, False, None)
+    ctag = consume(com, Q)
+    for i in range(50):
+        msg = [""]
+        mtag = [-1]
+        res, ret = com.call_func("BasicConsumeMessage", ctag, msg, mtag, 10000)
+        assert res and ret
+        com.call_proc("BasicAck", mtag[0])
+    from amqp import get_config
+    cfg = get_config(None, None, None, None, None, False)
+    res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
+    assert res
+
 def test_reconnect():
     from amqp import get_config
     cfg = get_config(None, None, None, None, None, False)

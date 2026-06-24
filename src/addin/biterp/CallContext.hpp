@@ -92,6 +92,10 @@ namespace Biterp {
                 case VTYPE_I8:
                     index++;
                     return param->llVal;
+                case VTYPE_PSTR:
+                case VTYPE_PWSTR:
+                case VTYPE_BLOB:
+                    throw TypeError(index, "number", param->vt);
                 default:
                     return static_cast<int64_t>(doubleParam());
             }

@@ -169,6 +169,8 @@ private:
 	void activateLoopCallbacks();
 	void deactivateLoopCallbacks();
 
+	void cancelAllConsumers();
+
 	void clear();
 
 private:
