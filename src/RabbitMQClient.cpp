@@ -434,6 +434,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	consumeTagResult.clear();
 	{
 		AMQP::Channel* channel = connection->readChannel();
+		consumeChannel = channel;
 		channel->setQos(selectSize);
 		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
 			.onSuccess([this, channel](const std::string& tag)
@@ -490,6 +491,9 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 				});
 	}
 	connection->loop();
+	if (consumeTagResult.empty()) {
+		throw Biterp::Error("Consumer was not created");
+	}
 	ctx.setStringResult(u16Converter.from_bytes(consumeTagResult));
 }
 
@@ -498,9 +502,6 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		if (connection->readChannel() != consumeChannel){
-			consumers.clear();
-		}
 		if (consumers.empty()) {
 			throw Biterp::Error("No active consumers");
 		}

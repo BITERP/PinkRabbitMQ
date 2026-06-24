@@ -94,6 +94,15 @@ jobs:
       - name: Rename Build
         run: ren PinkRabbitMQ_v${{env.VERSION}}.zip PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
 
+      - name: Upload build artifact
+        if: github.repository != 'BITERP/PinkRabbitMQ'
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}
+          path: PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Release
         if: github.repository == 'BITERP/PinkRabbitMQ'
         id: release
