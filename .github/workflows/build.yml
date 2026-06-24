@@ -19,7 +19,7 @@ on:
         type: string
 
 env:
-  VERSION: 2.2.0.${{github.run_number}}
+  VERSION: 2.4.0.${{github.run_number}}
   LINUX_DIR: linux/build
   LINUX_LIB: libPinkRabbitMQ64.so
   PKG_DIR: package
