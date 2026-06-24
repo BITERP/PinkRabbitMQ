@@ -75,7 +75,7 @@ def test_nack(com):
     msg = "nack test"
     publish(com, QUEUE, msg)
     msg, tag = receive(com, QUEUE, msg)
-    res = com.call_proc("BasicReject", tag)
+    res = com.call_proc("BasicReject", tag, False)
     assert res
 
 def test_cancel(com):
@@ -140,15 +140,15 @@ def test_batch_publish(com):
 
 def test_queue_message_count(com):
     Q = "count_queue"
-    make_queue(com, Q)
+    bind_queue(com, Q)
     res, count = com.call_func("GetQueueMessageCount", Q)
     assert res
     assert count == 0
-    publish(com, Q, "one")
+    publish(com, Q, "one", no_bind=True)
     res, count = com.call_func("GetQueueMessageCount", Q)
     assert res
     assert count == 1
-    publish(com, Q, "two")
+    publish(com, Q, "two", no_bind=True)
     res, count = com.call_func("GetQueueMessageCount", Q)
     assert res
     assert count == 2

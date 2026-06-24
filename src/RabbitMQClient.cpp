@@ -330,17 +330,18 @@ void RabbitMQClient::waitPublishConfirm(AMQP::Channel* channel) {
 }
 
 void RabbitMQClient::waitBatchPublishConfirm(AMQP::Channel* channel, size_t publishCount) {
-	size_t ackCount = 0;
+	batchPublishAckCount = 0;
+	batchPublishAckTarget = publishCount;
 	channel->confirmSelect()
-		.onAck([this, &ackCount, publishCount](uint64_t, bool multiple)
+		.onAck([this](uint64_t, bool multiple)
 			{
 				if (multiple) {
-					ackCount = publishCount;
+					batchPublishAckCount = batchPublishAckTarget;
 				}
 				else {
-					++ackCount;
+					++batchPublishAckCount;
 				}
-				if (ackCount >= publishCount) {
+				if (batchPublishAckCount >= batchPublishAckTarget) {
 					connection->loopbreak();
 				}
 			})
@@ -430,14 +431,14 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson, true);
-	std::string result;
+	consumeTagResult.clear();
 	{
 		AMQP::Channel* channel = connection->readChannel();
 		channel->setQos(selectSize);
 		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
-			.onSuccess([this, &result, channel](const std::string& tag)
+			.onSuccess([this, channel](const std::string& tag)
 				{
-					result = tag;
+					consumeTagResult = tag;
 					LOGI("Consumer created " + tag);
 					{
 						std::lock_guard<std::mutex> lock(_mutex);
@@ -489,7 +490,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 				});
 	}
 	connection->loop();
-	ctx.setStringResult(u16Converter.from_bytes(result));
+	ctx.setStringResult(u16Converter.from_bytes(consumeTagResult));
 }
 
 
@@ -622,13 +623,13 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 	checkConnection();
 
 	std::string name = ctx.stringParamUtf8();
-	uint32_t messageCount = 0;
+	queueMessageCount = 0;
 	{
 		connection->channel()
 			->declareQueue(name, AMQP::passive)
-			.onSuccess([this, &messageCount](const std::string&, uint32_t count, uint32_t)
+			.onSuccess([this](const std::string&, uint32_t count, uint32_t)
 				{
-					messageCount = count;
+					queueMessageCount = count;
 					connection->loopbreak();
 				})
 			.onError([this](const char* message)
@@ -637,7 +638,7 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 				});
 	}
 	connection->loop();
-	ctx.setIntResult(messageCount);
+	ctx.setIntResult(queueMessageCount);
 }
 
 void RabbitMQClient::checkConnection() {

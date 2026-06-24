@@ -187,6 +187,10 @@ private:
 	std::condition_variable cvDataArrived;
 	AMQP::Channel* consumeChannel;
 	bool trChannelConfirmEnabled = false;
+	size_t batchPublishAckCount = 0;
+	size_t batchPublishAckTarget = 0;
+	uint32_t queueMessageCount = 0;
+	std::string consumeTagResult;
 
 private:
 
