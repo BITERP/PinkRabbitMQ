@@ -40,6 +40,8 @@ AMQP::Channel* Connection::readChannel() {
 
 void Connection::loop() {
 	std::unique_lock<std::mutex> lock(_mutex);
+	broken = false;
+	error.clear();
 	if (!cvBroken.wait_for(lock, std::chrono::seconds(timeout), [&] { return broken; })) {
 		broken = false;
 		//channel()->close();
