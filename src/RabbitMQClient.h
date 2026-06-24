@@ -163,6 +163,9 @@ private:
 	void waitPublishConfirm(AMQP::Channel* channel);
 	void waitBatchPublishConfirm(AMQP::Channel* channel, size_t publishCount);
 
+	void activateLoopCallbacks();
+	void deactivateLoopCallbacks();
+
 	void clear();
 
 private:
@@ -191,6 +194,7 @@ private:
 	size_t batchPublishAckTarget = 0;
 	uint32_t queueMessageCount = 0;
 	std::string consumeTagResult;
+	std::shared_ptr<bool> loopCallbackActive;
 
 private:
 
