@@ -94,17 +94,7 @@ jobs:
       - name: Rename Build
         run: ren PinkRabbitMQ_v${{env.VERSION}}.zip PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
 
-      - name: Upload build artifact
-        if: github.repository != 'BITERP/PinkRabbitMQ'
-        uses: actions/upload-artifact@v4.3.3
-        with:
-          name: PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}
-          path: PinkRabbitMQ${{inputs.postfix}}_v${{env.VERSION}}.zip
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Release
-        if: github.repository == 'BITERP/PinkRabbitMQ'
         id: release
         uses: ncipollo/release-action@v1
         with:
@@ -116,7 +106,7 @@ jobs:
           commit: ${{github.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            [Новое в версии](https://github.com/BITERP/PinkRabbitMQ/blob/master/CHANGELOG.md)
+            [Новое в версии](https://github.com/${{github.repository}}/blob/master/CHANGELOG.md)
 
             ${{ github.event.head_commit.message }}
 
