@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM debian:bullseye-slim
 
 RUN apt update && apt install -y apt-utils
 ENV DEBIAN_FRONTEND=noninteractive

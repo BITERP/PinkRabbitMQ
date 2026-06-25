@@ -48,6 +48,8 @@ Biterp::Names RabbitMQClientNative::methods{{
 	{RabbitMQClientNative::eMethGetRoutingKey, {u"GetRoutingKey"}},
 	{RabbitMQClientNative::eMethGetHeaders, {u"GetHeaders"}},
 	{RabbitMQClientNative::eMethSleepNative, {u"SleepNative"}},
+	{RabbitMQClientNative::eMethBatchPublish, {u"BatchPublish"}},
+	{RabbitMQClientNative::eMethGetQueueMessageCount, {u"GetQueueMessageCount"}},
 }};
 
 
@@ -221,14 +223,18 @@ long RabbitMQClientNative::GetNParams(const long lMethodNum) {
 		return 4;
 	case eMethDeleteQueue:
 	case eMethUnbindQueue:
+	case eMethBatchPublish:
 		return 3;
 	case eMethDeleteExchange:
 		return 2;
 	case eMethBasicCancel:
 	case eMethBasicAck:
-	case eMethBasicReject:
 	case eMethSetPriority:
 	case eMethSleepNative:
+		return 1;
+	case eMethBasicReject:
+		return 2;
+	case eMethGetQueueMessageCount:
 		return 1;
 	default:
 		return 0;
@@ -280,6 +286,13 @@ bool RabbitMQClientNative::GetParamDefValue(const long lMethodNum, const long lP
 			return true;
 		}
 		break;
+	case eMethBasicReject:
+		if (lParamNum == 1) {
+			TV_VT(pvarParamDefValue) = VTYPE_BOOL;
+			TV_BOOL(pvarParamDefValue) = false;
+			return true;
+		}
+		break;
 	case eMethBindQueue:
 		if (lParamNum == 3) {
 			TV_VT(pvarParamDefValue) = VTYPE_PWSTR;
@@ -303,6 +316,7 @@ bool RabbitMQClientNative::HasRetVal(const long lMethodNum) {
 	case eMethGetPriority:
 	case eMethGetRoutingKey:
 	case eMethGetHeaders:
+	case eMethGetQueueMessageCount:
 		return true;
 	default:
 		return false;
@@ -351,6 +365,9 @@ bool RabbitMQClientNative::CallAsProc(const long lMethodNum,
 	case eMethSleepNative:
 		ret = impl.sleepNative(paParams, lSizeArray);
 		break;
+	case eMethBatchPublish:
+		ret = impl.batchPublish(paParams, lSizeArray);
+		break;
 	default:
 		ret = false;
 		break;
@@ -386,6 +403,9 @@ bool RabbitMQClientNative::CallAsFunc(const long lMethodNum,
 		break;
 	case eMethGetHeaders:
 		ret = impl.getHeaders(pvarRetValue, paParams, lSizeArray);
+		break;
+	case eMethGetQueueMessageCount:
+		ret = impl.getQueueMessageCount(pvarRetValue, paParams, lSizeArray);
 		break;
 	default:
 		ret = false;

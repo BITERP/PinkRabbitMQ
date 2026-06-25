@@ -7,7 +7,9 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 
 class RabbitMQClient : public Biterp::Component {
 public:
@@ -22,12 +24,23 @@ public:
 	const int CLUSTER_ID = 8;
 	const int EXPIRATION = 9;
 	const int REPLY_TO = 10;
+	const std::vector<std::string> PROP_NAMES = {
+		"CorrelationId",
+		"TypeName",
+		"MessageId",
+		"AppId",
+		"ContentEncoding",
+		"ContentType",
+		"UserId",
+		"ClusterId",
+		"Expiration",
+		"ReplyTo",
+	};
 public:
 	RabbitMQClient() : Biterp::Component("RabbitMQClient"), priority(0), consumeChannel(nullptr) {};
 
 	virtual ~RabbitMQClient() {
 		clear();
-		connection.reset(nullptr);
 	};
 
 	inline bool connect(tVariant* paParams, const long lSizeArray) {
@@ -35,6 +48,9 @@ public:
 	}
 	inline bool basicPublish(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::basicPublishImpl, paParams, lSizeArray);
+	}
+	inline bool batchPublish(tVariant* paParams, const long lSizeArray) {
+		return wrapCall(this, &RabbitMQClient::batchPublishImpl, paParams, lSizeArray);
 	}
 	inline bool basicCancel(tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::basicCancelImpl, paParams, lSizeArray);
@@ -82,6 +98,9 @@ public:
 	inline bool getHeaders(tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray) {
 		return wrapCall(this, &RabbitMQClient::getHeadersImpl, paParams, lSizeArray, pvarRetValue);
 	}
+	inline bool getQueueMessageCount(tVariant* pvarRetValue, tVariant* paParams, const long lSizeArray) {
+		return wrapCall(this, &RabbitMQClient::getQueueMessageCountImpl, paParams, lSizeArray, pvarRetValue);
+	}
 
 	inline bool getMsgProp(tVariant* pvarPropVal, const long lPropNum) {
 		return wrapLongCall(this, &RabbitMQClient::getMsgPropImpl, lPropNum, nullptr, 0, pvarPropVal);
@@ -107,12 +126,14 @@ private:
 	void unbindQueueImpl(Biterp::CallContext& ctx);
 
 	void basicPublishImpl(Biterp::CallContext& ctx);
+	void batchPublishImpl(Biterp::CallContext& ctx);
 
 	void basicConsumeImpl(Biterp::CallContext& ctx);
 	void basicConsumeMessageImpl(Biterp::CallContext& ctx);
 	void basicCancelImpl(Biterp::CallContext& ctx);
 	void basicAckImpl(Biterp::CallContext& ctx);
 	void basicRejectImpl(Biterp::CallContext& ctx);
+	void getQueueMessageCountImpl(Biterp::CallContext& ctx);
 
 	void sleepNativeImpl(Biterp::CallContext& ctx);
 
@@ -121,12 +142,50 @@ private:
 	inline void setPriorityImpl(Biterp::CallContext& ctx) { priority = ctx.intParam(); }
 	inline void getPriorityImpl(Biterp::CallContext& ctx) { ctx.setIntResult(lastMessage.priority); }
 
-	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum])); }
+	inline void getMsgPropImpl(const long propNum, Biterp::CallContext& ctx) {
+		auto pending = msgProps.find(propNum);
+		if (pending != msgProps.end() && !pending->second.empty()) {
+			ctx.setStringResult(u16Converter.from_bytes(pending->second));
+			return;
+		}
+		ctx.setStringResult(u16Converter.from_bytes(lastMessage.msgProps[propNum]));
+	}
 	inline void setMsgPropImpl(const long propNum, Biterp::CallContext& ctx) { msgProps[propNum] = ctx.stringParamUtf8(); }
 
+	void fillEnvelope(AMQP::Envelope& envelope, bool persistent, const AMQP::Table& headers, std::map<int, std::string>& props);
+	std::map<int, std::string> propsFromJson(const json& object);
 	AMQP::Table headersFromJson(const std::string& json, bool forConsume=false);
+	AMQP::Table headersFromJson(const json& object, bool forConsume=false);
 	void checkConnection();
+	bool connectionReady(std::string& errorOut);
 	std::string lastMessageHeaders();
+	void ensurePublisherConfirms(AMQP::Channel* channel);
+	void ensurePublishReturnHandler(AMQP::Channel* channel);
+	void waitPublishConfirm(AMQP::Channel* channel);
+	void waitBatchPublishConfirm(AMQP::Channel* channel, size_t publishCount);
+	void verifyExchangeExists(const std::string& exchange);
+	void verifyQueueExists(const std::string& queue);
+
+	void onConnectionLost(const std::string& error);
+
+	void activateLoopCallbacks();
+	void deactivateLoopCallbacks();
+
+	class LoopCallbackGuard {
+	public:
+		explicit LoopCallbackGuard(RabbitMQClient& client) : _client(client) {
+			_client.activateLoopCallbacks();
+		}
+		~LoopCallbackGuard() {
+			_client.deactivateLoopCallbacks();
+		}
+		LoopCallbackGuard(const LoopCallbackGuard&) = delete;
+		LoopCallbackGuard& operator=(const LoopCallbackGuard&) = delete;
+	private:
+		RabbitMQClient& _client;
+	};
+
+	void cancelAllConsumers();
 
 	void clear();
 
@@ -151,6 +210,14 @@ private:
 	std::mutex _mutex;
 	std::condition_variable cvDataArrived;
 	AMQP::Channel* consumeChannel;
+	bool trChannelConfirmEnabled = false;
+	bool publishReturnHandlerEnabled = false;
+	size_t batchPublishAckCount = 0;
+	size_t batchPublishAckTarget = 0;
+	uint32_t queueMessageCount = 0;
+	std::string consumeTagResult;
+	std::shared_ptr<bool> loopCallbackActive;
+	bool shuttingDown = false;
 
 private:
 

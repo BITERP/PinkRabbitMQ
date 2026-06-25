@@ -24,6 +24,17 @@ def test_connect_fail():
         pass
         #assert "Login was refused" in str(e)
 
+def test_connect_bad_port_type():
+    from amqp import get_config
+    com = create()
+    com.set_raise(False)
+    cfg = get_config(None, None, None, None, None, False)
+    res = com.call_proc("Connect", cfg['host'], "5672", cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
+    assert not res
+    err = com.get_last_error()
+    assert "Parameter 1" in err
+    assert "number" in err
+
 
 def test_defparams():
     com = create()

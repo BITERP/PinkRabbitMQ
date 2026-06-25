@@ -92,6 +92,10 @@ namespace Biterp {
                 case VTYPE_I8:
                     index++;
                     return param->llVal;
+                case VTYPE_PSTR:
+                case VTYPE_PWSTR:
+                case VTYPE_BLOB:
+                    throw TypeError(index, "number", param->vt);
                 default:
                     return static_cast<int64_t>(doubleParam());
             }
@@ -108,6 +112,18 @@ namespace Biterp {
                 return param->bVal;
             }
             throw TypeError(index, "bool", param->vt);
+        }
+
+        bool boolParamOptional(bool defaultValue = false) {
+            if (index >= paramsCount) {
+                return defaultValue;
+            }
+            tVariant *param = currentParam();
+            if (param->vt == VTYPE_EMPTY || param->vt == VTYPE_NULL) {
+                index++;
+                return defaultValue;
+            }
+            return boolParam();
         }
 
     public:

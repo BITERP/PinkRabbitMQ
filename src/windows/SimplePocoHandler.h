@@ -1,7 +1,11 @@
 #ifndef SRC_SIMPLEPOCOHANDLER_H_
 #define SRC_SIMPLEPOCOHANDLER_H_
 
+#include <chrono>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <string>
 #include <amqpcpp.h>
 #include "RabbitMQClient.h"
 
@@ -17,8 +21,11 @@ public:
     virtual ~SimplePocoHandler();
 
     void setConnection(AMQP::Connection* connection);
+    void setIoMutex(std::recursive_mutex* mutex);
+    void setLostCallback(std::function<void(const std::string&)> callback);
  	void loopRead();
  	inline void stopLoop() {stop=true;}
+	void closeSocket();
 	static void loopThread(SimplePocoHandler* clazz);
 	void loopIteration();
     inline const std::string& getError(){ return error;}
@@ -43,10 +50,21 @@ private:
 
     virtual uint16_t onNegotiate(AMQP::Connection* connection, uint16_t interval) override;
 
+    virtual void onHeartbeat(AMQP::Connection* connection) override;
+
+    void sendHeartbeatsIfNeeded();
+
+    void notifyLost(const std::string& message);
+
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
+    std::recursive_mutex* ioMutex = nullptr;
+    std::function<void(const std::string&)> lostCallback;
     std::string error;
     volatile bool stop;
     bool closed;
+    bool socketClosed = false;
+    uint16_t heartbeatInterval = 0;
+    std::chrono::steady_clock::time_point lastHeartbeatSent;
 
 };
 
