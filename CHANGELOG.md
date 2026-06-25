@@ -7,7 +7,7 @@
 * `BasicConsumeMessage` не бросает исключений: пустая очередь, потеря связи, таймаут ожидания → `Ложь` + `GetLastError` ([#98](https://github.com/BITERP/PinkRabbitMQ/issues/98), [#93](https://github.com/BITERP/PinkRabbitMQ/issues/93)).
 * Проверка длины routing key / exchange / queue (лимит AMQP 255 байт) вместо `FRAME_ERROR` ([#82](https://github.com/BITERP/PinkRabbitMQ/issues/82)).
 * Linux: `ioMutex` вокруг `TcpConnection::process()` — устраняет `frame size exceeded` при одновременном consume и publish ([#51](https://github.com/BITERP/PinkRabbitMQ/issues/51)).
-* CI Linux: сборка в `ubuntu:20.04` для совместимости с glibc 2.31 / Ubuntu 18.04–20.04 ([#100](https://github.com/BITERP/PinkRabbitMQ/issues/100)).
+* CI Linux: сборка в `debian:bullseye-slim` (glibc 2.31) на `ubuntu-22.04` runner — совместимость с Ubuntu 18.04–20.04 ([#100](https://github.com/BITERP/PinkRabbitMQ/issues/100)); образ `ubuntu-20.04` снят GitHub Actions.
 * Безопасный повторный `Connect`: корректное закрытие SSL-сокета и остановка I/O-потока перед новым подключением ([#89](https://github.com/BITERP/PinkRabbitMQ/issues/89)).
 * `clear()` полностью уничтожает соединение; безопасное переоткрытие каналов после ошибок брокера ([#79](https://github.com/BITERP/PinkRabbitMQ/issues/79), [#65](https://github.com/BITERP/PinkRabbitMQ/issues/65)).
 * Повторный `BasicPublish` после `NOT_FOUND`: канал переоткрывается без таймаута (`releaseChannel`, получение канала вне `withIoLock`) ([#12](https://github.com/BITERP/PinkRabbitMQ/issues/12)).
