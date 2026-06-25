@@ -62,6 +62,8 @@ jobs:
       - name: Test
         if: ${{ inputs.postfix == '' }}
         working-directory: ${{env.LINUX_DIR}}
+        env:
+          RMQ_HOST: rabbitmq
         run: ctest . -V
 
       - name: Upload Linux Library
