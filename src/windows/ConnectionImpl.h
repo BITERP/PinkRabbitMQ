@@ -14,9 +14,12 @@ public:
 	void shutdown();
 	AMQP::Channel* channel();
 	AMQP::Channel* readChannel();
+	void invalidateTransactionChannel();
+	void invalidateReadChannel();
 
 private:
 	void openChannel(std::unique_ptr<AMQP::Channel>& channel);
+	void releaseChannel(std::unique_ptr<AMQP::Channel>& channel);
 	void closeChannel(std::unique_ptr<AMQP::Channel>& channel, std::string reason="");
 
 private:
@@ -27,4 +30,5 @@ private:
 	std::unique_ptr<AMQP::Channel> rcChannel;
 	std::thread thread;
 	int connectTimeoutSec;
+	bool shutDown = false;
 };

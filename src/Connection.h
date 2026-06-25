@@ -15,6 +15,8 @@ public:
 	void connect();
 	AMQP::Channel* channel();
 	AMQP::Channel* readChannel();
+	void invalidateTransactionChannel();
+	void invalidateReadChannel();
 	void loop();
 	void loopbreak(std::string error = "");
 	void notifyLost(std::string error);

@@ -25,6 +25,7 @@ public:
     void setLostCallback(std::function<void(const std::string&)> callback);
  	void loopRead();
  	inline void stopLoop() {stop=true;}
+	void closeSocket();
 	static void loopThread(SimplePocoHandler* clazz);
 	void loopIteration();
     inline const std::string& getError(){ return error;}
@@ -61,6 +62,7 @@ private:
     std::string error;
     volatile bool stop;
     bool closed;
+    bool socketClosed = false;
     uint16_t heartbeatInterval = 0;
     std::chrono::steady_clock::time_point lastHeartbeatSent;
 

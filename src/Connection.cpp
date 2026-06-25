@@ -68,6 +68,16 @@ AMQP::Channel* Connection::readChannel() {
 	return pimpl->readChannel();
 }
 
+void Connection::invalidateTransactionChannel() {
+	std::lock_guard<std::recursive_mutex> lock(_ioMutex);
+	pimpl->invalidateTransactionChannel();
+}
+
+void Connection::invalidateReadChannel() {
+	std::lock_guard<std::recursive_mutex> lock(_ioMutex);
+	pimpl->invalidateReadChannel();
+}
+
 
 void Connection::loop() {
 	std::unique_lock<std::mutex> lock(_mutex);
@@ -75,7 +85,6 @@ void Connection::loop() {
 	error.clear();
 	if (!cvBroken.wait_for(lock, std::chrono::seconds(timeout), [&] { return broken; })) {
 		broken = false;
-		//channel()->close();
 		throw Biterp::Error("AMQP server timeout error");
 	}
 	broken = false;

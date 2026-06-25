@@ -15,9 +15,12 @@ public:
     void shutdown();
     AMQP::Channel* channel();
     AMQP::Channel* readChannel();
+    void invalidateTransactionChannel();
+    void invalidateReadChannel();
 
 private:
     void openChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
+    void releaseChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
     void closeChannel(std::unique_ptr<AMQP::TcpChannel>& channel, std::string reason="");
 
     static void loopThread(ConnectionImpl* thiz);
@@ -33,4 +36,5 @@ private:
     std::thread thread;
     volatile bool stop;
     int connectTimeoutSec;
+    bool shutDown = false;
 };

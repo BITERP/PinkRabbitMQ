@@ -21,6 +21,15 @@ using json = nlohmann::json;
 
 namespace {
 
+constexpr size_t AMQP_SHORTSTR_MAX = 255;
+
+void validateShortString(const std::string& value, const char* fieldName)
+{
+	if (value.size() > AMQP_SHORTSTR_MAX) {
+		throw Biterp::Error(std::string(fieldName) + " exceeds AMQP limit of 255 bytes");
+	}
+}
+
 json amqpFieldToJson(const AMQP::Field& field)
 {
 	if (field.isBoolean()) {
@@ -96,6 +105,8 @@ void RabbitMQClient::connectImpl(Biterp::CallContext& ctx) {
 		});
 		connection->connect();
 		connection->channel();
+		connection->readChannel();
+		connection->loopbreak();
 		{
 			std::lock_guard<std::mutex> lock(_mutex);
 			consumerError.clear();
@@ -133,9 +144,9 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 	}
 
 	AMQP::Table args = headersFromJson(propsJson);
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
+		ch->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -154,9 +165,9 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
+		ch->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -184,9 +195,9 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 	if (maxPriority != 0) {
 		args.set("x-max-priority", maxPriority);
 	}
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
+		ch->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -207,9 +218,9 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
 	bool ifempty = ctx.boolParam();
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
+		ch->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -230,10 +241,14 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 	std::string routingKey = ctx.stringParamUtf8();
 	std::string propsJson = ctx.stringParamUtf8();
 
+	validateShortString(queue, "Queue");
+	validateShortString(exchange, "Exchange");
+	validateShortString(routingKey, "Routing key");
+
 	AMQP::Table args = headersFromJson(propsJson);
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->bindQueue(exchange, queue, routingKey, args)
+		ch->bindQueue(exchange, queue, routingKey, args)
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -252,9 +267,12 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 	std::string queue = ctx.stringParamUtf8();
 	std::string exchange = ctx.stringParamUtf8();
 	std::string routingKey = ctx.stringParamUtf8();
+	validateShortString(queue, "Queue");
+	validateShortString(exchange, "Exchange");
+	validateShortString(routingKey, "Routing key");
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->unbindQueue(exchange, queue, routingKey)
+		ch->unbindQueue(exchange, queue, routingKey)
 			.onSuccess([this]()
 				{
 					connection->loopbreak();
@@ -297,15 +315,15 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	bool persistent = ctx.boolParam();
 	std::string propsJson = ctx.stringParamUtf8();
 
+	validateShortString(exchange, "Exchange");
+	validateShortString(routingKey, "Routing key");
+
 	verifyExchangeExists(exchange);
 
 	AMQP::Envelope envelope(message.data(), message.size());
 	fillEnvelope(envelope, persistent, headersFromJson(propsJson), msgProps);
-	activateLoopCallbacks();
-	AMQP::Channel* ch = nullptr;
-	connection->withIoLock([&]() {
-		ch = connection->channel();
-	});
+	LoopCallbackGuard loopGuard(*this);
+	AMQP::Channel* ch = connection->channel();
 	ensurePublisherConfirms(ch);
 	connection->withIoLock([&]() {
 		ensurePublishReturnHandler(ch);
@@ -313,7 +331,6 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 		ch->publish(exchange, routingKey, envelope, AMQP::mandatory);
 	});
 	connection->loop();
-	deactivateLoopCallbacks();
 }
 
 
@@ -440,6 +457,8 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 	bool persistent = ctx.boolParam();
 	const std::string jsonInput = ctx.stringParamUtf8();
 
+	validateShortString(exchange, "Exchange");
+
 	if (jsonInput.size() > MAX_BATCH_JSON_SIZE) {
 		throw Biterp::Error("Batch messages JSON input too large");
 	}
@@ -463,10 +482,8 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 	}
 
 	AMQP::Channel* ch = nullptr;
-	connection->withIoLock([&]() {
-		ch = connection->channel();
-	});
-	activateLoopCallbacks();
+	ch = connection->channel();
+	LoopCallbackGuard loopGuard(*this);
 	ensurePublisherConfirms(ch);
 	connection->withIoLock([&]() {
 		ensurePublishReturnHandler(ch);
@@ -485,6 +502,7 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 			}
 
 			std::string routingKey = item["routingKey"].get<std::string>();
+			validateShortString(routingKey, "Routing key");
 			std::string message = item["body"].get<std::string>();
 			AMQP::Envelope envelope(message.data(), message.size());
 
@@ -500,7 +518,6 @@ void RabbitMQClient::batchPublishImpl(Biterp::CallContext& ctx) {
 		}
 	});
 	connection->loop();
-	deactivateLoopCallbacks();
 }
 
 
@@ -523,11 +540,12 @@ void RabbitMQClient::verifyExchangeExists(const std::string& exchange) {
 	if (exchange.empty()) {
 		return;
 	}
-	activateLoopCallbacks();
+	validateShortString(exchange, "Exchange");
+	LoopCallbackGuard loopGuard(*this);
 	const auto active = loopCallbackActive;
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->declareExchange(exchange, AMQP::ExchangeType::topic, AMQP::passive)
+		ch->declareExchange(exchange, AMQP::ExchangeType::topic, AMQP::passive)
 			.onSuccess([this, active]()
 				{
 					if (!active || !*active) {
@@ -544,15 +562,15 @@ void RabbitMQClient::verifyExchangeExists(const std::string& exchange) {
 				});
 	});
 	connection->loop();
-	deactivateLoopCallbacks();
 }
 
 void RabbitMQClient::verifyQueueExists(const std::string& queue) {
-	activateLoopCallbacks();
+	validateShortString(queue, "Queue");
+	LoopCallbackGuard loopGuard(*this);
 	const auto active = loopCallbackActive;
+	AMQP::Channel* ch = connection->readChannel();
 	connection->withIoLock([&]() {
-		connection->readChannel()
-			->declareQueue(queue, AMQP::passive)
+		ch->declareQueue(queue, AMQP::passive)
 		.onSuccess([this, active](const std::string&, uint32_t, uint32_t)
 			{
 				if (!active || !*active) {
@@ -569,7 +587,6 @@ void RabbitMQClient::verifyQueueExists(const std::string& queue) {
 			});
 	});
 	connection->loop();
-	deactivateLoopCallbacks();
 }
 
 
@@ -582,78 +599,101 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 	int selectSize = ctx.intParam();
 	std::string propsJson = ctx.stringParamUtf8();
 
+	validateShortString(queue, "Queue");
+	validateShortString(consumerId, "Consumer tag");
+
 	verifyQueueExists(queue);
 
 	AMQP::Table args = headersFromJson(propsJson, true);
 	consumeTagResult.clear();
-	activateLoopCallbacks();
+	LoopCallbackGuard loopGuard(*this);
 	const auto active = loopCallbackActive;
+	AMQP::Channel* channel = connection->readChannel();
+	consumeChannel = channel;
 	connection->withIoLock([&]() {
-		AMQP::Channel* channel = connection->readChannel();
-		consumeChannel = channel;
-		channel->setQos(selectSize);
-		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
-			.onSuccess([this, channel, active](const std::string& tag)
-				{
-					if (!active || !*active) {
-						return;
-					}
-					consumeTagResult = tag;
-					LOGI("Consumer created " + tag);
+		auto startConsume = [&]() {
+			channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
+				.onSuccess([this, channel, active](const std::string& tag)
 					{
-						std::lock_guard<std::mutex> lock(_mutex);
-						consumers.push_back(tag);
-						consumerError.clear();
-						consumeChannel = channel;
-					}
-					connection->loopbreak();
-				})
-			.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
-				{
-					LOGI("Consume new message arrived");
-					MessageObject msgOb;
-					msgOb.body.assign(message.body(), message.bodySize());
-					msgOb.msgProps[CORRELATION_ID] = message.correlationID();
-					msgOb.msgProps[TYPE_NAME] = message.typeName();
-					msgOb.msgProps[MESSAGE_ID] = message.messageID();
-					msgOb.msgProps[APP_ID] = message.appID();
-					msgOb.msgProps[CONTENT_ENCODING] = message.contentEncoding();
-					msgOb.msgProps[CONTENT_TYPE] = message.contentType();
-					msgOb.msgProps[USER_ID] = message.userID();
-					msgOb.msgProps[CLUSTER_ID] = message.clusterID();
-					msgOb.msgProps[EXPIRATION] = message.expiration();
-					msgOb.msgProps[REPLY_TO] = message.replyTo();
-					msgOb.messageTag = deliveryTag;
-					msgOb.priority = message.priority();
-					msgOb.routingKey = message.routingkey();
-					msgOb.headers = message.headers();
+						if (!active || !*active) {
+							return;
+						}
+						consumeTagResult = tag;
+						LOGI("Consumer created " + tag);
+						{
+							std::lock_guard<std::mutex> lock(_mutex);
+							consumers.push_back(tag);
+							consumerError.clear();
+							consumeChannel = channel;
+						}
+						connection->loopbreak();
+					})
+				.onMessage([this](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered)
 					{
-						LOGI("Consume push message");
+						LOGI("Consume new message arrived");
+						MessageObject msgOb;
+						msgOb.body.assign(message.body(), message.bodySize());
+						msgOb.msgProps[CORRELATION_ID] = message.correlationID();
+						msgOb.msgProps[TYPE_NAME] = message.typeName();
+						msgOb.msgProps[MESSAGE_ID] = message.messageID();
+						msgOb.msgProps[APP_ID] = message.appID();
+						msgOb.msgProps[CONTENT_ENCODING] = message.contentEncoding();
+						msgOb.msgProps[CONTENT_TYPE] = message.contentType();
+						msgOb.msgProps[USER_ID] = message.userID();
+						msgOb.msgProps[CLUSTER_ID] = message.clusterID();
+						msgOb.msgProps[EXPIRATION] = message.expiration();
+						msgOb.msgProps[REPLY_TO] = message.replyTo();
+						msgOb.messageTag = deliveryTag;
+						msgOb.priority = message.priority();
+						msgOb.routingKey = message.routingkey();
+						msgOb.headers = message.headers();
+						{
+							LOGI("Consume push message");
+							std::lock_guard<std::mutex> lock(_mutex);
+							messageQueue.push(msgOb);
+							cvDataArrived.notify_all();
+						}
+					})
+				.onCancelled([this](const std::string &consumer){
+						LOGI("Consumer cancelled " + consumer);
 						std::lock_guard<std::mutex> lock(_mutex);
-						messageQueue.push(msgOb);
-						cvDataArrived.notify_all();
-					}
-				})
-			.onCancelled([this](const std::string &consumer){
-					LOGI("Consumer cancelled " + consumer);
-					std::lock_guard<std::mutex> lock(_mutex);
-					consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
-				})
-			.onError([this, active](const char* message)
-				{
-					if (!active || !*active) {
-						return;
-					}
+						consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
+					})
+				.onError([this, active](const char* message)
 					{
-						std::lock_guard<std::mutex> lock(_mutex);
-						consumerError = message;
-						LOGE("Consumer error: " + consumerError);
-					}
-					connection->loopbreak(consumerError);
-				});
+						if (!active || !*active) {
+							return;
+						}
+						{
+							std::lock_guard<std::mutex> lock(_mutex);
+							consumerError = message;
+							LOGE("Consumer error: " + consumerError);
+						}
+						connection->loopbreak(consumerError);
+					});
+		};
+		if (selectSize > 0) {
+			channel->setQos(static_cast<uint16_t>(selectSize), false)
+				.onSuccess([this, active, startConsume]()
+					{
+						if (!active || !*active) {
+							return;
+						}
+						startConsume();
+					})
+				.onError([this, active](const char* message)
+					{
+						if (!active || !*active) {
+							return;
+						}
+						connection->loopbreak(message);
+					});
+		}
+		else {
+			startConsume();
+		}
 	});
 	connection->loop();
-	deactivateLoopCallbacks();
 	if (consumeTagResult.empty()) {
 		throw Biterp::Error("Consumer was not created");
 	}
@@ -662,7 +702,13 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 
 
 void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
-	checkConnection();
+	setSkipAddError(true);
+	std::string connError;
+	if (!connectionReady(connError)) {
+		setLastError(u16Converter.from_bytes(connError));
+		ctx.setBoolResult(false);
+		return;
+	}
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (consumers.empty()) {
@@ -693,6 +739,7 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 			if (!cvDataArrived.wait_for(lock, std::chrono::milliseconds(timeout), [&] {
 				return !messageQueue.empty() || !consumerError.empty() || (connection && connection->isLost());
 			})) {
+				setLastError(u16Converter.from_bytes("Timeout waiting for message"));
 				ctx.setBoolResult(false);
 				return;
 			}
@@ -715,7 +762,14 @@ void RabbitMQClient::basicConsumeMessageImpl(Biterp::CallContext& ctx) {
 		lastMessage = messageQueue.front();
 		messageQueue.pop();
 	}
-	ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
+	try {
+		ctx.setStringResult(u16Converter.from_bytes(lastMessage.body), outdata);
+	}
+	catch (const std::exception& e) {
+		setLastError(u16Converter.from_bytes(e.what()));
+		ctx.setBoolResult(false);
+		return;
+	}
 	ctx.setIntResult(lastMessage.messageTag, outMessageTag);
 	ctx.setBoolResult(true);
 }
@@ -729,11 +783,12 @@ void RabbitMQClient::cancelAllConsumers() {
 	if (!connection || tagsToCancel.empty()) {
 		return;
 	}
-	activateLoopCallbacks();
+	LoopCallbackGuard loopGuard(*this);
 	for (const std::string& tag : tagsToCancel) {
 		try {
+			AMQP::Channel* ch = connection->readChannel();
 			connection->withIoLock([&]() {
-				connection->readChannel()->cancel(tag)
+				ch->cancel(tag)
 					.onSuccess([this](const std::string& cancelledTag)
 						{
 							LOGI("Consumer cancelled on broker: " + cancelledTag);
@@ -750,7 +805,6 @@ void RabbitMQClient::cancelAllConsumers() {
 			connection->loopbreak();
 		}
 	}
-	deactivateLoopCallbacks();
 }
 
 void RabbitMQClient::clear() {
@@ -760,6 +814,7 @@ void RabbitMQClient::clear() {
 	if (connection) {
 		connection->loopbreak();
 		connection->shutdown();
+		connection.reset(nullptr);
 	}
 	std::lock_guard<std::mutex> lock(_mutex);
 	consumers.clear();
@@ -794,8 +849,9 @@ void RabbitMQClient::basicCancelImpl(Biterp::CallContext& ctx) {
 	}
 
 	for (const std::string& tag : tagsToCancel) {
+		AMQP::Channel* ch = connection->readChannel();
 		connection->withIoLock([&]() {
-			connection->readChannel()->cancel(tag)
+			ch->cancel(tag)
 				.onSuccess([this](const std::string& cancelledTag)
 					{
 						LOGI("Consumer cancelled on broker: " + cancelledTag);
@@ -834,10 +890,10 @@ void RabbitMQClient::basicAckImpl(Biterp::CallContext& ctx) {
 	if (tag == 0) {
 		throw Biterp::Error("Message tag cannot be empty!");
 	}
+	AMQP::Channel* ch = connection->readChannel();
 	connection->withIoLock([&]() {
-		connection->readChannel()->ack(tag);
+		ch->ack(tag);
 	});
-	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
 void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
@@ -848,10 +904,10 @@ void RabbitMQClient::basicRejectImpl(Biterp::CallContext& ctx) {
 	}
 	bool requeue = ctx.boolParamOptional(false);
 	int flags = requeue ? AMQP::requeue : 0;
+	AMQP::Channel* ch = connection->readChannel();
 	connection->withIoLock([&]() {
-		connection->readChannel()->reject(tag, flags);
+		ch->reject(tag, flags);
 	});
-	std::this_thread::sleep_for(std::chrono::microseconds(10));
 }
 
 void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
@@ -859,9 +915,9 @@ void RabbitMQClient::getQueueMessageCountImpl(Biterp::CallContext& ctx) {
 
 	std::string name = ctx.stringParamUtf8();
 	queueMessageCount = 0;
+	AMQP::Channel* ch = connection->channel();
 	connection->withIoLock([&]() {
-		connection->channel()
-			->declareQueue(name, AMQP::passive)
+		ch->declareQueue(name, AMQP::passive)
 			.onSuccess([this](const std::string&, uint32_t count, uint32_t)
 				{
 					queueMessageCount = count;
@@ -883,6 +939,18 @@ void RabbitMQClient::checkConnection() {
 	if (connection->isLost()) {
 		throw Biterp::Error(consumerError.empty() ? "Connection lost" : consumerError);
 	}
+}
+
+bool RabbitMQClient::connectionReady(std::string& errorOut) {
+	if (!connection) {
+		errorOut = "Connection is not established! Use the method Connect() first";
+		return false;
+	}
+	if (connection->isLost()) {
+		errorOut = consumerError.empty() ? "Connection lost" : consumerError;
+		return false;
+	}
+	return true;
 }
 
 void RabbitMQClient::sleepNativeImpl(Biterp::CallContext& ctx) {

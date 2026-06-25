@@ -251,10 +251,38 @@ void SimplePocoHandler::loopIteration() {
 	}
 }
 
+void SimplePocoHandler::closeSocket()
+{
+	close();
+}
+
 void SimplePocoHandler::close()
 {
-	m_impl->socket->close();
+	if (socketClosed) {
+		closed = true;
+		return;
+	}
 	closed = true;
+	socketClosed = true;
+	if (!m_impl || !m_impl->socket) {
+		return;
+	}
+	try {
+		auto* secure = dynamic_cast<Poco::Net::SecureStreamSocket*>(m_impl->socket.get());
+		if (secure) {
+			try {
+				secure->shutdown();
+			}
+			catch (const Poco::Exception&) {
+			}
+		}
+		m_impl->socket->close();
+	}
+	catch (const Poco::Exception& exc) {
+		Biterp::Logging::error("Socket close error: " + exc.displayText());
+	}
+	catch (...) {
+	}
 }
 
 void SimplePocoHandler::onData(
@@ -311,8 +339,14 @@ void SimplePocoHandler::sendHeartbeatsIfNeeded()
 	const auto now = std::chrono::steady_clock::now();
 	const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - lastHeartbeatSent).count();
 	if (elapsed >= heartbeatInterval / 2) {
-		m_impl->connection->heartbeat();
-		lastHeartbeatSent = now;
+		std::unique_lock<std::recursive_mutex> ioLock;
+		if (ioMutex) {
+			ioLock = std::unique_lock<std::recursive_mutex>(*ioMutex);
+		}
+		if (!closed && m_impl->connection) {
+			m_impl->connection->heartbeat();
+			lastHeartbeatSent = now;
+		}
 	}
 }
 

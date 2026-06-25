@@ -41,7 +41,6 @@ public:
 
 	virtual ~RabbitMQClient() {
 		clear();
-		connection.reset(nullptr);
 	};
 
 	inline bool connect(tVariant* paParams, const long lSizeArray) {
@@ -158,6 +157,7 @@ private:
 	AMQP::Table headersFromJson(const std::string& json, bool forConsume=false);
 	AMQP::Table headersFromJson(const json& object, bool forConsume=false);
 	void checkConnection();
+	bool connectionReady(std::string& errorOut);
 	std::string lastMessageHeaders();
 	void ensurePublisherConfirms(AMQP::Channel* channel);
 	void ensurePublishReturnHandler(AMQP::Channel* channel);
@@ -170,6 +170,20 @@ private:
 
 	void activateLoopCallbacks();
 	void deactivateLoopCallbacks();
+
+	class LoopCallbackGuard {
+	public:
+		explicit LoopCallbackGuard(RabbitMQClient& client) : _client(client) {
+			_client.activateLoopCallbacks();
+		}
+		~LoopCallbackGuard() {
+			_client.deactivateLoopCallbacks();
+		}
+		LoopCallbackGuard(const LoopCallbackGuard&) = delete;
+		LoopCallbackGuard& operator=(const LoopCallbackGuard&) = delete;
+	private:
+		RabbitMQClient& _client;
+	};
 
 	void cancelAllConsumers();
 

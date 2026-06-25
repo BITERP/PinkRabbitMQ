@@ -1,3 +1,17 @@
+# Новое в версии 2.6 (fork)
+
+## Фаза 4 — исправления
+* Quorum-очереди: `BasicConsume` не вызывает `basic.qos` при `selectSize = 0`; при `selectSize > 0` — per-consumer QoS (`global = false`) ([#90](https://github.com/BITERP/PinkRabbitMQ/issues/90)).
+* Убрана искусственная задержка после `BasicAck`/`BasicReject` ([#99](https://github.com/BITERP/PinkRabbitMQ/issues/99)).
+* После `AMQP server timeout error` async-колбэки сбрасываются через `LoopCallbackGuard` ([#77](https://github.com/BITERP/PinkRabbitMQ/issues/77)); таймаут операции не помечает TCP-соединение потерянным.
+* `BasicConsumeMessage` не бросает исключений: пустая очередь, потеря связи, таймаут ожидания → `Ложь` + `GetLastError` ([#98](https://github.com/BITERP/PinkRabbitMQ/issues/98), [#93](https://github.com/BITERP/PinkRabbitMQ/issues/93)).
+* Проверка длины routing key / exchange / queue (лимит AMQP 255 байт) вместо `FRAME_ERROR` ([#82](https://github.com/BITERP/PinkRabbitMQ/issues/82)).
+* Linux: `ioMutex` вокруг `TcpConnection::process()` — устраняет `frame size exceeded` при одновременном consume и publish ([#51](https://github.com/BITERP/PinkRabbitMQ/issues/51)).
+* CI Linux: сборка в `ubuntu:20.04` для совместимости с glibc 2.31 / Ubuntu 18.04–20.04 ([#100](https://github.com/BITERP/PinkRabbitMQ/issues/100)).
+* Безопасный повторный `Connect`: корректное закрытие SSL-сокета и остановка I/O-потока перед новым подключением ([#89](https://github.com/BITERP/PinkRabbitMQ/issues/89)).
+* `clear()` полностью уничтожает соединение; безопасное переоткрытие каналов после ошибок брокера ([#79](https://github.com/BITERP/PinkRabbitMQ/issues/79), [#65](https://github.com/BITERP/PinkRabbitMQ/issues/65)).
+* Повторный `BasicPublish` после `NOT_FOUND`: канал переоткрывается без таймаута (`releaseChannel`, получение канала вне `withIoLock`) ([#12](https://github.com/BITERP/PinkRabbitMQ/issues/12)).
+
 # Новое в версии 2.5 (fork)
 
 ## Фаза 3 — обрыв связи и стабильность соединения
@@ -8,7 +22,7 @@
 * Windows: однократная инициализация SSL (`std::call_once`) вместо init/uninit на каждое подключение ([#89](https://github.com/BITERP/PinkRabbitMQ/issues/89)).
 * Windows: снижена нагрузка на CPU в фоновом цикле чтения сокета (пауза 1 мс при отсутствии данных).
 * Windows: обрыв сокета (`ConnectionReset`, `receiveBytes == 0`) и `onClosed`/`onError` AMQP пробрасываются наверх.
-* CI Linux: сборка на `ubuntu-20.04` для совместимости с GLIBC 2.31 ([#100](https://github.com/BITERP/PinkRabbitMQ/issues/100)).
+* CI Linux: сборка на `ubuntu-22.04` (ранее пробовали `ubuntu-20.04` для GLIBC 2.31 — образ снят GitHub).
 * Таймаут открытия канала вместо бесконечного ожидания.
 
 # Новое в версии 2.4 (fork)
