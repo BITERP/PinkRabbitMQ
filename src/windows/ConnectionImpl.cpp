@@ -17,16 +17,6 @@ ConnectionImpl::~ConnectionImpl() {
 	connection.reset(nullptr);
 }
 
-void ConnectionImpl::run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc){
-	std::lock_guard<std::mutex> lock(run_mutex);
-	proc(channel);
-}
-
-size_t ConnectionImpl::parse(void* data, size_t size){
-	std::lock_guard<std::mutex> lock(run_mutex);
-	connection->parse(data, size);
-}
-
 void ConnectionImpl::openChannel(std::unique_ptr<AMQP::Channel>& channel) {
 	if (channel) {
 		closeChannel(channel);

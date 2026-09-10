@@ -97,7 +97,7 @@ bool RabbitMQClientNative::RegisterExtensionAs(WCHAR_T** wsExtensionName) {
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::GetNProps() {
 	// You may delete next lines and add your own implementation code here
-	return properties.size();//ePropLast;
+	return (long)properties.size();
 }
 
 //---------------------------------------------------------------------------//

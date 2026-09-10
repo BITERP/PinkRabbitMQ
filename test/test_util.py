@@ -19,10 +19,11 @@ def test_connect_ssl2():
     connect(ssl=True)
 
 def test_connect_fail():
-    cfg = get_config(None, None, "admin", None, None, None)
+    cfg = get_config(None, None, "admin", None, None, False)
     com = Component("PinkRabbitMQ")
     res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
     assert not res
+    print(com.get_last_error())
 
 
 def test_defparams():

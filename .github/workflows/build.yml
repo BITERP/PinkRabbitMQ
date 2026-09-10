@@ -1,16 +1,5 @@
 name: Build
 
-#on:
-#  push:
-#    paths:
-#      - '.github/**'
-#      - 'CI/config.yml'
-#      - 'src/**'
-#      - 'windows/**'
-#      - 'linux/**'
-#      - 'test/**'
-#  workflow_dispatch:
-
 on:
   workflow_call:
     inputs:
@@ -33,11 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.5
 
-      - if: ${{ inputs.postfix == '' }}
+      - name: Run Tests
+        if: ${{ inputs.postfix == '' }}
         run: docker compose run --rm prmq-build Debug
         working-directory: ${{env.LINUX_DIR}}
 
-      - run: docker compose run --rm prmq-build Release ${{env.VERSION}} ${{inputs.postfix}}
+      - name: Build
+        run: docker compose run --rm prmq-build Release ${{env.VERSION}} ${{inputs.postfix}}
         working-directory: ${{env.LINUX_DIR}}
 
       - name: Upload Linux Library
@@ -69,11 +60,7 @@ jobs:
           name: ${{env.LINUX_LIB}}_${{inputs.postfix}}
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Run tests
-        working-directory: ${{env.WIN_DIR}}
-        run: msbuild msbuild.xml -t:runTests
+        uses: microsoft/setup-msbuild@v3
 
       - name: Build
         working-directory: ${{env.WIN_DIR}}

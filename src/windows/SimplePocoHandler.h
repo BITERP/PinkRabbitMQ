@@ -2,6 +2,8 @@
 #define SRC_SIMPLEPOCOHANDLER_H_
 
 #include <memory>
+#include <mutex>
+#include <functional>
 #include <amqpcpp.h>
 #include "RabbitMQClient.h"
 
@@ -19,10 +21,12 @@ public:
     void setConnection(AMQP::Connection* connection);
  	void loopRead();
  	inline void stopLoop() {stop=true;}
-	static void loopThread(SimplePocoHandler* clazz);
+	static void loopThread(SimplePocoHandler* obj) {obj->loopRead();};
 	void loopIteration();
     inline const std::string& getError(){ return error;}
     inline bool isClosed(){ return closed;}
+
+    void run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc);
 
 private:
 
@@ -31,9 +35,9 @@ private:
 
 	void sendDataFromBuffer();
     void close();
+    size_t parse(const char* data, size_t size);
 
-    virtual void onData(
-            AMQP::Connection *connection, const char *data, size_t size) override;
+    virtual void onData(AMQP::Connection *connection, const char *data, size_t size) override;
 
     virtual void onReady(AMQP::Connection *connection) override;
 
@@ -43,11 +47,12 @@ private:
 
     virtual uint16_t onNegotiate(AMQP::Connection* connection, uint16_t interval) override;
 
+private:
     std::shared_ptr<SimplePocoHandlerImpl> m_impl;
     std::string error;
     volatile bool stop;
     bool closed;
-
+    std::mutex run_mutex;
 };
 
 #endif /* SRC_SIMPLEPOCOHANDLER_H_ */
