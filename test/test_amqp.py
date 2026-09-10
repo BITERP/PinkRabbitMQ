@@ -1,5 +1,8 @@
+import time
+
 import pytest
 from amqp import *
+
 
 @pytest.fixture
 def com():
@@ -24,15 +27,23 @@ def test_declare_queue():
 def test_declare_queue_twice():
     com = connect()
     make_queue(com, "mk_queue_2")
-    try:
-        (res, ret) = com.call_func("DeclareQueue", "mk_queue_2", False, False, False, True, 0, None)
-        raise Exception("Must not be here")
-    except RuntimeError as e:
-        assert "PRECONDITION_FAILED" in str(e)
+    (res, ret) = com.call_func("DeclareQueue", "mk_queue_2", False, False, False, True, 0, None)
+    assert not res
+    assert "PRECONDITION_FAILED" in com.get_last_error()
+
+def test_declare_many():
+    com = connect()
+    make_queue(com, "mk_queue_3")
+    for i in range(100):
+        (res, ret) = com.call_func("DeclareQueue", "mk_queue_3", True, False, False, True, 0, None)
+        if not res:
+            print("declare queue error: " + com.get_last_error())
+        assert res
 
 def test_delete_queue():
     com = connect()
     make_queue(com, "mk_queue")
+    del_queue(com, "mk_queue")
     del_queue(com, "mk_queue")
 
 def test_bind_queue():
@@ -42,17 +53,16 @@ def test_bind_queue():
 def test_bind_unexistent():
     com = connect()
     make_exchange(com, "bunx_exch")
-    try:
-        res = com.call_proc("BindQueue", "unexistent", "bunx_exch", "#", None)
-        raise Exception("Must not be here")
-    except RuntimeError as e:
-        assert "NOT_FOUND" in str(e)
+    res = com.call_proc("BindQueue", "unexistent", "bunx_exch", "#", None)
+    assert not res
+    assert "NOT_FOUND" in com.get_last_error()
 
 
 def test_unbind_queue():
     com = connect()
     bind_queue(com, "ubind_queue")
     res = com.call_proc("UnbindQueue", "ubind_queue", "ubind_queue", "#")
+    assert res
 
 def test_publish(com):
     res = com.call_proc("BasicPublish", QUEUE, QUEUE, "Test Message", 0, False, None)

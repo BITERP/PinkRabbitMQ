@@ -2,7 +2,30 @@
 
 #include <amqpcpp/libevent.h>
 #include <string>
+#include <functional>
+#include <mutex>
 #include <openssl/ssl.h>
+
+class TCPConnection: public AMQP::TcpConnection{
+
+    public:
+        using AMQP::TcpConnection::TcpConnection;
+
+        virtual size_t onReceived(AMQP::TcpState *state, const AMQP::Buffer &buffer) override
+        {
+            std::lock_guard<std::mutex> lock(run_mutex);
+            return AMQP::TcpConnection::onReceived(state, buffer);
+        }
+
+        void run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc){
+            std::lock_guard<std::mutex> lock(run_mutex);
+            proc(channel);
+        }
+
+    private:
+        std::mutex run_mutex;
+
+};
 
 class TCPHandler: public AMQP::LibEventHandler{
 public:

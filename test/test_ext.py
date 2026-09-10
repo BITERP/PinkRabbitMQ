@@ -1,13 +1,12 @@
 from amqp import *
 
+
 def test_ext_bad_json():
     com = connect()
-    try:
-        del_queue(com, QUEUE)
-        (res, ret) = com.call_func("DeclareQueue", QUEUE, False, True, False, False, 0, "NOT JSON")
-        raise Exception("Must not be here")
-    except RuntimeError as e:
-        assert "syntax error"
+    del_queue(com, QUEUE)
+    (res, ret) = com.call_func("DeclareQueue", QUEUE, False, True, False, False, 0, "NOT JSON")
+    assert not res
+    assert "syntax error" in com.get_last_error()
 
 
 def test_ext_good_param():

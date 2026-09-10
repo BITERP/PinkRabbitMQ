@@ -77,19 +77,17 @@ void RabbitMQClient::declareExchangeImpl(Biterp::CallContext& ctx) {
 	}
 
 	AMQP::Table args = headersFromJson(propsJson);
-	{
-		connection->channel()
-			->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->declareExchange(name, topic, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (autodelete ? AMQP::autodelete : 0), args)
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 }
 
 
@@ -98,19 +96,17 @@ void RabbitMQClient::deleteExchangeImpl(Biterp::CallContext& ctx) {
 
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
-	{
-		connection->channel()
-			->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->removeExchange(name, (ifunused ? AMQP::ifunused : 0))
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 }
 
 void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
@@ -128,19 +124,17 @@ void RabbitMQClient::declareQueueImpl(Biterp::CallContext& ctx) {
 	if (maxPriority != 0) {
 		args.set("x-max-priority", maxPriority);
 	}
-	{
-		connection->channel()
-			->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->declareQueue(name, (onlyCheckIfExists ? AMQP::passive : 0) | (durable ? AMQP::durable : 0) | (exclusive ? AMQP::exclusive : 0) | (autodelete ? AMQP::autodelete : 0), args)
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 	ctx.setStringResult(u16Converter.from_bytes(name));
 }
 
@@ -151,19 +145,17 @@ void RabbitMQClient::deleteQueueImpl(Biterp::CallContext& ctx) {
 	std::string name = ctx.stringParamUtf8();
 	bool ifunused = ctx.boolParam();
 	bool ifempty = ctx.boolParam();
-	{
-		connection->channel()
-			->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->removeQueue(name, (ifunused ? AMQP::ifunused : 0) | (ifempty ? AMQP::ifempty : 0))
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 }
 
 void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
@@ -175,19 +167,17 @@ void RabbitMQClient::bindQueueImpl(Biterp::CallContext& ctx) {
 	std::string propsJson = ctx.stringParamUtf8();
 
 	AMQP::Table args = headersFromJson(propsJson);
-	{
-		connection->channel()
-			->bindQueue(exchange, queue, routingKey, args)
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->bindQueue(exchange, queue, routingKey, args)
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 }
 
 void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
@@ -196,19 +186,17 @@ void RabbitMQClient::unbindQueueImpl(Biterp::CallContext& ctx) {
 	std::string queue = ctx.stringParamUtf8();
 	std::string exchange = ctx.stringParamUtf8();
 	std::string routingKey = ctx.stringParamUtf8();
-	{
-		connection->channel()
-			->unbindQueue(exchange, queue, routingKey)
-			.onSuccess([this]()
-				{
-					connection->loopbreak();
-				})
-			.onError([this](const char* message)
-				{
-					connection->loopbreak(message);
-				});
-	}
-	connection->loop();
+	connection->run([&](AMQP::Channel* ch){
+		ch->unbindQueue(exchange, queue, routingKey)
+		.onSuccess([this]()
+			{
+				connection->loopbreak();
+			})
+		.onError([this](const char* message)
+			{
+				connection->loopbreak(message);
+			});
+	});
 }
 
 
@@ -239,8 +227,7 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 	if (priority != 0) envelope.setPriority(priority);
 	if (persistent) { envelope.setDeliveryMode(2); }
 	envelope.setHeaders(headersFromJson(propsJson));
-	{
-		AMQP::Channel* ch = connection->channel();
+	connection->run([&](AMQP::Channel* ch){
 		ch->startTransaction();
 		ch->publish(exchange, routingKey, envelope);
 		ch->commitTransaction()
@@ -252,8 +239,7 @@ void RabbitMQClient::basicPublishImpl(Biterp::CallContext& ctx) {
 				{
 					connection->loopbreak(message);
 				});
-	}
-	connection->loop();
+	});
 }
 
 
@@ -268,8 +254,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 
 	AMQP::Table args = headersFromJson(propsJson, true);
 	std::string result;
-	{
-		AMQP::Channel* channel = connection->readChannel();
+	connection->runOnChannel(connection->readChannel(), [&](AMQP::Channel* channel){
 		channel->setQos(selectSize);
 		channel->consume(queue, consumerId, (noconfirm ? AMQP::noack : 0) | (exclusive ? AMQP::exclusive : 0), args)
 			.onSuccess([this, &result, channel](const std::string& tag)
@@ -324,8 +309,7 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 						connection->loopbreak(consumerError);
 					}
 				});
-	}
-	connection->loop();
+	});
 	ctx.setStringResult(u16Converter.from_bytes(result));
 }
 

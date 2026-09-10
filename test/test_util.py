@@ -1,6 +1,8 @@
-from amqp import *
-import pytest
 import os
+
+import pytest
+from amqp import *
+
 
 def create():
     return Component("PinkRabbitMQ")
@@ -17,12 +19,10 @@ def test_connect_ssl2():
     connect(ssl=True)
 
 def test_connect_fail():
-    try:
-        connect(login="admin")
-        raise Exception("Must not be here")
-    except RuntimeError as e:
-        pass
-        #assert "Login was refused" in str(e)
+    cfg = get_config(None, None, "admin", None, None, None)
+    com = Component("PinkRabbitMQ")
+    res = com.call_proc("Connect", cfg['host'], cfg['port'], cfg['login'], cfg['pswd'], cfg['vhost'], 0, cfg['ssl'], 5)
+    assert not res
 
 
 def test_defparams():
@@ -61,5 +61,3 @@ def test_priority():
     res, ret = com.call_func("GetPriority")
     assert res
     assert ret == 13
-
-

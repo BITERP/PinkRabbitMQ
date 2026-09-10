@@ -14,7 +14,7 @@ ConnectionImpl::ConnectionImpl(const AMQP::Address& address) :
     }
     eventLoop = event_base_new();
     handler.reset(new TCPHandler(eventLoop));
-    connection.reset(new AMQP::TcpConnection(handler.get(), address));
+    connection.reset(new TCPConnection(handler.get(), address));
     thread = std::thread(ConnectionImpl::loopThread, this);
 }
 

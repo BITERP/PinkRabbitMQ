@@ -12,6 +12,7 @@ public:
     void connect();
     AMQP::Channel* channel();
     AMQP::Channel* readChannel();
+    inline void run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc) {connection->run(channel, proc);};
 
 private:
     void openChannel(std::unique_ptr<AMQP::TcpChannel>& channel);
@@ -22,7 +23,7 @@ private:
 private:
     event_base* eventLoop;
     std::unique_ptr<TCPHandler> handler;
-    std::unique_ptr<AMQP::TcpConnection> connection;
+    std::unique_ptr<TCPConnection> connection;
 
     std::unique_ptr<AMQP::TcpChannel> trChannel;
     std::unique_ptr<AMQP::TcpChannel> rcChannel;

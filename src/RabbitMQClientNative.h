@@ -26,6 +26,7 @@ public:
 		ePropClusterId,
 		ePropExpiration,
 		ePropReplyTo,
+		ePropUseAddError,
 		ePropLast // Always last
 	};
 

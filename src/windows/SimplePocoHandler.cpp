@@ -182,8 +182,7 @@ void SimplePocoHandler::loopIteration() {
 
 	if (m_impl->connection && m_impl->inputBuffer.available())
 	{
-		size_t count = m_impl->connection->parse(m_impl->inputBuffer.data(),
-			m_impl->inputBuffer.available());
+		size_t count = m_impl->parse(m_impl->inputBuffer.data(), m_impl->inputBuffer.available());
 
 		if (count == m_impl->inputBuffer.available())
 		{

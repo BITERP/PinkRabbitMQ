@@ -31,7 +31,7 @@ namespace Biterp {
     */
     class Component {
     public:
-        Component(const char *className) : addin(nullptr), skipAddError(false) {
+        Component(const char *className) : addin(nullptr), skipAddError(true), useAddError(false) {
             this->className = u16Converter.from_bytes(className);
             this->version = QUOTE(VERSION);
         }
@@ -87,6 +87,20 @@ namespace Biterp {
             std::u16string uver = u16Converter.from_bytes(version);
             return memManager.variantFromString(pvarRetValue, uver);
         }
+        inline bool getUseAddError(tVariant *pvarRetValue) {
+            pvarRetValue->vt = VTYPE_BOOL;
+            pvarRetValue->bVal = useAddError;
+            return true;
+        }
+        inline bool setUseAddError(tVariant *pvarRetValue) {
+            if (pvarRetValue->vt != VTYPE_BOOL){
+                return false;
+            }
+            useAddError = pvarRetValue->bVal;
+            return true;
+        }
+
+
 
         inline const Biterp::Logging::Logger& getLogger(){ return logger; }
 
@@ -162,7 +176,7 @@ namespace Biterp {
                       tVariant *pvarRetValue = nullptr) {
             bool result = false;
             try {
-                skipAddError = false;
+                skipAddError = !useAddError;
                 lastError.clear();
                 CallContext ctx(memManager, paParams, lSizeArray, pvarRetValue);
                 (obj->*proc)(ctx);
@@ -186,6 +200,7 @@ namespace Biterp {
         std::u16string lastError;
         MemoryManager memManager;
         bool skipAddError;
+        bool useAddError;
         Biterp::Logging::Logger logger;
     };
 

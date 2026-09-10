@@ -57,3 +57,8 @@ void Connection::loopbreak(std::string error) {
 	broken = true;
 	cvBroken.notify_all();
 }
+
+void Connection::runOnChannel(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc){
+	pimpl->run(channel, proc);
+	loop();
+}

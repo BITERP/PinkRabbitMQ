@@ -26,6 +26,7 @@ Biterp::Names RabbitMQClientNative::properties{{
 	{RabbitMQClientNative::ePropClusterId, {u"ClusterId"}},
 	{RabbitMQClientNative::ePropExpiration, {u"Expiration"}},
 	{RabbitMQClientNative::ePropReplyTo, {u"ReplyTo"}},
+	{RabbitMQClientNative::ePropUseAddError, {u"UseAddError"}},
 }};
 
 Biterp::Names RabbitMQClientNative::methods{{
@@ -74,7 +75,7 @@ bool RabbitMQClientNative::Init(VOID_PTR pConnection) {
 
 //---------------------------------------------------------------------------//
 long RabbitMQClientNative::GetInfo() {
-	// Component should put supported component technology version 
+	// Component should put supported component technology version
 	// This component supports 2.0 version
 	return 2000;
 }
@@ -126,6 +127,9 @@ bool RabbitMQClientNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal
 	case ePropVersion:
 		ret = impl.getVersion(pvarPropVal);
 		break;
+	case ePropUseAddError:
+		ret = impl.getUseAddError(pvarPropVal);
+		break;
 	case ePropCorrelationId:
 	case ePropType:
 	case ePropMessageId:
@@ -162,6 +166,9 @@ bool RabbitMQClientNative::SetPropVal(const long lPropNum, tVariant* varPropVal)
 	case ePropExpiration:
 	case ePropReplyTo:
 		ret = impl.setMsgProp(varPropVal, lPropNum);
+		break;
+	case ePropUseAddError:
+		ret = impl.setUseAddError(varPropVal);
 		break;
 	default:
 		ret = false;
@@ -414,4 +421,3 @@ bool RabbitMQClientNative::setMemManager(void* mem) {
 	impl.memoryManager().setHandle((IMemoryManager*)mem);
 	return mem != 0;
 }
-

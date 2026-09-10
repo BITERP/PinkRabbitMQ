@@ -9,4 +9,5 @@ RUN python3 -m pip install pytest requests cryptography PyYAML
 
 COPY build.sh /build.sh
 
-ENTRYPOINT /bin/bash /build.sh
+ENTRYPOINT ["/build.sh"]
+CMD ["Debug"]

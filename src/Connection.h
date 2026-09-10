@@ -14,8 +14,12 @@ public:
 	void connect();
 	AMQP::Channel* channel();
 	AMQP::Channel* readChannel();
-	void loop();
 	void loopbreak(std::string error = "");
+	inline void run(std::function<void(AMQP::Channel*)> proc) {runOnChannel(channel(), proc);}
+	void runOnChannel(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc);
+
+private:
+	void loop();
 
 private:
 	ConnectionImpl* pimpl;
