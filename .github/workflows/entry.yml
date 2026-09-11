@@ -20,6 +20,7 @@ jobs:
             "3","3_2","3_3","3_4","3_5","3_6","3_7","3_8","3_9",
           ]
       fail-fast: true
+      max-parallel: 3
     uses: ./.github/workflows/build.yml
     with:
       postfix: ${{ matrix.name }}
