@@ -129,10 +129,17 @@ void SimplePocoHandler::setConnection(AMQP::Connection* connection)
 	m_impl->connection = connection;
 }
 
-void SimplePocoHandler::loopThread(SimplePocoHandler* obj)
-{
-	obj->loopRead();
+void SimplePocoHandler::run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc){
+	std::lock_guard<std::mutex> lock(run_mutex);
+	proc(channel);
 }
+
+size_t SimplePocoHandler::parse(const char* data, size_t size){
+	std::lock_guard<std::mutex> lock(run_mutex);
+	return m_impl->connection->parse(data, size);
+}
+
+
 
 void SimplePocoHandler::loopRead()
 {
@@ -182,8 +189,7 @@ void SimplePocoHandler::loopIteration() {
 
 	if (m_impl->connection && m_impl->inputBuffer.available())
 	{
-		size_t count = m_impl->connection->parse(m_impl->inputBuffer.data(),
-			m_impl->inputBuffer.available());
+		size_t count = parse(m_impl->inputBuffer.data(), m_impl->inputBuffer.available());
 
 		if (count == m_impl->inputBuffer.available())
 		{
@@ -240,7 +246,7 @@ void SimplePocoHandler::sendDataFromBuffer()
 {
 	if (m_impl->outBuffer.available())
 	{
-		m_impl->socket->sendBytes(m_impl->outBuffer.data(), m_impl->outBuffer.available());
+		m_impl->socket->sendBytes(m_impl->outBuffer.data(), (int)m_impl->outBuffer.available());
 		m_impl->outBuffer.drain();
 	}
 }

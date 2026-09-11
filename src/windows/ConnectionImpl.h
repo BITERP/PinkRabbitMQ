@@ -2,6 +2,7 @@
 
 #include <amqpcpp.h>
 #include <thread>
+#include <functional>
 #include "SimplePocoHandler.h"
 
 class ConnectionImpl{
@@ -11,6 +12,7 @@ public:
 	void connect();
 	AMQP::Channel* channel();
 	AMQP::Channel* readChannel();
+	inline void run(AMQP::Channel* channel, std::function<void(AMQP::Channel*)> proc) {handler.run(channel, proc);}
 
 private:
 	void openChannel(std::unique_ptr<AMQP::Channel>& channel);

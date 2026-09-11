@@ -14,7 +14,7 @@ namespace Biterp {
 
     class Error : public std::runtime_error {
     public:
-        Error(const std::string &msg) : std::runtime_error(msg) {
+        Error(const std::string &msg) : std::runtime_error(msg){
             *this << msg;
 #if defined(__ANDROID__)
             pthread_key_t key;
@@ -31,19 +31,19 @@ namespace Biterp {
         Error() : std::runtime_error("") {}
 
         virtual char const *what() const _NOEXCEPT override {
-            return errorString.c_str();
+            return err.c_str();
         };
 
         template<typename T>
-        Error &&operator<<(T value) {
+        Error &operator<<(T value) {
+            std::stringstream ss;
             ss << value;
-            errorString = ss.str();
-            return std::move(*this);
+            err += ss.str();
+            return *this;
         }
 
     private:
-        std::stringstream ss;
-        std::string errorString;
+        std::string err;
     };
 
     class TypeError : public Error {
