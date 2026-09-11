@@ -298,7 +298,10 @@ void RabbitMQClient::basicConsumeImpl(Biterp::CallContext& ctx) {
 			.onCancelled([this](const std::string &consumer){
 					LOGI("Consumer cancelled " + consumer);
 					std::lock_guard<std::mutex> lock(_mutex);
-					consumers.erase(std::remove_if(consumers.begin(), consumers.end(), [&consumer](std::string& s){return s == consumer;}));
+					auto it = std::find(consumers.begin(), consumers.end(), consumer);
+					if (it != consumers.end()) {
+						consumers.erase(it);
+					}
 				})
 			.onError([this, &result](const char* message)
 				{

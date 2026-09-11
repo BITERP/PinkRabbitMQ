@@ -141,16 +141,16 @@ private:
 	};
 
 private:
+	std::mutex _mutex;
+	std::vector<std::string> consumers;
 	std::map<int, std::string> msgProps;
-	std::unique_ptr<Connection> connection;
 	int priority;
 	MessageObject lastMessage;
 	std::string consumerError;
-	std::vector<std::string> consumers;
 	std::queue<MessageObject> messageQueue;
-	std::mutex _mutex;
 	std::condition_variable cvDataArrived;
 	AMQP::Channel* consumeChannel;
+	std::unique_ptr<Connection> connection;
 
 private:
 
